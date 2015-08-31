@@ -19,7 +19,7 @@ export MOCK=1
     [ "$status" = 0 ]
 }
 
-@test "Test backup" {
+@test "Test backup db" {
 	run bin/magento setup:backup --db
 	[ "$status" = 0 ]
 	[ "${lines[0]}" = "Enabling maintenance mode" ]
@@ -29,4 +29,15 @@ export MOCK=1
 	[ "${lines[4]}" = "[SUCCESS]: DB backup completed successfully." ]
 	[ "${lines[5]}" = "Disabling maintenance mode" ]
 
+}
+
+@test "Test backups info list and rollback db" {
+    run bin/magento info:backups:list
+    [ "$status" = 0 ]
+    [ $(expr "${lines[0]}" : "Showing backup files*") -ne 0]
+    [ $(expr "${lines[2]}" : "| Backup Filename  | Backup Type |") -ne 0]
+    [ $(expr "${lines[3]}" : "*| db          |") -ne 0]
+    $output = lines[3]
+    run bin/magento setup:rollback -d  $output -n
+    [ "$status" = 0 ]
 }
