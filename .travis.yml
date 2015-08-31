@@ -79,4 +79,4 @@ script:
   # Static tests [Code Style]
   - sh -c "if [ '$TEST_SUITE' = 'static_annotation' ]; then cd dev/tests/static; ./../../../vendor/bin/phpunit -c phpunit.xml.dist --filter 'Magento\\\\Test\\\\Php\\\\LiveCodeTest::testAnnotationStandard'; fi"
   # Test Command line tools
-  - sh -c "if [ '$TEST_SUITE' = 'magento_command_line_tests' ]; then bin/magento setup:install --db-host=localhost --db-name=magento --db-user=root --admin-user=admin --admin-password=123123q --admin-email=admin@example.com --admin-firstname=John --admin-lastname=Smith; bats dev/tests/cli; fi"
+  - sh -c "if [ '$TEST_SUITE' = 'magento_command_line_tests' ]; then bin/magento setup:install --db-host=localhost --db-name=magento_integration_tests --db-user=root --admin-user=admin --admin-password=123123q --admin-email=admin@example.com --admin-firstname=John --admin-lastname=Smith; bats dev/tests/cli; fi"
