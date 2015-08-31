@@ -3,12 +3,13 @@ php:
   - 5.5
   - 5.6
 env:
-  - TEST_SUITE=unit
-  - TEST_SUITE=integration_part_1
-  - TEST_SUITE=integration_part_2
-  - TEST_SUITE=integration_integrity
-  - TEST_SUITE=static_phpcs
-  - TEST_SUITE=static_annotation
+#  - TEST_SUITE=unit
+#  - TEST_SUITE=integration_part_1
+#  - TEST_SUITE=integration_part_2
+#  - TEST_SUITE=integration_integrity
+#  - TEST_SUITE=static_phpcs
+#  - TEST_SUITE=static_annotation
+  - TEST_SUITE=magento_command_line_tests
 cache:
   apt: true
   directories:
@@ -21,8 +22,10 @@ matrix:
     - php: 5.6
       env: TEST_SUITE=static_annotation
 before_install:
+  - sudo add-apt-repository ppa:duggan/bats --yes
   - sudo apt-get update -qq
   - sudo apt-get install -y -qq postfix
+  - sudo apt-get install -qq bats
   - sh -c 'if [ "$CASHER_DIR" ]; then
          if [ -x $HOME/.cache/bin/composer ]; then
            $HOME/.cache/bin/composer self-update; echo '';
@@ -75,3 +78,5 @@ script:
   - sh -c "if [ '$TEST_SUITE' = 'static_phpcs' ]; then cd dev/tests/static; ./../../../vendor/bin/phpunit -c phpunit.xml.dist --filter 'Magento\\\\Test\\\\Php\\\\LiveCodeTest::testCodeStyle'; fi"
   # Static tests [Code Style]
   - sh -c "if [ '$TEST_SUITE' = 'static_annotation' ]; then cd dev/tests/static; ./../../../vendor/bin/phpunit -c phpunit.xml.dist --filter 'Magento\\\\Test\\\\Php\\\\LiveCodeTest::testAnnotationStandard'; fi"
+  # Test Command line tools
+  - sh -c "if [ '$TEST_SUITE' = 'magento_command_line_tests' ]; then bats dev/tests/cli; fi"
