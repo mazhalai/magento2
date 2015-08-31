@@ -5,5 +5,9 @@ export MOCK=1
 @test "info command" {
 	bin/magento info
 	[ "$status" = 1 ]
-	[ "${lines[0]}" = "  [InvalidArgumentException]" ]
+}
+
+@test "currency info command" {
+	bin/magento info:currency:list
+	[ "$status" = 1 ]
 }
