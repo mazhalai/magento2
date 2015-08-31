@@ -9,5 +9,5 @@ export MOCK=1
 
 @test "currency info command" {
 	run bin/magento info:currency:list
-	[ "$status" = 1 ]
+	[ "$status" = 0 ]
 }
