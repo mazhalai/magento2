@@ -5,7 +5,7 @@ export MOCK=1
 @test "Test list all commands" {
 	run bin/magento list
 	[ "$status" = 0 ]
-	[ $(expr "${lines[0]}" : "Magento CLI version*") -eq 0 ]
+	[ $(expr "${lines[0]}" : "Magento CLI version*") -ne 0 ]
 }
 
 @test "Test help" {
