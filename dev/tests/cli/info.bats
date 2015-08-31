@@ -12,7 +12,7 @@ export MOCK=1
 	run bin/magento help
 	[ "$status" = 0 ]
 	[ "${lines[0]}" = "Usage:" ]
-	[ "${lines[1]}" = " help [--xml] [--format="..."] [--raw] [command_name]" ]
+	[ "${lines[1]}" = " help [--xml] [--format=\"...\"] [--raw] [command_name]" ]
 }
 
 @test "Test failure of info command" {
