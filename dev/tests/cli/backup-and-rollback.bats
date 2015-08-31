@@ -28,15 +28,17 @@ export MOCK=1
 	[ $(expr "${lines[3]}" : "DB backup path*") -ne 0 ]
 	[ "${lines[4]}" = "[SUCCESS]: DB backup completed successfully." ]
 	[ "${lines[5]}" = "Disabling maintenance mode" ]
-
+	run ls var/backups
+    [ "$status" = 0 ]
+    backupFileName = "${lines[0]}"
 }
 
 @test "Test backups info list and rollback db" {
     run bin/magento info:backups:list
     [ "$status" = 0 ]
-    [ $(expr "${lines[0]}" : "Showing backup files in *") -ne 0]
-    [ $(expr "${lines[2]}" : "| Backup Filename  | Backup Type |") -ne 0]
-    [ $(expr "${lines[4]}" : "*| db          |") -ne 0]
+    [ $(expr "${lines[0]}" : "Showing backup files in *") -ne 0 ]
+    [ $(expr "${lines[2]}" : "| Backup Filename  | Backup Type |") -ne 0 ]
+    [ $(expr "${lines[4]}" : "*| db          |") -ne 0 ]
     lineFour = "${lines[4]}"
 
     run bin/magento setup:rollback -d  $(lineFour/| //) -n
