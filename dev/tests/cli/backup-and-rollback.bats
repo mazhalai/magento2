@@ -34,10 +34,18 @@ export MOCK=1
 @test "Test backups info list and rollback db" {
     run bin/magento info:backups:list
     [ "$status" = 0 ]
-    [ $(expr "${lines[0]}" : "Showing backup files*") -ne 0]
+    [ $(expr "${lines[0]}" : "Showing backup files in *") -ne 0]
     [ $(expr "${lines[2]}" : "| Backup Filename  | Backup Type |") -ne 0]
-    [ $(expr "${lines[3]}" : "*| db          |") -ne 0]
-    $output = lines[3]
-    run bin/magento setup:rollback -d  $output -n
+    [ $(expr "${lines[4]}" : "*| db          |") -ne 0]
+    lineFour = "${lines[4]}"
+
+    run bin/magento setup:rollback -d  $(lineFour/| //) -n
     [ "$status" = 0 ]
+    [ "${lines[0]}" = "Enabling maintenance mode" ]
+    [ "${lines[1]}" = "DB rollback is starting..." ]
+    [ $(expr "${lines[2]}" : "DB rollback filename: *") -ne 0 ]
+    [ $(expr "${lines[3]}" : "DB rollback path: *") -ne 0 ]
+    [ "${lines[4]}" = "[SUCCESS]: DB rollback completed successfully." ]
+    [ "${lines[5]}" = "Please set file permission of bin/magento to executable" ]
+    [ "${lines[6]}" = "Disabling maintenance mode" ]
 }
