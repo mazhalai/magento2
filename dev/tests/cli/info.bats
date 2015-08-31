@@ -5,13 +5,13 @@ export MOCK=1
 @test "Test list all commands" {
 	run bin/magento list
 	[ "$status" = 0 ]
-	[ "${lines[0]}" = "Magento CLI version " ]
+	[[ "${lines[0]}" = "Magento CLI version*" ]]
 }
 
 @test "Test help" {
 	run bin/magento help
 	[ "$status" = 0 ]
-	[ "${lines[0]}" = "Usage" ]
+	[ "${lines[0]}" = "Usage:" ]
 	[ "${lines[1]}" = "help [--xml] [--format="..."] [--raw] [command_name]" ]
 }
 
