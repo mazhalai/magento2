@@ -18,7 +18,7 @@ export MOCK=1
     run bin/magento setup:install --db-host=localhost --db-name=magento --db-user=root --admin-user=admin --admin-password=123123q --admin-email=admin@example.com --admin-firstname=John --admin-lastname=Smith
 }
 
-@test "Test backup without installation" {
+@test "Test backup" {
 	run bin/magento setup:backup --db
 	[ "$status" = 0 ]
 	[ "${lines[0]}" = "Enabling maintenance mode" ]
