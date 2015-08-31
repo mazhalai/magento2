@@ -16,6 +16,7 @@ export MOCK=1
 
 @test "Test Install" {
     run bin/magento setup:install --db-host=localhost --db-name=magento --db-user=root --admin-user=admin --admin-password=123123q --admin-email=admin@example.com --admin-firstname=John --admin-lastname=Smith
+    [ "$status" = 0 ]
 }
 
 @test "Test backup" {
