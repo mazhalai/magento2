@@ -40,9 +40,11 @@ try {
         $installConfigFile .= '.dist';
     }
     $globalConfigFile = $settings->getAsConfigFile('TESTS_GLOBAL_CONFIG_FILE');
+    echo "1" . $globalConfigFile . PHP_EOL
     if (!file_exists($globalConfigFile)) {
         $globalConfigFile .= '.dist';
     }
+    echo "2" . $globalConfigFile . PHP_EOL
     $sandboxUniqueId = md5(sha1_file($installConfigFile));
     $installDir = TESTS_TEMP_DIR . "/sandbox-{$settings->get('TESTS_PARALLEL_THREAD', 0)}-{$sandboxUniqueId}";
     $application = new \Magento\TestFramework\Application(
