@@ -31,6 +31,7 @@ class CreateAdminUserEntityTest extends Injectable
     /* tags */
     const MVP = 'no';
     const DOMAIN = 'PS';
+    const TEST_TYPE = 'extended_acceptance_test';
     /* end tags */
 
     /**
@@ -63,7 +64,7 @@ class CreateAdminUserEntityTest extends Injectable
     public function __prepare(FixtureFactory $fixtureFactory)
     {
         $this->fixtureFactory = $fixtureFactory;
-        $adminUser = $fixtureFactory->createByCode('user');
+        $adminUser = $fixtureFactory->createByCode('user', ['dataset' => 'custom_admin']);
         $adminUser->persist();
 
         return ['adminUser' => $adminUser];
@@ -88,13 +89,10 @@ class CreateAdminUserEntityTest extends Injectable
      * @param User $user
      * @param User $adminUser
      * @param string $isDuplicated
-     * @return void
+     * @return array
      */
-    public function test(
-        User $user,
-        User $adminUser,
-        $isDuplicated
-    ) {
+    public function test(User $user, User $adminUser, $isDuplicated)
+    {
         // Prepare data
         if ($isDuplicated != '-') {
             $data = $user->getData();
@@ -108,5 +106,7 @@ class CreateAdminUserEntityTest extends Injectable
         $this->userIndexPage->getPageActions()->addNew();
         $this->userEditPage->getUserForm()->fill($user);
         $this->userEditPage->getPageActions()->save();
+
+        return ['customAdmin' => $user];
     }
 }

@@ -68,6 +68,11 @@ class UpdateItemOptionsTest extends \PHPUnit_Framework_TestCase
     protected $resultRedirectMock;
 
     /**
+     * @var \Magento\Framework\Data\Form\FormKey\Validator|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $formKeyValidator;
+
+    /**
      * SetUp method
      *
      * @return void
@@ -94,6 +99,10 @@ class UpdateItemOptionsTest extends \PHPUnit_Framework_TestCase
             ->method('create')
             ->with(ResultFactory::TYPE_REDIRECT, [])
             ->willReturn($this->resultRedirectMock);
+
+        $this->formKeyValidator = $this->getMockBuilder('Magento\Framework\Data\Form\FormKey\Validator')
+            ->disableOriginalConstructor()
+            ->getMock();
     }
 
     /**
@@ -161,12 +170,42 @@ class UpdateItemOptionsTest extends \PHPUnit_Framework_TestCase
     protected function getController()
     {
         $this->prepareContext();
+
+        $this->formKeyValidator->expects($this->once())
+            ->method('validate')
+            ->with($this->request)
+            ->willReturn(true);
+
         return new \Magento\Wishlist\Controller\Index\UpdateItemOptions(
             $this->context,
             $this->customerSession,
             $this->wishlistProvider,
-            $this->productRepository
+            $this->productRepository,
+            $this->formKeyValidator
         );
+    }
+
+    public function testExecuteWithInvalidFormKey()
+    {
+        $this->prepareContext();
+
+        $this->formKeyValidator->expects($this->once())
+            ->method('validate')
+            ->with($this->request)
+            ->willReturn(false);
+
+        $this->resultRedirectMock->expects($this->once())
+            ->method('setPath')
+            ->with('*/*/')
+            ->willReturnSelf();
+
+        $controller = new \Magento\Wishlist\Controller\Index\Remove(
+            $this->context,
+            $this->wishlistProvider,
+            $this->formKeyValidator
+        );
+
+        $this->assertSame($this->resultRedirectMock, $controller->execute());
     }
 
     /**
@@ -315,7 +354,7 @@ class UpdateItemOptionsTest extends \PHPUnit_Framework_TestCase
         $wishlist
             ->expects($this->once())
             ->method('updateItem')
-            ->with(3, new \Magento\Framework\Object([]))
+            ->with(3, new \Magento\Framework\DataObject([]))
             ->willReturnSelf();
         $wishlist
             ->expects($this->once())
@@ -395,7 +434,7 @@ class UpdateItemOptionsTest extends \PHPUnit_Framework_TestCase
         $this->messageManager
             ->expects($this->once())
             ->method('addSuccess')
-            ->with('Test name has been updated in your wish list.', null)
+            ->with('Test name has been updated in your Wish List.', null)
             ->willThrowException(new \Magento\Framework\Exception\LocalizedException(__('error-message')));
         $this->messageManager
             ->expects($this->once())
@@ -443,7 +482,7 @@ class UpdateItemOptionsTest extends \PHPUnit_Framework_TestCase
         $wishlist
             ->expects($this->once())
             ->method('updateItem')
-            ->with(3, new \Magento\Framework\Object([]))
+            ->with(3, new \Magento\Framework\DataObject([]))
             ->willReturnSelf();
         $wishlist
             ->expects($this->once())
@@ -533,12 +572,12 @@ class UpdateItemOptionsTest extends \PHPUnit_Framework_TestCase
         $this->messageManager
             ->expects($this->once())
             ->method('addSuccess')
-            ->with('Test name has been updated in your wish list.', null)
+            ->with('Test name has been updated in your Wish List.', null)
             ->willThrowException($exception);
         $this->messageManager
             ->expects($this->once())
             ->method('addError')
-            ->with('An error occurred while updating wish list.', null)
+            ->with('We can\'t update your Wish List right now.', null)
             ->willReturn(true);
         $this->resultRedirectMock->expects($this->once())
             ->method('setPath')

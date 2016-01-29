@@ -14,8 +14,11 @@ if (file_exists($updateAppBootstrap)) {
 }
 
 $testsBaseDir = dirname(__DIR__);
-$testsTmpDir = "{$testsBaseDir}/tmp";
-$magentoBaseDir = realpath("{$testsBaseDir}/../../../");
+$fixtureBaseDir = $testsBaseDir. '/testsuite';
+
+if (!defined('TESTS_TEMP_DIR')) {
+    define('TESTS_TEMP_DIR', $testsBaseDir . '/tmp');
+}
 
 try {
     /* Bootstrap the application */
@@ -41,7 +44,7 @@ try {
         $globalConfigFile .= '.dist';
     }
     $sandboxUniqueId = md5(sha1_file($installConfigFile));
-    $installDir = "{$testsTmpDir}/sandbox-{$settings->get('TESTS_PARALLEL_THREAD', 0)}-{$sandboxUniqueId}";
+    $installDir = TESTS_TEMP_DIR . "/sandbox-{$settings->get('TESTS_PARALLEL_THREAD', 0)}-{$sandboxUniqueId}";
     $application = new \Magento\TestFramework\Application(
         $shell,
         $installDir,
@@ -49,7 +52,8 @@ try {
         $globalConfigFile,
         $settings->get('TESTS_GLOBAL_CONFIG_DIR'),
         $settings->get('TESTS_MAGENTO_MODE'),
-        AutoloaderRegistry::getAutoloader()
+        AutoloaderRegistry::getAutoloader(),
+        true
     );
 
     $bootstrap = new \Magento\TestFramework\Bootstrap(
@@ -68,14 +72,24 @@ try {
     if (!$application->isInstalled()) {
         $application->install();
     }
-    $application->initialize();
+    $application->initialize([]);
 
     \Magento\TestFramework\Helper\Bootstrap::setInstance(new \Magento\TestFramework\Helper\Bootstrap($bootstrap));
 
-    \Magento\Framework\App\Utility\Files::setInstance(new Magento\Framework\App\Utility\Files($magentoBaseDir));
+    $dirSearch = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
+        ->create('Magento\Framework\Component\DirSearch');
+    $themePackageList = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
+        ->create('Magento\Framework\View\Design\Theme\ThemePackageList');
+    \Magento\Framework\App\Utility\Files::setInstance(
+        new Magento\Framework\App\Utility\Files(
+            new \Magento\Framework\Component\ComponentRegistrar(),
+            $dirSearch,
+            $themePackageList
+        )
+    );
 
     /* Unset declared global variables to release the PHPUnit from maintaining their values between tests */
-    unset($testsBaseDir, $testsTmpDir, $magentoBaseDir, $logWriter, $settings, $shell, $application, $bootstrap);
+    unset($testsBaseDir, $logWriter, $settings, $shell, $application, $bootstrap);
 } catch (\Exception $e) {
     echo $e . PHP_EOL;
     exit(1);

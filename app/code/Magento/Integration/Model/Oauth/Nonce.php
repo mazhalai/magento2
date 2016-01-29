@@ -14,8 +14,8 @@ namespace Magento\Integration\Model\Oauth;
  * @method \Magento\Integration\Model\Oauth\Nonce setConsumerId() setConsumerId(int $consumerId)
  * @method string getTimestamp()
  * @method \Magento\Integration\Model\Oauth\Nonce setTimestamp() setTimestamp(string $timestamp)
- * @method \Magento\Integration\Model\Resource\Oauth\Nonce getResource()
- * @method \Magento\Integration\Model\Resource\Oauth\Nonce _getResource()
+ * @method \Magento\Integration\Model\ResourceModel\Oauth\Nonce getResource()
+ * @method \Magento\Integration\Model\ResourceModel\Oauth\Nonce _getResource()
  */
 class Nonce extends \Magento\Framework\Model\AbstractModel
 {
@@ -30,16 +30,16 @@ class Nonce extends \Magento\Framework\Model\AbstractModel
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Integration\Helper\Oauth\Data $oauthData
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\Db $resourceCollection
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Integration\Helper\Oauth\Data $oauthData,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\Db $resourceCollection = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
@@ -53,7 +53,7 @@ class Nonce extends \Magento\Framework\Model\AbstractModel
      */
     protected function _construct()
     {
-        $this->_init('Magento\Integration\Model\Resource\Oauth\Nonce');
+        $this->_init('Magento\Integration\Model\ResourceModel\Oauth\Nonce');
     }
 
     /**

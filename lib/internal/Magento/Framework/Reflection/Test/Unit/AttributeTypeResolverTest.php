@@ -16,23 +16,23 @@ class AttributeTypeResolverTest extends \PHPUnit_Framework_TestCase
     protected $model;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\Reflection\TypeProcessor|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $typeProcessor;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\Api\ExtensionAttribute\Config|\PHPUnit_Framework_MockObject_MockObject
      */
-    protected $reader;
+    protected $configMock;
 
     /**
      * Set up helper.
      */
     protected function setUp()
     {
-        $this->typeProcessor = $this->getMock('\Magento\Framework\Reflection\TypeProcessor', [], [], '', false);
-        $this->reader = $this->getMock('\Magento\Framework\Api\Config\Reader', [], [], '', false);
-        $this->model = new AttributeTypeResolver($this->typeProcessor, $this->reader);
+        $this->typeProcessor = $this->getMock('Magento\Framework\Reflection\TypeProcessor', [], [], '', false);
+        $this->configMock = $this->getMock('Magento\Framework\Api\ExtensionAttribute\Config', [], [], '', false);
+        $this->model = new AttributeTypeResolver($this->typeProcessor, $this->configMock);
     }
 
     /**
@@ -53,7 +53,7 @@ class AttributeTypeResolverTest extends \PHPUnit_Framework_TestCase
         $value = new \stdClass();
         $context = 'Some\Class';
 
-        $this->reader->expects($this->once())->method('read')->willReturn([]);
+        $this->configMock->expects($this->once())->method('get')->willReturn([]);
         $this->assertEquals('stdClass', $this->model->resolveObjectType($code, $value, $context));
     }
 
@@ -65,18 +65,18 @@ class AttributeTypeResolverTest extends \PHPUnit_Framework_TestCase
         $config = [
             'Some\Class' => [
                 'some_code' => [
-                    'type' => '\Magento\Framework\Object',
+                    'type' => '\Magento\Framework\DataObject',
                 ],
             ]
         ];
 
         $this->typeProcessor->expects($this->once())
             ->method('getArrayItemType')
-            ->with('\Magento\Framework\Object')
-            ->willReturn('\Magento\Framework\Object');
+            ->with('\Magento\Framework\DataObject')
+            ->willReturn('\Magento\Framework\DataObject');
 
-        $this->reader->expects($this->once())->method('read')->willReturn($config);
-        $this->assertEquals('\Magento\Framework\Object', $this->model->resolveObjectType($code, $value, $context));
+        $this->configMock->expects($this->once())->method('get')->willReturn($config);
+        $this->assertEquals('\Magento\Framework\DataObject', $this->model->resolveObjectType($code, $value, $context));
     }
 
     /**
@@ -101,7 +101,7 @@ class AttributeTypeResolverTest extends \PHPUnit_Framework_TestCase
             ->with('\Some\Class')
             ->willReturn('\Some\Class');
 
-        $this->reader->expects($this->once())->method('read')->willReturn($config);
+        $this->configMock->expects($this->once())->method('get')->willReturn($config);
         $this->model->resolveObjectType($code, $value, $context);
     }
 }

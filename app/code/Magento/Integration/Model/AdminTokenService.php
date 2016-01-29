@@ -11,7 +11,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Integration\Model\CredentialsValidator;
 use Magento\Integration\Model\Oauth\Token as Token;
 use Magento\Integration\Model\Oauth\TokenFactory as TokenModelFactory;
-use Magento\Integration\Model\Resource\Oauth\Token\CollectionFactory as TokenCollectionFactory;
+use Magento\Integration\Model\ResourceModel\Oauth\Token\CollectionFactory as TokenCollectionFactory;
 use Magento\User\Model\User as UserModel;
 
 /**
@@ -79,7 +79,9 @@ class AdminTokenService implements \Magento\Integration\Api\AdminTokenServiceInt
              * Constant cannot be created in Auth Model since it uses legacy translation that doesn't support it.
              * Need to make sure that this is refactored once exception handling is updated in Auth Model.
              */
-            throw new AuthenticationException(__('Please correct the user name or password.'));
+            throw new AuthenticationException(
+                __('You did not sign in correctly or your account is temporarily disabled.')
+            );
         }
         return $this->tokenModelFactory->create()->createAdminToken($this->userModel->getId())->getToken();
     }

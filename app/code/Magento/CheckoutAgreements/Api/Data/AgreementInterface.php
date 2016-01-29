@@ -5,7 +5,7 @@
  */
 namespace Magento\CheckoutAgreements\Api\Data;
 
-interface AgreementInterface
+interface AgreementInterface extends \Magento\Framework\Api\ExtensibleDataInterface
 {
     /**#@+
      * Constants for keys of data array. Identical to the name of the getter in snake case
@@ -17,6 +17,7 @@ interface AgreementInterface
     const CHECKBOX_TEXT = 'checkbox_text';
     const IS_ACTIVE = 'is_active';
     const IS_HTML = 'is_html';
+    const MODE = 'mode';
     /**#@-*/
 
     /**
@@ -128,4 +129,36 @@ interface AgreementInterface
      * @return $this
      */
     public function setIsHtml($isHtml);
+
+    /**
+     * Returns the agreement applied mode.
+     *
+     * @return int
+     */
+    public function getMode();
+
+    /**
+     * Sets the agreement applied mode.
+     *
+     * @param int $mode
+     * @return $this
+     */
+    public function setMode($mode);
+
+    /**
+     * Retrieve existing extension attributes object or create a new one.
+     *
+     * @return \Magento\CheckoutAgreements\Api\Data\AgreementExtensionInterface|null
+     */
+    public function getExtensionAttributes();
+
+    /**
+     * Set an extension attributes object.
+     *
+     * @param \Magento\CheckoutAgreements\Api\Data\AgreementExtensionInterface $extensionAttributes
+     * @return $this
+     */
+    public function setExtensionAttributes(
+        \Magento\CheckoutAgreements\Api\Data\AgreementExtensionInterface $extensionAttributes
+    );
 }

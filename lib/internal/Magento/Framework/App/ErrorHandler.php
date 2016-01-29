@@ -50,10 +50,12 @@ class ErrorHandler
             // there's no way to distinguish between caught system exceptions and warnings
             return false;
         }
+
         $errorNo = $errorNo & error_reporting();
         if ($errorNo == 0) {
             return false;
         }
+
         $msg = isset($this->errorPhrases[$errorNo]) ? $this->errorPhrases[$errorNo] : "Unknown error ({$errorNo})";
         $msg .= ": {$errorStr} in {$errorFile} on line {$errorLine}";
         throw new \Exception($msg);

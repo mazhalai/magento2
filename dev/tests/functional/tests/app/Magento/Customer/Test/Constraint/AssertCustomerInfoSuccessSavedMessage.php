@@ -18,7 +18,7 @@ class AssertCustomerInfoSuccessSavedMessage extends AbstractConstraint
     const SEVERITY = 'low';
     /* end tags */
 
-    const SUCCESS_MESSAGE = 'The account information has been saved.';
+    const SUCCESS_MESSAGE = 'You saved the account information.';
 
     /**
      * Asserts that success message equals to expected message
@@ -28,7 +28,7 @@ class AssertCustomerInfoSuccessSavedMessage extends AbstractConstraint
      */
     public function processAssert(CustomerAccountIndex $customerAccountIndex)
     {
-        $successMessage = $customerAccountIndex->getMessages()->getSuccessMessages();
+        $successMessage = $customerAccountIndex->getMessages()->getSuccessMessage();
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_MESSAGE,
             $successMessage,

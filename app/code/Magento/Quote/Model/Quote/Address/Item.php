@@ -8,8 +8,8 @@ namespace Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote;
 
 /**
- * @method \Magento\Quote\Model\Resource\Quote\Address\Item _getResource()
- * @method \Magento\Quote\Model\Resource\Quote\Address\Item getResource()
+ * @method \Magento\Quote\Model\ResourceModel\Quote\Address\Item _getResource()
+ * @method \Magento\Quote\Model\ResourceModel\Quote\Address\Item getResource()
  * @method int getParentItemId()
  * @method \Magento\Quote\Model\Quote\Address\Item setParentItemId(int $value)
  * @method int getQuoteAddressId()
@@ -79,10 +79,10 @@ use Magento\Quote\Model\Quote;
  * @method \Magento\Quote\Model\Quote\Address\Item setBaseRowTotalInclTax(float $value)
  * @method int getGiftMessageId()
  * @method \Magento\Quote\Model\Quote\Address\Item setGiftMessageId(int $value)
- * @method float getHiddenTaxAmount()
- * @method \Magento\Quote\Model\Quote\Address\Item setHiddenTaxAmount(float $value)
- * @method float getBaseHiddenTaxAmount()
- * @method \Magento\Quote\Model\Quote\Address\Item setBaseHiddenTaxAmount(float $value)
+ * @method float getDiscountTaxCompensationAmount()
+ * @method \Magento\Quote\Model\Quote\Address\Item setDiscountTaxCompensationAmount(float $value)
+ * @method float getBaseDiscountTaxCompensationAmount()
+ * @method \Magento\Quote\Model\Quote\Address\Item setBaseDiscountTaxCompensationAmount(float $value)
  *
  * @author      Magento Core Team <core@magentocommerce.com>
  */
@@ -105,7 +105,7 @@ class Item extends \Magento\Quote\Model\Quote\Item\AbstractItem
      */
     protected function _construct()
     {
-        $this->_init('Magento\Quote\Model\Resource\Quote\Address\Item');
+        $this->_init('Magento\Quote\Model\ResourceModel\Quote\Address\Item');
     }
 
     /**

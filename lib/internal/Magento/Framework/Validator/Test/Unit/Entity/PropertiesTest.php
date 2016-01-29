@@ -12,13 +12,19 @@ namespace Magento\Framework\Validator\Test\Unit\Entity;
 class PropertiesTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Magento\Framework\Object
+     * @var \Magento\Framework\DataObject
      */
     protected $_object;
 
     protected function setUp()
     {
-        $this->_object = $this->getMock('Magento\Framework\Object', ['hasDataChanges', 'getData', 'getOrigData']);
+        $this->_object = $this->getMock(
+            'Magento\Framework\Model\AbstractModel',
+            ['hasDataChanges', 'getData', 'getOrigData'],
+            [],
+            '',
+            false
+        );
     }
 
     protected function tearDown()
@@ -30,7 +36,7 @@ class PropertiesTest extends \PHPUnit_Framework_TestCase
      * Testing \Magento\Framework\Validator\Entity\Properties::isValid on invalid argument passed
      *
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Instance of \Magento\Framework\Object is expected.
+     * @expectedExceptionMessage Instance of \Magento\Framework\Model\AbstractModel is expected.
      */
     public function testIsValidException()
     {

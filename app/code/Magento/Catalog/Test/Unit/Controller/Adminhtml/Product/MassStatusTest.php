@@ -34,19 +34,46 @@ class MassStatusTest extends \Magento\Catalog\Test\Unit\Controller\Adminhtml\Pro
         $this->resultRedirect = $this->getMockBuilder('Magento\Backend\Model\View\Result\Redirect')
             ->disableOriginalConstructor()
             ->getMock();
-        $resultRedirectFactory = $this->getMockBuilder('Magento\Backend\Model\View\Result\RedirectFactory')
+        $resultFactory = $this->getMockBuilder('Magento\Framework\Controller\ResultFactory')
             ->disableOriginalConstructor()
             ->setMethods(['create'])
             ->getMock();
-        $resultRedirectFactory->expects($this->atLeastOnce())
+        $resultFactory->expects($this->atLeastOnce())
             ->method('create')
+            ->with(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT)
             ->willReturn($this->resultRedirect);
 
-        $additionalParams = ['resultRedirectFactory' => $resultRedirectFactory];
+        $abstractDbMock = $this->getMockBuilder('Magento\Framework\Data\Collection\AbstractDb')
+            ->disableOriginalConstructor()
+            ->setMethods(['getAllIds', 'getResource'])
+            ->getMock();
+        $abstractDbMock->expects($this->any())
+            ->method('getAllIds')
+            ->willReturn([]);
+
+        $filterMock = $this->getMockBuilder('Magento\Ui\Component\MassAction\Filter')
+            ->disableOriginalConstructor()
+            ->setMethods(['getCollection'])
+            ->getMock();
+        $filterMock->expects($this->any())
+            ->method('getCollection')
+            ->willReturn($abstractDbMock);
+        
+        $collectionFactoryMock = $this->getMockBuilder('Magento\Catalog\Model\ResourceModel\Product\CollectionFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['create'])
+            ->getMock();
+        $collectionFactoryMock->expects($this->any())
+            ->method('create')
+            ->willReturn($abstractDbMock);
+
+        $additionalParams = ['resultFactory' => $resultFactory];
         $this->action = new \Magento\Catalog\Controller\Adminhtml\Product\MassStatus(
             $this->initContext($additionalParams),
             $productBuilder,
-            $this->priceProcessor
+            $this->priceProcessor,
+            $filterMock,
+            $collectionFactoryMock
         );
     }
 

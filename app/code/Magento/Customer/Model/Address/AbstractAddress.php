@@ -127,8 +127,8 @@ class AbstractAddress extends AbstractExtensibleModel implements AddressModelInt
      * @param AddressInterfaceFactory $addressDataFactory
      * @param RegionInterfaceFactory $regionDataFactory
      * @param \Magento\Framework\Api\DataObjectHelper $dataObjectHelper
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\Db $resourceCollection
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
@@ -146,12 +146,12 @@ class AbstractAddress extends AbstractExtensibleModel implements AddressModelInt
         AddressInterfaceFactory $addressDataFactory,
         RegionInterfaceFactory $regionDataFactory,
         \Magento\Framework\Api\DataObjectHelper $dataObjectHelper,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\Db $resourceCollection = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->_directoryData = $directoryData;
-        $data = $this->_implodeStreetField($data);
+        $data = $this->_implodeArrayField($data);
         $this->_eavConfig = $eavConfig;
         $this->_addressConfig = $addressConfig;
         $this->_regionFactory = $regionFactory;
@@ -253,46 +253,66 @@ class AbstractAddress extends AbstractExtensibleModel implements AddressModelInt
     }
 
     /**
-     * Enforce format of the street field
+     * Enforce format of the street field or other multiline custom attributes
      *
      * @param array|string $key
      * @param null $value
-     * @return \Magento\Framework\Object
+     * @return \Magento\Framework\DataObject
      */
     public function setData($key, $value = null)
     {
         if (is_array($key)) {
-            $key = $this->_implodeStreetField($key);
-        } elseif ($key == 'street') {
-            $value = $this->_implodeStreetValue($value);
+            $key = $this->_implodeArrayField($key);
+        } elseif (is_array($value) && $this->isAddressMultilineAttribute($key)) {
+            $value = $this->_implodeArrayValues($value);
         }
         return parent::setData($key, $value);
     }
 
     /**
-     * Implode value of the street field, if it is present among other fields
+     * Check that address can have multiline attribute by this code (as street or some custom attribute)
+     * @param string $code
+     * @return bool
+     */
+    protected function isAddressMultilineAttribute($code)
+    {
+        return $code == 'street' || in_array($code, $this->getCustomAttributesCodes());
+    }
+
+    /**
+     * Implode value of the array field, if it is present among other fields
      *
      * @param array $data
      * @return array
      */
-    protected function _implodeStreetField(array $data)
+    protected function _implodeArrayField(array $data)
     {
-        if (array_key_exists('street', $data)) {
-            $data['street'] = $this->_implodeStreetValue($data['street']);
+        foreach ($data as $key => $value) {
+            if (is_array($value) && $this->isAddressMultilineAttribute($key)) {
+                $data[$key] = $this->_implodeArrayValues($data[$key]);
+            }
         }
         return $data;
     }
 
     /**
-     * Combine values of street lines into a single string
+     * Combine values of field lines into a single string
      *
      * @param string[]|string $value
      * @return string
      */
-    protected function _implodeStreetValue($value)
+    protected function _implodeArrayValues($value)
     {
-        if (is_array($value)) {
-            $value = trim(implode("\n", $value));
+        if (is_array($value) && count($value)) {
+            $isScalar = false;
+            foreach ($value as $val) {
+                if (is_scalar($val)) {
+                    $isScalar = true;
+                }
+            }
+            if ($isScalar) {
+                $value = trim(implode("\n", $value));
+            }
         }
         return $value;
     }
@@ -443,7 +463,6 @@ class AbstractAddress extends AbstractExtensibleModel implements AddressModelInt
      *
      * @param string $type
      * @return string|null
-     * @deprecated
      */
     public function format($type)
     {
@@ -480,7 +499,7 @@ class AbstractAddress extends AbstractExtensibleModel implements AddressModelInt
      * @param int|null $defaultBillingAddressId
      * @param int|null $defaultShippingAddressId
      * @return AddressInterface
-     * @deprecated Use Api/Data/AddressInterface as a result of service operations. Don't rely on the model to provide
+     * Use Api/Data/AddressInterface as a result of service operations. Don't rely on the model to provide
      * the instance of Api/Data/AddressInterface
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */

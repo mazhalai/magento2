@@ -67,7 +67,9 @@ class Textarea extends AbstractElement
             'disabled',
             'onkeyup',
             'tabindex',
-            'data-form-part'
+            'data-form-part',
+            'data-role',
+            'data-action'
         ];
     }
 
@@ -78,7 +80,7 @@ class Textarea extends AbstractElement
      */
     public function getElementHtml()
     {
-        $this->addClass('textarea');
+        $this->addClass('textarea admin__control-textarea');
         $html = '<textarea id="' . $this->getHtmlId() . '" name="' . $this->getName() . '" '
             . $this->serialize($this->getHtmlAttributes()) . $this->_getUiId() . ' >';
         $html .= $this->getEscapedValue();

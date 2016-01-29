@@ -51,11 +51,29 @@ class PageForm extends FormTabs
     {
         $this->openTab('content');
         /** @var \Magento\Cms\Test\Block\Adminhtml\Page\Edit\Tab\Content $contentTab */
-        $contentTab = $this->getTabElement('content');
+        $contentTab = $this->getTab('content');
         /** @var \Magento\Cms\Test\Block\Adminhtml\Wysiwyg\Config $config */
         $contentTab->clickInsertVariable();
         $config = $contentTab->getWysiwygConfig();
 
         return $config->getAllVariables();
+    }
+
+    /**
+     * Open tab.
+     *
+     * @param string $tabName
+     * @return PageForm
+     */
+    public function openTab($tabName)
+    {
+        $this->browser->find($this->header)->hover();
+        $tab = $this->getContainerElement($tabName);
+        $tabHeader = $tab->find('.//*[contains(@class,"admin__collapsible-title")]', Locator::SELECTOR_XPATH);
+        if ($tabHeader->isVisible() && !strpos($tabHeader->getAttribute('class'), '_show')) {
+            $tabHeader->hover();
+            $tabHeader->click();
+        };
+        return $this;
     }
 }

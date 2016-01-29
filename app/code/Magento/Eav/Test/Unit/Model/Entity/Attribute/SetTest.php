@@ -18,7 +18,7 @@ class SetTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $resource = $this->getMock('Magento\Eav\Model\Resource\Entity\Attribute\Set', [], [], '', false);
+        $resource = $this->getMock('Magento\Eav\Model\ResourceModel\Entity\Attribute\Set', [], [], '', false);
         $attrGroupFactory = $this->getMock(
             'Magento\Eav\Model\Entity\Attribute\GroupFactory',
             [],
@@ -73,7 +73,7 @@ class SetTest extends \PHPUnit_Framework_TestCase
     {
         return [
             ['', 'Attribute set name is empty.'],
-            ['existing_name', 'An attribute set with the "existing_name" name already exists.']
+            ['existing_name', 'An attribute set named "existing_name" already exists.']
         ];
     }
 }

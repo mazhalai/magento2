@@ -45,14 +45,14 @@ class NewWidget extends \Magento\Catalog\Block\Product\NewProduct implements \Ma
     /**
      * Product collection initialize process
      *
-     * @return \Magento\Catalog\Model\Resource\Product\Collection|Object|\Magento\Framework\Data\Collection
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection|Object|\Magento\Framework\Data\Collection
      */
     protected function _getProductCollection()
     {
         switch ($this->getDisplayType()) {
             case self::DISPLAY_TYPE_NEW_PRODUCTS:
                 $collection = parent::_getProductCollection()
-                    ->setPageSize($this->getProductsPerPage())
+                    ->setPageSize($this->getPageSize())
                     ->setCurPage($this->getCurrentPage());
                 break;
             default:
@@ -65,18 +65,18 @@ class NewWidget extends \Magento\Catalog\Block\Product\NewProduct implements \Ma
     /**
      * Prepare collection for recent product list
      *
-     * @return \Magento\Catalog\Model\Resource\Product\Collection|Object|\Magento\Framework\Data\Collection
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection|Object|\Magento\Framework\Data\Collection
      */
     protected function _getRecentlyAddedProductsCollection()
     {
-        /** @var $collection \Magento\Catalog\Model\Resource\Product\Collection */
+        /** @var $collection \Magento\Catalog\Model\ResourceModel\Product\Collection */
         $collection = $this->_productCollectionFactory->create();
         $collection->setVisibility($this->_catalogProductVisibility->getVisibleInCatalogIds());
 
         $collection = $this->_addProductAttributesAndPrices($collection)
             ->addStoreFilter()
             ->addAttributeToSort('created_at', 'desc')
-            ->setPageSize($this->getProductsPerPage())
+            ->setPageSize($this->getPageSize())
             ->setCurPage($this->getCurrentPage());
         return $collection;
     }
@@ -122,7 +122,7 @@ class NewWidget extends \Magento\Catalog\Block\Product\NewProduct implements \Ma
     }
 
     /**
-     * Retrieve how much products should be displayed
+     * Retrieve how many products should be displayed
      *
      * @return int
      */
@@ -135,7 +135,7 @@ class NewWidget extends \Magento\Catalog\Block\Product\NewProduct implements \Ma
     }
 
     /**
-     * Retrieve how much products should be displayed
+     * Retrieve how many products should be displayed
      *
      * @return int
      */
@@ -158,6 +158,16 @@ class NewWidget extends \Magento\Catalog\Block\Product\NewProduct implements \Ma
             $this->setData('show_pager', self::DEFAULT_SHOW_PAGER);
         }
         return (bool)$this->getData('show_pager');
+    }
+
+    /**
+     * Retrieve how many products should be displayed on page
+     *
+     * @return int
+     */
+    protected function getPageSize()
+    {
+        return $this->showPager() ? $this->getProductsPerPage() : $this->getProductsCount();
     }
 
     /**

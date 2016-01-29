@@ -4,8 +4,9 @@
  * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\GiftMessage\Test\Unit\Model;
+
+// @codingStandardsIgnoreFile
 
 use Magento\GiftMessage\Model\ItemRepository;
 
@@ -68,7 +69,7 @@ class ItemRepositoryTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->quoteRepositoryMock = $this->getMock('Magento\Quote\Model\QuoteRepository', [], [], '', false);
+        $this->quoteRepositoryMock = $this->getMock('\Magento\Quote\Api\CartRepositoryInterface');
         $this->messageFactoryMock = $this->getMock(
             'Magento\GiftMessage\Model\MessageFactory',
             [
@@ -81,7 +82,7 @@ class ItemRepositoryTest extends \PHPUnit_Framework_TestCase
         );
         $this->messageMock = $this->getMock('Magento\GiftMessage\Model\Message', [], [], '', false);
         $this->quoteItemMock = $this->getMock(
-            '\Magento\Qote\Model\Quote\Item',
+            '\Magento\Quote\Model\Quote\Item',
             [
                 'getGiftMessageId',
                 '__wakeup'
@@ -183,7 +184,7 @@ class ItemRepositoryTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Magento\Framework\Exception\State\InvalidTransitionException
-     * @expectedExceptionMessage Gift Messages is not applicable for virtual products
+     * @expectedExceptionMessage Gift Messages are not applicable for virtual products
      */
     public function testSaveWithInvalidTransitionException()
     {
@@ -218,6 +219,7 @@ class ItemRepositoryTest extends \PHPUnit_Framework_TestCase
             ->method('setMessage')
             ->with($this->quoteMock, 'quote_item', $this->messageMock, $itemId)
             ->will($this->returnValue($this->giftMessageManagerMock));
+        $this->messageMock->expects($this->once())->method('getMessage')->willReturn('message');
 
         $this->assertTrue($this->itemRepository->save($this->cartId, $this->messageMock, $itemId));
     }

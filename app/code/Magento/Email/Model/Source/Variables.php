@@ -42,6 +42,7 @@ class Variables implements \Magento\Framework\Option\ArrayInterface
             ['value' => 'trans_email/ident_custom2/email', 'label' => __('Custom2 Contact Email')],
             ['value' => 'general/store_information/name', 'label' => __('Store Name')],
             ['value' => 'general/store_information/phone', 'label' => __('Store Phone Number')],
+            ['value' => 'general/store_information/hours', 'label' => __('Store Hours')],
             ['value' => 'general/store_information/country_id', 'label' => __('Country')],
             ['value' => 'general/store_information/region_id', 'label' => __('Region/State')],
             ['value' => 'general/store_information/postcode', 'label' => __('Zip/Postal Code')],
@@ -70,5 +71,16 @@ class Variables implements \Magento\Framework\Option\ArrayInterface
             $optionArray = ['label' => __('Store Contact Information'), 'value' => $optionArray];
         }
         return $optionArray;
+    }
+
+    /**
+     * Return available config variables
+     *
+     * @return array
+     * @codeCoverageIgnore
+     */
+    public function getData()
+    {
+        return  $this->_configVariables;
     }
 }

@@ -7,6 +7,7 @@
 define([
     'jquery',
     'jquery/ui',
+    'Magento_Ui/js/modal/modal',
     'mage/translate',
     'mage/backend/tree-suggest',
     'mage/backend/validation'
@@ -31,7 +32,6 @@ define([
                 .on('suggestbeforeselect', function (event) {
                     clearParentCategory();
                     $(event.target).treeSuggest('close');
-                    $('#new_category_name').focus();
                 });
 
             $.validator.addMethod('validate-parent-category', function () {
@@ -51,91 +51,71 @@ define([
                         options.errorClass, options.validClass || '');
                 }
             });
-
-            this.element.dialog({
+            this.element.modal({
+                type: 'slide',
+                modalClass: 'mage-new-category-dialog form-inline',
                 title: $.mage.__('Create Category'),
-                autoOpen: false,
-                width: '75%',
-                dialogClass: 'mage-new-category-dialog form-inline',
-                modal: true,
-                multiselect: true,
-                resizable: false,
-                position: {
-                    my: 'left top',
-                    at: 'center top',
-                    of: 'body'
-                },
-                open: function () {
-                    // fix for suggest field - overlapping dialog z-index
-                    $('#new_category_parent-suggest').css('z-index', $.ui.dialog.maxZ + 1);
+                opened: function () {
                     var enteredName = $('#category_ids-suggest').val();
+
                     $('#new_category_name').val(enteredName);
                     if (enteredName === '') {
                         $('#new_category_name').focus();
                     }
                     $('#new_category_messages').html('');
-                    $(this).closest('.ui-dialog').addClass('ui-dialog-active');
-
-                    var topMargin = $(this).closest('.ui-dialog').children('.ui-dialog-titlebar').outerHeight() + 15;
-                    $(this).closest('.ui-dialog').css('margin-top', topMargin);
                 },
-                close: function () {
-                    $('#new_category_name, #new_category_parent-suggest').val('');
+                closed: function () {
                     var validationOptions = newCategoryForm.validation('option');
+
+                    $('#new_category_name, #new_category_parent-suggest').val('');
                     validationOptions.unhighlight($('#new_category_parent-suggest').get(0),
                         validationOptions.errorClass, validationOptions.validClass || '');
                     newCategoryForm.validation('clearError');
                     $('#category_ids-suggest').focus();
-                    $(this).closest('.ui-dialog').removeClass('ui-dialog-active');
                 },
                 buttons: [{
                     text: $.mage.__('Create Category'),
-                    'class': 'action-primary',
-                    'data-action': 'save',
-                    click: function (event) {
+                    class: 'action-primary',
+                    click: function (e) {
                         if (!newCategoryForm.valid()) {
                             return;
                         }
+                        var thisButton = $(e.currentTarget);
 
-                        var thisButton = $(event.target).closest('[data-action=save]');
                         thisButton.prop('disabled', true);
                         $.ajax({
                             type: 'POST',
                             url: widget.options.saveCategoryUrl,
                             data: {
-                                general: {
-                                    name: $('#new_category_name').val(),
-                                    is_active: 1,
-                                    include_in_menu: 1
-                                },
+                                name: $('#new_category_name').val(),
                                 parent: $('#new_category_parent').val(),
+                                is_active: 1,
+                                include_in_menu: 1,
                                 use_config: ['available_sort_by', 'default_sort_by'],
                                 form_key: FORM_KEY,
                                 return_session_messages_only: 1
                             },
                             dataType: 'json',
                             context: $('body')
-                        })
-                            .success(
-                                function (data) {
-                                    if (!data.error) {
-                                        $('#category_ids-suggest').trigger('selectItem', {
-                                            id: data.category.entity_id,
-                                            label: data.category.name
-                                        });
-                                        $('#new_category_name, #new_category_parent-suggest').val('');
-                                        $('#category_ids-suggest').val('');
-                                        clearParentCategory();
-                                        widget.element.dialog('close');
-                                    } else {
-                                        $('#new_category_messages').html(data.messages);
-                                    }
-                                }
-                        )
-                            .complete(
-                                function () {
-                                    thisButton.prop('disabled', false);
-                                }
+                        }).success(function (data) {
+                            if (!data.error) {
+                                var $suggest = $('#category_ids-suggest');
+
+                                $suggest.trigger('selectItem', {
+                                    id: data.category.entity_id,
+                                    label: data.category.name
+                                });
+                                $('#new_category_name, #new_category_parent-suggest').val('');
+                                $suggest.val('');
+                                clearParentCategory();
+                                $(widget.element).modal('closeModal');
+                            } else {
+                                $('#new_category_messages').html(data.messages);
+                            }
+                        }).complete(
+                            function () {
+                                thisButton.prop('disabled', false);
+                            }
                         );
                     }
                 }]

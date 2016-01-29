@@ -10,65 +10,45 @@ namespace Magento\ConfigurableProduct\Model;
 class SuggestedAttributeList
 {
     /**
-     * Attribute collection factory
-     *
-     * @var \Magento\Catalog\Model\Resource\Product\Attribute\CollectionFactory
+     * @var ConfigurableAttributeHandler
      */
-    protected $_attributeColFactory;
+    protected $configurableAttributeHandler;
 
     /**
      * Catalog resource helper
      *
-     * @var \Magento\Catalog\Model\Resource\Helper
+     * @var \Magento\Catalog\Model\ResourceModel\Helper
      */
     protected $_resourceHelper;
-
     /**
-     * @param \Magento\Catalog\Model\Resource\Product\Attribute\CollectionFactory $attributeColFactory
-     * @param \Magento\Catalog\Model\Resource\Helper $resourceHelper
+     * @param ConfigurableAttributeHandler $configurableAttributeHandler
+     * @param \Magento\Catalog\Model\ResourceModel\Helper $resourceHelper
      */
     public function __construct(
-        \Magento\Catalog\Model\Resource\Product\Attribute\CollectionFactory $attributeColFactory,
-        \Magento\Catalog\Model\Resource\Helper $resourceHelper
+        \Magento\ConfigurableProduct\Model\ConfigurableAttributeHandler $configurableAttributeHandler,
+        \Magento\Catalog\Model\ResourceModel\Helper $resourceHelper
     ) {
-        $this->_attributeColFactory = $attributeColFactory;
+        $this->configurableAttributeHandler = $configurableAttributeHandler;
         $this->_resourceHelper = $resourceHelper;
     }
-
     /**
      * Retrieve list of attributes with admin store label containing $labelPart
      *
      * @param string $labelPart
-     * @return \Magento\Catalog\Model\Resource\Product\Attribute\Collection
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection
      */
     public function getSuggestedAttributes($labelPart)
     {
         $escapedLabelPart = $this->_resourceHelper->addLikeEscape($labelPart, ['position' => 'any']);
-        /** @var $collection \Magento\Catalog\Model\Resource\Product\Attribute\Collection */
-        $collection = $this->_attributeColFactory->create();
-        $collection->addFieldToFilter(
-            'frontend_input',
-            'select'
-        )->addFieldToFilter(
+        /** @var $collection \Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection */
+        $collection = $this->configurableAttributeHandler->getApplicableAttributes()->addFieldToFilter(
             'frontend_label',
             ['like' => $escapedLabelPart]
-        )->addFieldToFilter(
-            'is_user_defined',
-            1
-        )->addFieldToFilter(
-            'is_global',
-            \Magento\Catalog\Model\Resource\Eav\Attribute::SCOPE_GLOBAL
         );
-
         $result = [];
-        $types = [
-            \Magento\Catalog\Model\Product\Type::TYPE_SIMPLE,
-            \Magento\Catalog\Model\Product\Type::TYPE_VIRTUAL,
-            \Magento\ConfigurableProduct\Model\Product\Type\Configurable::TYPE_CODE,
-        ];
         foreach ($collection->getItems() as $id => $attribute) {
-            /** @var $attribute \Magento\Catalog\Model\Resource\Eav\Attribute */
-            if (!$attribute->getApplyTo() || count(array_diff($types, $attribute->getApplyTo())) === 0) {
+            /** @var $attribute \Magento\Catalog\Model\ResourceModel\Eav\Attribute */
+            if ($this->configurableAttributeHandler->isAttributeApplicable($attribute)) {
                 $result[$id] = [
                     'id' => $attribute->getId(),
                     'label' => $attribute->getFrontendLabel(),

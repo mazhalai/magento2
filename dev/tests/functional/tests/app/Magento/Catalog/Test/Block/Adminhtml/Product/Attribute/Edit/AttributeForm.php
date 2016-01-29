@@ -10,7 +10,6 @@ use Magento\Backend\Test\Block\Widget\Tab;
 use Magento\Backend\Test\Block\Widget\FormTabs;
 use Magento\Mtf\Client\Element\SimpleElement;
 use Magento\Mtf\Client\Element;
-use Magento\Mtf\Client\Locator;
 use Magento\Mtf\Fixture\FixtureInterface;
 use Magento\Mtf\Fixture\InjectableFixture;
 
@@ -56,28 +55,49 @@ class AttributeForm extends FormTabs
         $this->waitForElementVisible($this->propertiesTab);
         $data = [];
         if (null === $fixture) {
-            foreach ($this->tabs as $tabName => $tab) {
+            foreach ($this->getTabs() as $tabName => $tab) {
                 if ($this->isTabVisible($tabName)) {
                     $this->openTab($tabName);
                     $this->expandAllToggles();
-                    $tabData = $this->getTabElement($tabName)->getDataFormTab();
+                    $tabData = $this->getTab($tabName)->getFieldsData();
                     $data = array_merge($data, $tabData);
                 }
             }
         } else {
             $isHasData = ($fixture instanceof InjectableFixture) ? $fixture->hasData() : true;
-            $tabsFields = $isHasData ? $this->getFieldsByTabs($fixture) : [];
+            $tabsFields = $isHasData ? $this->getFixtureFieldsByContainers($fixture) : [];
             foreach ($tabsFields as $tabName => $fields) {
                 if ($this->isTabVisible($tabName)) {
                     $this->openTab($tabName);
                     $this->expandAllToggles();
-                    $tabData = $this->getTabElement($tabName)->getDataFormTab($fields, $this->_rootElement);
+                    $tabData = $this->getTab($tabName)->getFieldsData($fields, $this->_rootElement);
                     $data = array_merge($data, $tabData);
                 }
             }
         }
 
-        return $data;
+        return $this->removeEmptyValues($data);
+    }
+
+    /**
+     * Remove recursive all empty values in array.
+     *
+     * @param mixed $input
+     * @return mixed
+     */
+    protected function removeEmptyValues($input)
+    {
+        if (!is_array($input)) {
+            return $input;
+        }
+        $filteredArray = [];
+        foreach ($input as $key => $value) {
+            if ($value) {
+                $filteredArray[$key] = $this->removeEmptyValues($value);
+            }
+        }
+
+        return $filteredArray;
     }
 
     /**
@@ -103,20 +123,5 @@ class AttributeForm extends FormTabs
     {
         $this->browser->find($this->pageTitle)->click(); // Handle menu overlap problem
         return parent::openTab($tabName);
-    }
-
-    /**
-     * Check if tab is visible.
-     *
-     * @param string $tabName
-     * @return bool
-     */
-    protected function isTabVisible($tabName)
-    {
-        $selector = $this->tabs[$tabName]['selector'];
-        $strategy = isset($this->tabs[$tabName]['strategy'])
-            ? $this->tabs[$tabName]['strategy']
-            : Locator::SELECTOR_CSS;
-        return $this->_rootElement->find($selector, $strategy)->isVisible();
     }
 }

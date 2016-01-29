@@ -12,29 +12,22 @@ namespace Magento\Quote\Api;
 interface ShippingMethodManagementInterface
 {
     /**
-     * Sets the carrier and shipping methods codes for a specified cart.
+     * Estimate shipping
      *
      * @param int $cartId The shopping cart ID.
-     * @param string $carrierCode The carrier code.
-     * @param string $methodCode The shipping method code.
-     * @return bool
-     * @throws \Magento\Framework\Exception\InputException The shipping method is not valid for an empty cart.
-     * @throws \Magento\Framework\Exception\CouldNotSaveException The shipping method could not be saved.
-     * @throws \Magento\Framework\Exception\StateException The billing or shipping address is not set.
-     * @throws \Magento\Framework\Exception\NoSuchEntityException The specified cart contains only virtual products
-     * so the shipping method does not apply.
+     * @param \Magento\Quote\Api\Data\EstimateAddressInterface $address The estimate address
+     * @return \Magento\Quote\Api\Data\ShippingMethodInterface[] An array of shipping methods.
      */
-    public function set($cartId, $carrierCode, $methodCode);
+    public function estimateByAddress($cartId, \Magento\Quote\Api\Data\EstimateAddressInterface $address);
 
     /**
-     * Returns selected shipping method for a specified quote.
+     * Estimate shipping
      *
      * @param int $cartId The shopping cart ID.
-     * @return \Magento\Quote\Api\Data\ShippingMethodInterface Shipping method.
-     * @throws \Magento\Framework\Exception\NoSuchEntityException The specified shopping cart does not exist.
-     * @throws \Magento\Framework\Exception\StateException The shipping address is not set.
+     * @param int $addressId The estimate address id
+     * @return \Magento\Quote\Api\Data\ShippingMethodInterface[] An array of shipping methods.
      */
-    public function get($cartId);
+    public function estimateByAddressId($cartId, $addressId);
 
     /**
      * Lists applicable shipping methods for a specified quote.

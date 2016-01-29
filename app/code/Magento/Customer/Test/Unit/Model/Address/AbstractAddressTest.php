@@ -29,10 +29,10 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
     /** @var \Magento\Directory\Model\CountryFactory|\PHPUnit_Framework_MockObject_MockObject  */
     protected $countryFactoryMock;
 
-    /** @var \Magento\Customer\Model\Resource\Customer|\PHPUnit_Framework_MockObject_MockObject  */
+    /** @var \Magento\Customer\Model\ResourceModel\Customer|\PHPUnit_Framework_MockObject_MockObject  */
     protected $resourceMock;
 
-    /** @var \Magento\Framework\Data\Collection\Db|\PHPUnit_Framework_MockObject_MockObject  */
+    /** @var \Magento\Framework\Data\Collection\AbstractDb|\PHPUnit_Framework_MockObject_MockObject  */
     protected $resourceCollectionMock;
 
     /** @var \Magento\Customer\Model\Address\AbstractAddress  */
@@ -60,7 +60,7 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
             false
         );
         $regionCollectionMock = $this->getMock(
-            'Magento\Directory\Model\Resource\Region\Collection',
+            'Magento\Directory\Model\ResourceModel\Region\Collection',
             [],
             [],
             '',
@@ -77,14 +77,10 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
             ->method('create')
             ->will($this->returnValue($countryMock));
 
-        $this->resourceMock = $this->getMock('Magento\Customer\Model\Resource\Customer', [], [], '', false);
-        $this->resourceCollectionMock = $this->getMock(
-            'Magento\Framework\Data\Collection\Db',
-            [],
-            [],
-            '',
-            false
-        );
+        $this->resourceMock = $this->getMock('Magento\Customer\Model\ResourceModel\Customer', [], [], '', false);
+        $this->resourceCollectionMock = $this->getMockBuilder('Magento\Framework\Data\Collection\AbstractDb')
+            ->disableOriginalConstructor()
+            ->getMockForAbstractClass();
         $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
         $this->model = $objectManager->getObject(
             'Magento\Customer\Model\Address\AbstractAddress',
@@ -107,11 +103,9 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
         $countryId = 1;
         $this->prepareGetRegion($countryId);
 
-        $this->model->setData([
-                'region_id' => 1,
-                'region' => '',
-                'country_id' => $countryId,
-            ]);
+        $this->model->setData('region_id', 1);
+        $this->model->setData('region', '');
+        $this->model->setData('country_id', $countryId);
         $this->assertEquals('RegionName', $this->model->getRegion());
     }
 
@@ -120,11 +114,9 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
         $countryId = 2;
         $this->prepareGetRegion($countryId);
 
-        $this->model->setData([
-                'region_id' => '',
-                'region' => 2,
-                'country_id' => $countryId,
-            ]);
+        $this->model->setData('region_id', '');
+        $this->model->setData('region', 2);
+        $this->model->setData('country_id', $countryId);
         $this->assertEquals('RegionName', $this->model->getRegion());
     }
 
@@ -132,10 +124,8 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
     {
         $this->regionFactoryMock->expects($this->never())->method('create');
 
-        $this->model->setData([
-                'region_id' => '',
-                'region' => 'RegionName',
-            ]);
+        $this->model->setData('region_id', '');
+        $this->model->setData('region', 'RegionName');
         $this->assertEquals('RegionName', $this->model->getRegion());
     }
 
@@ -151,11 +141,9 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
         $countryId = 1;
         $this->prepareGetRegionCode($countryId);
 
-        $this->model->setData([
-                'region_id' => 3,
-                'region' => '',
-                'country_id' => $countryId,
-            ]);
+        $this->model->setData('region_id', 3);
+        $this->model->setData('region', '');
+        $this->model->setData('country_id', $countryId);
         $this->assertEquals('UK', $this->model->getRegionCode());
     }
 
@@ -164,11 +152,9 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
         $countryId = 2;
         $this->prepareGetRegionCode($countryId);
 
-        $this->model->setData([
-                'region_id' => '',
-                'region' => 4,
-                'country_id' => $countryId,
-            ]);
+        $this->model->setData('region_id', '');
+        $this->model->setData('region', 4);
+        $this->model->setData('country_id', $countryId);
         $this->assertEquals('UK', $this->model->getRegionCode());
     }
 
@@ -176,10 +162,8 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
     {
         $this->regionFactoryMock->expects($this->never())->method('create');
 
-        $this->model->setData([
-                'region_id' => '',
-                'region' => 'UK',
-            ]);
+        $this->model->setData('region_id', '');
+        $this->model->setData('region', 'UK');
         $this->assertEquals('UK', $this->model->getRegionCode());
     }
 
@@ -237,6 +221,79 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test for setData method
+     *
+     * @return void
+     */
+    public function testSetData()
+    {
+        $key = [
+            'key' => 'value'
+        ];
+
+        $this->model->setData($key);
+        $this->assertEquals($key, $this->model->getData());
+    }
+
+    /**
+     * Test for setData method with multidimensional array in "key" argument
+     *
+     * @return void
+     */
+    public function testSetDataWithMultidimensionalArray()
+    {
+        $this->markTestSkipped('Need to revert changes from  MAGETWO-39106 and then modify this test.');
+        $expected = [
+            'key' => 'value',
+            'array' => 'value1',
+        ];
+
+        $key = [
+            'key' => 'value',
+            'array' => [
+                'key1' => 'value1',
+            ]
+        ];
+
+        $this->model->setData($key);
+        $this->assertEquals($expected, $this->model->getData());
+    }
+
+    /**
+     * Test for setData method with "value" argument
+     *
+     * @return void
+     */
+    public function testSetDataWithValue()
+    {
+        $value = [
+            'street' => 'value',
+        ];
+
+        $this->model->setData('street', $value);
+        $this->assertEquals($value, $this->model->getData());
+    }
+
+    /**
+     * Test for setData method with "value" argument
+     *
+     * @return void
+     */
+    public function testSetDataWithObject()
+    {
+        $value = [
+            'key' => new \Magento\Framework\DataObject(),
+        ];
+        $expected = [
+            'key' => [
+                'key' => new \Magento\Framework\DataObject()
+            ]
+        ];
+        $this->model->setData('key', $value);
+        $this->assertEquals($expected, $this->model->getData());
+    }
+
+    /**
      * @param $data
      * @param $expected
      *
@@ -251,7 +308,9 @@ class AbstractAddressTest extends \PHPUnit_Framework_TestCase
         $this->directoryDataMock->expects($this->never())
             ->method('isRegionRequired');
 
-        $this->model->setData($data);
+        foreach ($data as $key => $value) {
+            $this->model->setData($key, $value);
+        }
 
         $this->assertEquals($expected, $this->model->validate());
     }

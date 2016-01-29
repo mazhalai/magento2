@@ -11,9 +11,10 @@
  */
 namespace Magento\Catalog\Model\Product;
 
+use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Framework\DB\Ddl\Table;
 
-class Visibility extends \Magento\Framework\Object
+class Visibility extends \Magento\Framework\DataObject implements OptionSourceInterface
 {
     const VISIBILITY_NOT_VISIBLE = 1;
 
@@ -26,30 +27,29 @@ class Visibility extends \Magento\Framework\Object
     /**
      * Reference to the attribute instance
      *
-     * @var \Magento\Catalog\Model\Resource\Eav\Attribute
+     * @var \Magento\Catalog\Model\ResourceModel\Eav\Attribute
      */
     protected $_attribute;
 
     /**
      * Eav entity attribute
      *
-     * @var \Magento\Eav\Model\Resource\Entity\Attribute
+     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute
      */
     protected $_eavEntityAttribute;
 
     /**
      * Construct
      *
-     * @param \Magento\Eav\Model\Resource\Entity\Attribute $eavEntityAttribute
+     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavEntityAttribute
      * @param array $data
      */
     public function __construct(
-        \Magento\Eav\Model\Resource\Entity\Attribute $eavEntityAttribute,
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavEntityAttribute,
         array $data = []
     ) {
         $this->_eavEntityAttribute = $eavEntityAttribute;
         parent::__construct($data);
-        $this->setIdFieldName('visibility_id');
     }
 
     /**
@@ -180,7 +180,7 @@ class Visibility extends \Magento\Framework\Object
     /**
      * Set attribute instance
      *
-     * @param \Magento\Catalog\Model\Resource\Eav\Attribute $attribute
+     * @param \Magento\Catalog\Model\ResourceModel\Eav\Attribute $attribute
      * @return $this
      */
     public function setAttribute($attribute)
@@ -192,7 +192,7 @@ class Visibility extends \Magento\Framework\Object
     /**
      * Get attribute instance
      *
-     * @return \Magento\Catalog\Model\Resource\Eav\Attribute
+     * @return \Magento\Catalog\Model\ResourceModel\Eav\Attribute
      */
     public function getAttribute()
     {
@@ -247,5 +247,13 @@ class Visibility extends \Magento\Framework\Object
 
         $collection->getSelect()->order($valueExpr . ' ' . $dir);
         return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function toOptionArray()
+    {
+        return $this->getAllOptions();
     }
 }

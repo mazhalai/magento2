@@ -161,10 +161,12 @@ abstract class Form
         \Magento\Framework\Validator\ConfigFactory $validatorConfigFactory
     ) {
         if (empty($this->_moduleName)) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Current module pathname is undefined'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('The current module pathname is undefined.'));
         }
         if (empty($this->_entityTypeCode)) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Current module EAV entity is undefined'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('The current module EAV entity is undefined.')
+            );
         }
         $this->_storeManager = $storeManager;
         $this->_eavConfig = $eavConfig;
@@ -183,14 +185,14 @@ abstract class Form
     protected function _getFormAttributeCollection()
     {
         return $this->_universalFactory->create(
-            str_replace('_', '\\', $this->_moduleName) . '\\Model\\Resource\\Form\\Attribute\\Collection'
+            str_replace('_', '\\', $this->_moduleName) . '\\Model\\ResourceModel\\Form\\Attribute\\Collection'
         );
     }
 
     /**
      * Get EAV Entity Form Attribute Collection with applied filters
      *
-     * @return \Magento\Eav\Model\Resource\Form\Attribute\Collection
+     * @return \Magento\Eav\Model\ResourceModel\Form\Attribute\Collection
      */
     protected function _getFilteredFormAttributeCollection()
     {
@@ -208,6 +210,7 @@ abstract class Form
      *
      * @param \Magento\Store\Model\Store|string|int $store
      * @return $this
+     * @codeCoverageIgnore
      */
     public function setStore($store)
     {
@@ -276,7 +279,7 @@ abstract class Form
     public function getFormCode()
     {
         if (empty($this->_formCode)) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Form code is not defined'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('The form code is not defined.'));
         }
         return $this->_formCode;
     }
@@ -304,7 +307,7 @@ abstract class Form
     public function getEntity()
     {
         if ($this->_entity === null) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Entity instance is not defined'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('The entity instance is not defined.'));
         }
         return $this->_entity;
     }

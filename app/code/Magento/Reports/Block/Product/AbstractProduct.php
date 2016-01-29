@@ -22,7 +22,7 @@ abstract class AbstractProduct extends \Magento\Catalog\Block\Product\AbstractPr
     /**
      * Product Index Collection
      *
-     * @var \Magento\Reports\Model\Resource\Product\Index\Collection\AbstractCollection
+     * @var \Magento\Reports\Model\ResourceModel\Product\Index\Collection\AbstractCollection
      */
     protected $_collection;
 
@@ -81,11 +81,11 @@ abstract class AbstractProduct extends \Magento\Catalog\Block\Product\AbstractPr
     }
 
     /**
-     * Retrieve Product Index model instance
+     * Public method for retrieve Product Index model
      *
      * @return \Magento\Reports\Model\Product\Index\AbstractIndex
      */
-    protected function _getModel()
+    public function getModel()
     {
         try {
             $model = $this->_indexFactory->get($this->_indexType);
@@ -97,33 +97,23 @@ abstract class AbstractProduct extends \Magento\Catalog\Block\Product\AbstractPr
     }
 
     /**
-     * Public method for retrieve Product Index model
-     *
-     * @return \Magento\Reports\Model\Product\Index\AbstractIndex
-     */
-    public function getModel()
-    {
-        return $this->_getModel();
-    }
-
-    /**
      * Retrieve Index Product Collection
      *
-     * @return \Magento\Reports\Model\Resource\Product\Index\Collection\AbstractCollection
+     * @return \Magento\Reports\Model\ResourceModel\Product\Index\Collection\AbstractCollection
      */
     public function getItemsCollection()
     {
         if ($this->_collection === null) {
             $attributes = $this->_catalogConfig->getProductAttributes();
 
-            $this->_collection = $this->_getModel()->getCollection()->addAttributeToSelect($attributes);
+            $this->_collection = $this->getModel()->getCollection()->addAttributeToSelect($attributes);
 
             if ($this->getCustomerId()) {
                 $this->_collection->setCustomerId($this->getCustomerId());
             }
 
             $this->_collection->excludeProductIds(
-                $this->_getModel()->getExcludeProductIds()
+                $this->getModel()->getExcludeProductIds()
             )->addUrlRewrite()->setPageSize(
                 $this->getPageSize()
             )->setCurPage(
@@ -152,7 +142,7 @@ abstract class AbstractProduct extends \Magento\Catalog\Block\Product\AbstractPr
      */
     public function getCount()
     {
-        if (!$this->_getModel()->getCount()) {
+        if (!$this->getModel()->getCount()) {
             return 0;
         }
         return $this->getItemsCollection()->count();

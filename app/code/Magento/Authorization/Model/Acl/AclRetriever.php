@@ -6,8 +6,8 @@
 
 namespace Magento\Authorization\Model\Acl;
 
-use Magento\Authorization\Model\Resource\Role\CollectionFactory as RoleCollectionFactory;
-use Magento\Authorization\Model\Resource\Rules\CollectionFactory as RulesCollectionFactory;
+use Magento\Authorization\Model\ResourceModel\Role\CollectionFactory as RoleCollectionFactory;
+use Magento\Authorization\Model\ResourceModel\Rules\CollectionFactory as RulesCollectionFactory;
 use Magento\Authorization\Model\Role;
 use Magento\Authorization\Model\UserContextInterface;
 use Magento\Framework\Acl\Builder as AclBuilder;
@@ -76,7 +76,7 @@ class AclRetriever
             $role = $this->_getUserRole($userType, $userId);
             if (!$role) {
                 throw new AuthorizationException(
-                    __('The role associated with the specified user cannot be found.')
+                    __('We can\'t find the role for the user you wanted.')
                 );
             }
             $allowedResources = $this->getAllowedResourcesByRole($role->getId());
@@ -85,7 +85,10 @@ class AclRetriever
         } catch (\Exception $e) {
             $this->logger->critical($e);
             throw new LocalizedException(
-                __('Error happened while getting a list of allowed resources. Check exception log for details.')
+                __(
+                    'Something went wrong while compiling a list of allowed resources. '
+                    . 'You can find out more in the exceptions log.'
+                )
             );
         }
         return $allowedResources;

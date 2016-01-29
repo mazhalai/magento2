@@ -9,6 +9,25 @@ namespace Magento\User\Controller\Adminhtml\Auth;
 class Forgotpassword extends \Magento\User\Controller\Adminhtml\Auth
 {
     /**
+     * @var SecurityManager
+     */
+    protected $securityManager;
+
+    /**
+     * @param \Magento\Backend\App\Action\Context $context
+     * @param \Magento\User\Model\UserFactory $userFactory
+     * @param \Magento\Security\Model\SecurityManager $securityManager
+     */
+    public function __construct(
+        \Magento\Backend\App\Action\Context $context,
+        \Magento\User\Model\UserFactory $userFactory,
+        \Magento\Security\Model\SecurityManager $securityManager
+    ) {
+        parent::__construct($context, $userFactory);
+        $this->securityManager = $securityManager;
+    }
+
+    /**
      * Forgot administrator password action
      *
      * @return void
@@ -21,8 +40,18 @@ class Forgotpassword extends \Magento\User\Controller\Adminhtml\Auth
         if (!empty($email) && !empty($params)) {
             // Validate received data to be an email address
             if (\Zend_Validate::is($email, 'EmailAddress')) {
-                $collection = $this->_objectManager->get('Magento\User\Model\Resource\User\Collection');
-                /** @var $collection \Magento\User\Model\Resource\User\Collection */
+                try {
+                    $this->securityManager->performSecurityCheck(
+                        \Magento\Security\Model\PasswordResetRequestEvent::ADMIN_PASSWORD_RESET_REQUEST,
+                        $email
+                    );
+                } catch (\Magento\Framework\Exception\SecurityViolationException $exception) {
+                    $this->messageManager->addErrorMessage($exception->getMessage());
+                    $resultRedirect = $this->resultRedirectFactory->create();
+                    return $resultRedirect->setPath('admin');
+                }
+                $collection = $this->_objectManager->get('Magento\User\Model\ResourceModel\User\Collection');
+                /** @var $collection \Magento\User\Model\ResourceModel\User\Collection */
                 $collection->addFieldToFilter('email', $email);
                 $collection->load(false);
 
@@ -42,12 +71,7 @@ class Forgotpassword extends \Magento\User\Controller\Adminhtml\Auth
                     }
                 }
                 // @codingStandardsIgnoreStart
-                $this->messageManager->addSuccess(
-                    __(
-                        'If there is an account associated with %1 you will receive an email with a link to reset your password.',
-                        $this->_objectManager->get('Magento\Framework\Escaper')->escapeHtml($email)
-                    )
-                );
+                $this->messageManager->addSuccess(__('We\'ll email you a link to reset your password.'));
                 // @codingStandardsIgnoreEnd
                 $this->getResponse()->setRedirect(
                     $this->_objectManager->get('Magento\Backend\Helper\Data')->getHomePageUrl()
@@ -57,7 +81,7 @@ class Forgotpassword extends \Magento\User\Controller\Adminhtml\Auth
                 $this->messageManager->addError(__('Please correct this email address:'));
             }
         } elseif (!empty($params)) {
-            $this->messageManager->addError(__('The email address is empty.'));
+            $this->messageManager->addError(__('Please enter an email address.'));
         }
         $this->_view->loadLayout();
         $this->_view->renderLayout();

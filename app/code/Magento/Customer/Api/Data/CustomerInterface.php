@@ -16,6 +16,7 @@ interface CustomerInterface extends \Magento\Framework\Api\CustomAttributesDataI
     const ID = 'id';
     const CONFIRMATION = 'confirmation';
     const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
     const CREATED_IN = 'created_in';
     const DOB = 'dob';
     const EMAIL = 'email';
@@ -32,6 +33,7 @@ interface CustomerInterface extends \Magento\Framework\Api\CustomAttributesDataI
     const DEFAULT_BILLING = 'default_billing';
     const DEFAULT_SHIPPING = 'default_shipping';
     const KEY_ADDRESSES = 'addresses';
+    const DISABLE_AUTO_GROUP_CHANGE = 'disable_auto_group_change';
     /**#@-*/
 
     /**
@@ -137,6 +139,23 @@ interface CustomerInterface extends \Magento\Framework\Api\CustomAttributesDataI
     public function setCreatedAt($createdAt);
 
     /**
+     * Get updated at time
+     *
+     * @api
+     * @return string|null
+     */
+    public function getUpdatedAt();
+
+    /**
+     * Set updated at time
+     *
+     * @api
+     * @param string $updatedAt
+     * @return $this
+     */
+    public function setUpdatedAt($updatedAt);
+
+    /**
      * Get created in area
      *
      * @api
@@ -217,7 +236,7 @@ interface CustomerInterface extends \Magento\Framework\Api\CustomAttributesDataI
      *
      * @api
      * @param string $lastname
-     * @return string
+     * @return $this
      */
     public function setLastname($lastname);
 
@@ -276,7 +295,7 @@ interface CustomerInterface extends \Magento\Framework\Api\CustomAttributesDataI
      * Get gender
      *
      * @api
-     * @return string|null
+     * @return int|null
      */
     public function getGender();
 
@@ -284,7 +303,7 @@ interface CustomerInterface extends \Magento\Framework\Api\CustomAttributesDataI
      * Set gender
      *
      * @api
-     * @param string $gender
+     * @param int $gender
      * @return $this
      */
     public function setGender($gender);
@@ -356,6 +375,23 @@ interface CustomerInterface extends \Magento\Framework\Api\CustomAttributesDataI
      * @return $this
      */
     public function setAddresses(array $addresses = null);
+
+    /**
+     * Get disable auto group change flag.
+     *
+     * @api
+     * @return int|null
+     */
+    public function getDisableAutoGroupChange();
+
+    /**
+     * Set disable auto group change flag.
+     *
+     * @api
+     * @param int $disableAutoGroupChange
+     * @return $this
+     */
+    public function setDisableAutoGroupChange($disableAutoGroupChange);
 
     /**
      * Retrieve existing extension attributes object or create a new one.

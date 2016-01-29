@@ -18,7 +18,7 @@ class AssertStoreGroupSuccessDeleteMessage extends AbstractConstraint
     /**
      * Success store group delete message
      */
-    const SUCCESS_DELETE_MESSAGE = 'The store has been deleted.';
+    const SUCCESS_DELETE_MESSAGE = 'You deleted the store.';
 
     /**
      * Assert that success message is displayed after deleting store group
@@ -30,7 +30,7 @@ class AssertStoreGroupSuccessDeleteMessage extends AbstractConstraint
     {
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_DELETE_MESSAGE,
-            $storeIndex->getMessagesBlock()->getSuccessMessages(),
+            $storeIndex->getMessagesBlock()->getSuccessMessage(),
             'Wrong success delete message is displayed.'
         );
     }

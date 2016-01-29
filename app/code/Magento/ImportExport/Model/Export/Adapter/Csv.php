@@ -34,9 +34,20 @@ class Csv extends \Magento\ImportExport\Model\Export\Adapter\AbstractAdapter
     protected $_fileHandler;
 
     /**
-     * Object destructor.
+     * {@inheritdoc }
      */
-    public function __destruct()
+    public function __construct(\Magento\Framework\Filesystem $filesystem, $destination = null)
+    {
+        register_shutdown_function([$this, 'destruct']);
+        parent::__construct($filesystem, $destination);
+    }
+
+    /**
+     * Object destructor.
+     *
+     * @return void
+     */
+    public function destruct()
     {
         if (is_object($this->_fileHandler)) {
             $this->_fileHandler->close();
@@ -84,7 +95,7 @@ class Csv extends \Magento\ImportExport\Model\Export\Adapter\AbstractAdapter
     public function setHeaderCols(array $headerColumns)
     {
         if (null !== $this->_headerCols) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Header column names already set'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('The header column names are already set.'));
         }
         if ($headerColumns) {
             foreach ($headerColumns as $columnName) {

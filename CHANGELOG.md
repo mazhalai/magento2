@@ -1,3 +1,638 @@
+2.0.0
+=============
+* Fixed bugs:
+    * Fixed an issue where discount to the shipping amount was not applied during invoice creation
+    * Fixed an issue where inline translations did not work correctly for phrases with special characters
+    * Eliminated multiple escaping in the inline translation pop-up
+    * Fixed an issue where searching in Billing Agreements grid in Admin resulted in an SQL
+    * Fixed the Refresh Lifetime Statistics functionality in Reports
+    * Increased the limit of cookies per domain, according to following recommendations https://tools.ietf.org/html/rfc6265#section-6.1
+    * Fixed filtering by date in grids
+    * Fixed an issue where Totals were not calculated correctly if discount was applied when placing an order from Admin
+    * Fixed filtering of online customers by session Start Time
+    * Fixed an issue where it was impossible to register a customer on the storefront if an attribute with file type was required
+    * Fixed the issues in the Custom Admin URL with https functionality
+    * Fixed an issue where the category storefront URL did not include its parents
+    * Fixed an issue where Product API did not work properly for not default store code
+    * Fixed issues with adding images for a first product in a new attribute set
+    * Fixed an issue where it was impossible to create a credit memo for the order with downloadable product and sales rule applied
+    * Fixed an issue where it was impossible to manually add products to a configurable product
+    * Fixed an issue with custom timezone
+
+2.0.0-rc2
+=============
+* Fixed bugs:
+    * Fixed an issue where video didn’t play on iPad and iPhone
+    * Fixed an issue where Admin panel was not accessible if port was used in URL
+    * Fixed an issue where database name could not be changed after fail during installation process
+    * Fixed an issue where bundle items quantities could not be saved when editing a bundle product in a wishlist on the storefront
+    * Fixed PHP issue which appeared during Text Swatch product attribute creation
+    * Fixed Mini Shopping Cart re-sizing after removing the product
+    * Fixed an issue with negative subtotal during PayPal checkout
+    * Fixed inconsistent credit card validation
+    * Fixed an issue where the Product Gallery did not completely overlay the bottom layer in the full-screen view
+    * Fixed an issue where the Product Gallery could not be easily opened in the full-screen view
+    * Fixed an issue where the “+” icon was displayed on video preview hover
+    * Fixed an issue where video preview was visible under video player
+    * Fixed an issue where 'Admin' was not a required field for the new Swatch
+    * Fixed an issue where shipping and billing country information was not transmitted to PayPal
+    * Fixed an issue with the attribute in configurable products
+    * Fixed a category page load time
+    * Removed space outside the visible area in Admin
+    * Fixed an issue where Magento was stuck in the maintenance mode, if a backup was created when disabling modules via Web Setup Wizard
+    * Fixed session response to be in JSON
+    * Fixed an issue where an out of stock product was displayed on the storefront
+    * Fixed an error which appeared during product import with replace behavior
+    * Fixed an issue were URL rewrites in catalog categories were wrong after URL key for a store view was changed or a category was moved
+    * Fixed an issue where JSON was received instead of normal page when trying to delete a category after reset
+    * Fixed an issue where product API with "all" store code did not work
+    * Fixed the misleading system message about invalid indexers
+    * Fixed an issue where a bundle product created using Web API was not visible on the storefront
+    * Fixed an issue where it was impossible to save more than one configuration for a configurable product with the text swatch attribute
+    * Fixed an issue with the absence of a proper indication about why an image could not be deleted not deleted when it was used in one of the store views
+    * Fixed an issue with data modification in export result file
+    * Fixed an issue with the incorrect behavior of the required check box custom
+    * Fixed an issue where an exception was thrown when trying to install Magento having previously installed and uninstalled it
+    * Fixed an issue where changing the layout of a CMS page caused its design theme to change to Magento Blank
+    * Fixed an issue where CMS pages API did not work with store code
+    * Fixed an issue where CMS blocks API did not work for multiple websites
+    * Fixed an issue where XSS Payload could been saved into Admin Panel
+    * Fixed an issue where an error caused by adding a new swatch attribute persisted after deleting the attribute
+    * Fixed PHP notice which appeared during text swatch product attribute creation
+    * Fixed JS error on credit memo view grid during export to CSV
+    * Fixed an issue where a user was redirected to a blank page when canceling checkout with PayPal Express in Website Payments Pro Hosted Solution
+    * Fixed an issue where it was impossible to checkout if Persistent Shopping Cart is enabled
+    * Fixed an issue where it was impossible to complete the Braintree PayPal Checkout if Street line 2 is empty
+    * Fixed an issue with XSS Payload in website's translation table
+    * Fixed an issue where payment functionality matrix section was suitable only for AbstractMethod specializations, leaving other payment methods without valuable information
+* GitHub issues and requests:
+    * [#2276](https://github.com/magento/magento2/issues/2276) -- Notice: getimagesize(): Read error! in app/code/Magento/Catalog/Model/Product/Image.php on line 949
+    * [#2128](https://github.com/magento/magento2/issues/2128) -- wrong filename on products list
+
+2.0.0-rc
+=============
+* Performance improvements:
+    * Refactored observer classes to satisfy the single-responsibility requirement in order to minimize the time on observer object loading
+    * Improved performance of catalog advanced search
+    * Improved performance of catalog quick search
+    * Various micro-optimizations of the Magento framework
+    * Optimized stores initialization and data loading
+    * Improved the CSS and JavaScript minification mechanism
+    * Sales rules (cart promotions) performance optimization
+    * Improved performance of table rendering
+    * Improved sample data performance
+* Payment methods improvements:
+    * Implemented the eWay online payment gateway using both Client side encryption and Responsive shared page APIs.
+    * Implemented PayPal best practices for PayPal Express Checkout
+    * Improved the UI for the Braintree payment method
+* Checkout improvements:
+    * Implemented persistence of entered customer’s data on Checkout flow
+    * Implemented persistence of customer Shopping Cart
+    * Improved Terms and Conditions settings
+    * Improved error handling mechanism on Checkout flow
+    * Improved the collect totals mechanism
+    * Improved the checkout credit card form design
+* Product improvements:
+    * Added the ability to manage the list of variations/configurations using the wizard or manually
+    * Added the ability to manage the list of variations based on removing or adding a new attribute
+    * Added the ability to notify the user during product information update or management
+    * Added the ability to notify the user during the change of the product template set when saving a product
+    * Added the ability to update product data during mass action update
+    * Added the "remove attribute" button to each attribute on the second step of the configurable product attributes creation
+    * Removed grouped price from product creation functionality
+    * Discounts logic is based on the selected option of a configurable product
+* CMS improvements:
+   * Added a sticky header and controls to data grids
+   * Added the support for multiple select in data grid filters
+   * Added the ability to change column width in data grids
+   * Added the ability of inline and bulk inline editing in data grids
+* WebApi Framework improvements:
+    * Added the support for store codes in API calls
+    * Added the ability to update the Magento system to a particular version of Magento 
+    * Added the ability to enable/disable modules for Magento application
+    * Added the ability to use maintenance mode
+    * Introduced the common interface for Webapi payload processors
+    * Moved the Search API from the Search module to the Search Framework library
+* Framework improvements:
+    * Refactored observer classes to implement the same interface
+    * Added HHVM compatibility with the `intl` extension
+    * Added the support for  PHP 7
+    * Improved catalog image generation
+    * Added the ability to store Magento code in the `vendor` directory
+    * Added support for the URN  schema in configuration files
+    * Implemented a new component for Model Windows to simplify input/modification data in pop-us
+    * Implemented the gallery widget with MVP functionality in Global JS Widgets Library
+    * Included the migration tool to Magento CLI
+    * Added inline editing in data grids
+    * Updated data grids mass actions
+    * Added  the export  to data grids
+    * Implemented the full text search in data grids in Admin
+    * Applied finalized new data grid to Customer List
+    * Removed the DesignEditor module and related code
+    * Added Swagger REST API schema generation for automatic API documentation creation
+    * Added the ability to generate a page that reports all REST APIs in the system
+    * Added the Webapidoc module to generate on-the-fly API documentation for a particular Magento instance
+    * Added the support for inline translation in Magento UI components
+    * New data grid component applied on Sales data grid
+    * Unified database resource connections interface
+    * Implemented a mechanism for rendering escaped string
+    * Added the ability to extend any Magento JS Component after it is loaded on the page and before it is executed
+    * Added the @remove and @display attributes to handle block and container appearance
+    * Added the ability to send the purge requests for multiple servers
+    * Removed deprecated code from modules and Magento/Framework
+    * Implemented the independent template hints for the storefront and the Admin panel
+* Setup
+    * Improved the wording in the Web Installation Wizard UI
+    * Updated the extensions styles in the Web Installation Wizard
+    * Added the ability to control access to the setup tool
+    * Added the Install Components functionality for Web Installation Wizard
+    * Updated styles 
+* Sample Data:
+    * Improved sample data installation UX
+    * Updated sample data with Product Heros, color swatches, MAP and rule based product relations
+    * Improved sample data upgrade flow
+    * Added the ability to log errors and set the error flag during sample data installation
+* Various improvements:
+    * Added integration with NewRelic
+    * Added dashboard for Platinum integration partners
+    * Improved downloadable products UI in the Admin panel in order to provide the same experience with all other product types
+    * Implemented email templates responsiveness and localization
+    * Implemented WebApi to retrieve store information, country list and currency information
+    * Implemented discount coupon generation, search, and multi-actions APIs
+    * Added the ability to declare filter components inside the data grid column definition
+    * Added the console command `catalog:image:resize`
+    * Consolidated the algorithms for populating system packages for upgrade and other tasks
+    * Implemented various accessibility improvements
+    * Improved UX for Tax Rule Management
+    * The Luma theme became default storefront theme
+    * Refactored grid store selectors for their unification
+    * Refactored Magento UI Library to use the 'lib-' prefix in all library mixins
+    * Refactored styles to eliminate log file errors after static files deployment is executed
+    * Improved user experience on the backup pages of Component Manager
+    * Increased JS and PHP code coverage with unit tests
+    * Implemented the product attribute swatches functionality
+* GitHub issues and requests:
+    * [#1397](https://github.com/magento/magento2/pull/1397) -- Allow multiple caplitalized words (like typical vendor names) in ACL resource IDs
+    * [#1231](https://github.com/magento/magento2/pull/1231) -- Update Cm_Cache_Backend_Redis to v1.8 and Credis_Client to v1.5
+    * [#1375](https://github.com/magento/magento2/pull/1375) -- Allow phrases to contain more than nine numeric placeholders
+    * [#1454](https://github.com/magento/magento2/pull/1454) -- Permissions not set correctly #1453
+    * [#1410](https://github.com/magento/magento2/pull/1410) -- Allow custom config files with virtual types only by adding generic schema locator
+    * [#1416](https://github.com/magento/magento2/pull/1416) -- Add abstract method execute() to \Magento\Framework\App\Action\Action
+    * [#1406](https://github.com/magento/magento2/pull/1406) -- Fixes issue with reading store config for store with code of 'default'
+    * [#1447](https://github.com/magento/magento2/pull/1447) -- Missing strings for Javascript Translations
+    * [#1465](https://github.com/magento/magento2/pull/1465) -- Fix typo: itno => into
+    * [#1476](https://github.com/magento/magento2/pull/1476) -- fix typo in dispatched event
+    * [#1516](https://github.com/magento/magento2/pull/1516) -- Typo in addAction function: _.findIdnex should be .findIndex
+    * [#1533](https://github.com/magento/magento2/pull/1533) -- Updated the broken dev doc links in the README.md
+    * [#1469](https://github.com/magento/magento2/pull/1469) -- Remove dependency of date renderer on global state locale
+    * [#1462](https://github.com/magento/magento2/pull/1462) -- Product collection - Add url rewrite from different website
+    * [#1422](https://github.com/magento/magento2/pull/1422) -- Improve \Magento\Framework\Api\SortOrder
+    * [#1528](https://github.com/magento/magento2/pull/1528) -- Really hide Pdf totals with zero amounts
+    * [#1641](https://github.com/magento/magento2/pull/1641) -- Update create-admin-account.phtml
+    * [#1440](https://github.com/magento/magento2/pull/1440) -- Update Console Tool Usage for Cache and Index Operations
+    * [#1523](https://github.com/magento/magento2/pull/1523) -- Permissions not set correctly
+    * [#1517](https://github.com/magento/magento2/pull/1517) -- add router.php for php Built-in webserver
+    * [#1654](https://github.com/magento/magento2/pull/1654) -- Update filter.phtml
+    * [#1602](https://github.com/magento/magento2/pull/1602) -- Improve product export performance
+    * [#1062](https://github.com/magento/magento2/pull/1062) -- Add check to see if PHP > 5.6 and always_populate_raw_post_data = -1
+    * [#1496](https://github.com/magento/magento2/pull/1496) -- Add "Not Specified" as a gender option when customer does not specify gender
+    * [#1664](https://github.com/magento/magento2/pull/1664) -- AbstractPdf::_getTotalsList - fix return comment
+    * [#1502](https://github.com/magento/magento2/pull/1502) -- Loosened Regex on GB postcodes
+    * [#1801](https://github.com/magento/magento2/pull/1801) -- Enable translation for gender
+    * [#1835](https://github.com/magento/magento2/pull/1835) -- Added exception to event data
+    * [#1854](https://github.com/magento/magento2/pull/1854) -- Added missing @method annotation for setWebsiteIds
+    * [#1818](https://github.com/magento/magento2/pull/1818) -- use return value instead of reference parameter
+    * [#1206](https://github.com/magento/magento2/pull/1206) -- Allow modules to live outside of app/code directory
+    * [#1869](https://github.com/magento/magento2/pull/1869) -- Typo in function name fixed (stove->store)
+    * [#1792](https://github.com/magento/magento2/pull/1792) -- Fix invalid @method phpdoc to prevent prophecy mocking error
+    * [#1483](https://github.com/magento/magento2/issues/1483) -- admin external extjs.com requests acknowledged bug CS needs update
+    * [#1489](https://github.com/magento/magento2/issues/1489) -- Russia is eligible PayPal merchant country but absent in Magento 2.0 "Merchant Country" dropdown
+    * [#1461](https://github.com/magento/magento2/issues/1461) -- Cart Items are not deleted after success checkout
+    * [#1452](https://github.com/magento/magento2/issues/1452) -- First two orders with sample data fail
+    * [#1458](https://github.com/magento/magento2/issues/1458) -- window.checkout is undefined if minicart is removed
+    * [#1443](https://github.com/magento/magento2/issues/1443) -- GET /V1/carts/mine/items is returning "cartId is a required field"
+    * [#1442](https://github.com/magento/magento2/issues/1442) -- Running 'log:clean' through cli results in an error: 'Area code not set'
+    * [#1435](https://github.com/magento/magento2/issues/1435) -- Fatal error: Class 'Magento\Framework\HTTP\Client_Curl' not found
+    * [#1432](https://github.com/magento/magento2/issues/1432) -- Doesn't work sorting in the search list.
+    * [#460](https://github.com/magento/magento2/issues/460) -- Optimization on Weee tax calculation
+    * [#647](https://github.com/magento/magento2/issues/647) -- Template path hints behavior
+    * [#771](https://github.com/magento/magento2/issues/771) -- Fatal error when calling execute()
+    * [#896](https://github.com/magento/magento2/issues/896) -- i18n generator generates dictionary with duplicated phrases
+    * [#930](https://github.com/magento/magento2/issues/930) -- Flushing cache fails to wipe view_preprocessed dir
+    * [#933](https://github.com/magento/magento2/issues/933) -- Admin fields that use WYSIWYG don't pass the js validation
+    * [#939](https://github.com/magento/magento2/issues/939) -- Inline Translation adds <span> within <head>
+    * [#941](https://github.com/magento/magento2/issues/941) -- [Question] How to get the currency code and symbol of an AbstractPrice?
+    * [#1159](https://github.com/magento/magento2/issues/1159) -- Warning: The email and password is visible in front-end
+    * [#1167](https://github.com/magento/magento2/issues/1167) -- Magento_Log: creating new record with wrong store_id every each refresh page for Adminhtml
+    * [#1192](https://github.com/magento/magento2/issues/1192) -- Error in monetary value Brazil
+    * [#1367](https://github.com/magento/magento2/issues/1367) -- String class name issue for php7
+    * [#1242](https://github.com/magento/magento2/issues/1242) -- eclipse pdt validator error
+    * [#1279](https://github.com/magento/magento2/issues/1279) -- related products not able to add to cart
+    * [#1423](https://github.com/magento/magento2/issue/1423) -- Magento\Email\Model\Template\Filter Comment vs Code
+    * [#1418](https://github.com/magento/magento2/issue/1418) -- Items in minicart are not cleared after successful placing an order
+    * [#1408](https://github.com/magento/magento2/issue/1408) -- Error command cli setup:static-content:deploy
+    * [#1396](https://github.com/magento/magento2/issue/1396) -- Products are not shown in category right after import
+    
+1.0.0-beta
+=============
+* Framework improvements:
+    * Improved the way the return type of a method is derived during WSDL generation
+    * Added the ability to retrieve a list of available endpoints for a given Magento instance
+* Search improvements:
+    * Introduced the Search field in scope of Enhanced Data Grids on CMS
+    * Introduced the Search Indexer interface and XML declaration
+    * Introduced the Search module API to support the search functionality
+    * Product attributes have different weight by default
+    * Implemented per store full text index
+    * Search API moved from the Catalog to the Search module
+* Various improvements:
+    * Payment gateway infrastructure improvements
+    * Removed the outdated GoogleShopping module
+    * Implemented the integration with Braintree payment gateway
+    * Moved the Authorize.net payment method back to CE
+    * Updated processing of the fraud status for orders
+    * Added data attributes for checkout sections
+    * The enhanced grid component is applied to the Product grid and the whole Sales module
+    * Added the ability to create account during and after the checkout process is complete
+    * Enabled coupon code in URL for empty carts
+    * Added new icons to the admin-icons font
+    * Improved the configurable product creation flow to be consistent with other product types creation
+    * Eliminated email markup duplication and simplified email content management by including footer/header content and styles from a single place for email templates
+* Fixed bugs:
+    * Fixed an issue where there was no successful message about VAT validation
+    * Fixed an issue where it was not possible to change State/Province in customer address
+    * Fixed an issue where the "Array to string conversion" notice appeared during order creation if custom address attribute existed
+    * Fixed an issue in API service where a customer was created even when there was a validation error
+    * Fixed an issue where a new custom theme added to the file system, was not accessible in Admin
+    * Fixed an issue where it was impossible to save a customer record in Admin after selecting to add a new address and then deleting the address fields
+    * Fixed an issue where it was impossible to add to cart by SKU more, than one product at a time on the storefront
+    * Fixed an issue where it was impossible to place an order on the storefront using PayPal Payments Pro
+    * Fixed an issue where checkout was performed without applying existing and active catalog rules
+    * Fixed an issue where category displayed outdated prices until page cache was manually reset or timed out
+    * Fixed with the wrong label for catalog price rules processing dropdown
+    * Fixed the copyright text on the storefront
+    * Fixed an issue where the Create new Customer Account form was broken on the storefront
+    * Fixed an issue where CMS page was saved automatically once a widget is added to the page content
+    * Fixed an issue where a user was redirected to the Orders page after clicking the Get Payment Update in Admin
+    * Fixed a comment in the \Magento\Framework\App\Http::launch() method
+    * Fixed an issue where editable multi-select fields were not always displayed on the new tax rule creation page
+    * Fixed a JavaScript error which blocked guest checkout if JavaScript bundling was enabled
+    * Fixed an issue where the Cookie Restriction Mode block was not displayed on the storefront
+    * Fixed an issue where the Tax Rate edit form showed an empty selected value instead of *
+    * Fixed an issue for Internet Explorer v.11 where the Remove button in the mini shopping cart did not work
+    * Fixed an issue where the Email field was duplicated on the send invitation form
+    * Fixed an issue where the product images where not displayed on a storefront product page for simple products
+    * Fixed the error handling for PHP settings check in Setup Wizard which was caused by timeout
+    * Fixed an issue where a credit card type was undefined in iframe request
+    * Fixed the iframe payment method flow
+    * Fixed an issue where it was possible to place an order with the empty Purchase Order Number required field
+    * Fixed an issue where a loader was not displayed in mini shopping cart
+    * Fixed an issue where autocomplete was enabled on credit card form
+    * Fixed issues with PayPal conflict resolution
+    * Fixed cache collisions for static view files cache
+    * Fixed an issue where an admin user with limited access to only Content could not access CMS pages in Admin
+    * Fixed an issue where "Privacy and Cookie Policy" CMS page content was unreadable
+    * Fixed an issue where shopping cart became empty if a customer configured an item to be the same as already existing in the shopping cart
+    * Fixed an issue where Maestro credit card did not pass validation
+    * Fixed an issue where a custom order status appeared in the Order State drop down
+    * Fixed an issue where it was impossible to add products to a package and create a shipping label
+    * Fixed the incorrect text message in the Products Requiring Attention grid for product with enabled Qty Increments
+    * Fixed an issue where the thumbnail image option was not applied correctly for grouped products
+    * Fixed an issue where the Newsletter Subscribers grid was not displayed
+    * Fixed an issue where the order number was absent on the success page for PayPal Advanced Checkout
+    * Fixed non-working sales tax report
+    * Fixed an issue where sales reports with empty rows did not work
+    * Fixed the broken layout on the shipping checkout step for the Blank theme
+    * Fixed an issue where the Phone Number hint was displayed outside of the visible screen when adding a new address
+    * Fixed the style for the Add button on certain pages in Admin
+    * Fixed an issue where it was impossible to confirm signing of a billing agreement during checkout
+    * Fixed an issue with missing events subscriptions
+    * Fixed the incorrect message displayed when trying to delete a product from mini shopping cart
+    * Fixed an issue where it was possible to share a wish list after a short-term session was expired when the Persistent Shopping Cart functionality was enabled
+    * Fixed an issue where the "optional" placeholder was displayed for the Password field when logging in during checkout
+    * Fixed an issue where placing an order with the same parameters was becoming slower on each iteration
+    * Fixed an issue where the controls on the Review & Payments page were disabled in case PayPal transaction had been declined during checkout
+    * Fixed an issue where the terms and conditions links were always displayed during checkout
+    * Fixed an issue where customer address was not saved during checkout
+    * Fixed an issue where tax information was shown in order summary for a guest customer
+    * Fixed an issue with currency in different locales
+    * Fixed an issue where tax information was not displayed in mini shopping cart
+    * Fixed an issue with the Display Full Tax Summary configuration setting
+    * Fixed an issue with Advanced Fraud Protection in the Braintree payment method
+    * Fixed an issue with tax and FPT information missing in the order summary on the storefront
+    * Fixed the auto load error after running setup:di:compile
+    * Fixed an issue with publishing files in production mode
+    * Fixed a cron re-indexing issue
+    * Fixed an issue with JS minification errors which appeared when adding products to cart
+    * Fixed the broken Reset Password link in a welcome email for a customer created in Admin
+    * Fixed an issue where WSDL generated for any Web API service had an invalid element
+    * Fixed the records displaying order in the Sales grids
+    * Fixed an issue with invalid path parsing in exclude list during bundle collecting
+    * Fixed an issue where there was no success message after place order via Payflow Link on mobile device
+    * Fixed an issue where it was not possible to place order as a guest via Authorize.net Direct Post
+    * Fixed an issue where it was not possible to place order via Express Checkout with enabled Terms and Conditions
+    * Fixed an issue where the last transaction ID was displayed for order placed within PayPal Payflow Link on the storefront
+    * Fixed an issue where it was not possible to perform products mass update in Internet Explorer
+    * Fixed an issue where product did not appear on front after category change and indexers set to update on schedule
+    * Fixed an issue where special chars in custom options were replaced with HTML entities
+    * Fixed the invalid title of the Update Attributes page in Admin
+    * Fixed performance issue in the storefront search
+    * Fixed the _initCustomer() method in the Customer module controllers
+    * Fixed an issue where the customer_save_after_data_object event dispatched a few times
+    * Fixed an issue where it was not possible to create customer account from order success page
+    * Fixed an issue where styles were missing on the storefront
+    * Fixed the "No such entity with cartId = " error on One Page Checkout if online payment was used
+    * Fixed an issue where flush of one type of cache made other flushed
+    * Fixed sales orders grid for orders placed using PayPal when the PayPal module was disabled
+    * Fixed an issue where loader hanged out if admin did not specify shipping address or method for order
+    * Fixed an irrelevant note in Payflow Pro section on One Page Checkout
+    * Fixed an issue where an HTML tag was displayed in the Instructions field of the bank transfer payment form during checkout on the storefront
+    * Fixed an issue where it was not possible to place order as a guest via Authorize.net Direct Post
+    * Fixed an issue where the Refund and Refund Offline buttons styles on the Credit Memo page
+    * Fixed an issue where Modal window for "Sign In" was not closed when clicking outside
+    * Fixed an issue where the Compare Products functionality was accessible in a store with the responsive Blank theme applied when browsing using Iphone6
+    * Fixed incorrect relative paths in LESS files
+    * Fixed an issue where it was not possible to save newsletter subscription information of a customer in Admin
+    * Fixed an issue where order number was missing on PayPal (Payflow) Express Checkout solutions
+    * Fixed an issue where Product quantity was still displayed in the mini shopping cart after Place Order on storefront
+    * Fixed indexer failure with re-index on schedule
+    * Fixed catalog price rule calculation for Group price
+    * Fixed an issue where specific product tabs were accumulated on switching between product templates
+    * Fixed an issue where grid actions in custom options dialog did not work
+    * Fixed an issue where page cache was not invalidated when products were changed via mass action
+    * Fixed an issue where catalog page was not updated after product returned to stock again if Varnish was enabled
+    * Fixed incorrect price of configurable product on storefront
+    * Fixed an issue where the Catalog page in Admin did not work in production mode
+    * Fixed an issue where the Add to cart button did not redirect to the configuration page for configurable products
+    * Fixed an issue where it was not possible to perform mass delete having used the Select All functionality to select the products
+    * Fixed an issue where PayPal Express Checkout was always displayed as disabled in Internet Explorer
+    * Fixed an issue where PayPal Express labels on checkout were small
+    * Fixed an issue where the Configure Product modal window blended in with page content during order creation
+    * Fixed an issue where hints behaved not user-friendly on the storefront
+    * Fixed an issue with exception when creating account for guest customer after placing order within Express Checkout
+    * Fixed orders grid mass actions
+    * Fixed invoice grid search on Invoices tab of Order View page
+    * Fixed an issue where gallery images were not loaded for Configurable Product
+    * Fixed an issue where currency rates were displayed incorrectly
+    * Fixed exception framework misuse in indexers
+Tests:
+    * Increased code coverage of the Theme module
+    * Refactored some methods to decrease C.R.A.P index and implemented unit tests for CMS, Sitemap and Widget modules
+    * Sample data installation covered with unit tests
+    * Moved all test data for functional tests to repositories
+    * Increased test coverage for setup fixtures which are used for performance tests
+    * Updated some variations for checkout related automated tests
+    * Increased SOAP connection timeout to prevent SOAP failures in API tests
+* GitHub issues and requests:
+    * [#1272](https://github.com/magento/magento2/issues/1272) -- In dashboard Last Orders items quantity showing wrong some times
+    * [#1341](https://github.com/magento/magento2/issues/1341) -- [Question] How to specify attributes to load on ProductRepository::getList()
+    * [#1370](https://github.com/magento/magento2/issues/1370) -- EAV Attribute Repository linking to catalog_eav_attribute
+    * [#1382](https://github.com/magento/magento2/issues/1382) -- setup:install can now accept {{base_url}} as input to --base-url
+    * [#1385](https://github.com/magento/magento2/pull/1385) -- Specify `Magento_Catalog` module on template for sorting
+    * [#1411](https://github.com/magento/magento2/issues/1411) -- No error message shown when purchase qty mismatch the 'Qty Increments' setup
+    * [#1420](https://github.com/magento/magento2/pull/1420) -- Make Api\SearchResults implement Api\SearchResultsInterface
+    * [#1421](https://github.com/magento/magento2/pull/1421) -- Rename Api\SearchCriteriaBuilder::addFilter() to addFilters()
+    * [#1427](https://github.com/magento/magento2/issues/1427) -- Fatal error: Call to a member function format() on null in magento2/lib/internal/Magento/Framework/Stdlib/DateTime/Timezone.php on line 260
+    * [#1434](https://github.com/magento/magento2/issues/1434) -- Failed to add product variation
+
+0.74.0-beta16
+=============
+* Framework improvements:
+    * Improved declaration of JS widgets with mixins node
+    * Optimized Magento\Framework\View\Element\Template for production mode
+    * Added color picker JS library
+* Various improvements:
+    * Implemented enhanced checkout flow
+    * Increased security of search filters
+    * Added price variation caching based on WEEE
+    * Updated adapter in payment gateway
+    * Data version control was implemented on Customer and Quote modules to reduce number of unnecessary model saves
+    * Optimized Magento\PageCache\Model\Observer\ProcessLayoutRenderElement::execute
+    * Added event to make an ability to add elements on a main tab of attribute editing page
+    * Email markup duplication is eliminated and email content management is simplified
+    * Implemented and ability to update/replace and export advanced product prices
+    * Added import history
+    * Implemented and ability to export configurable products
+* Payment improvements:
+    * Moved PayPal solutions back to CE
+    * PayPal Payments Standard is updated to PayPal Express Checkout API
+    * Improved conflict resolution rules for PayPal configuration
+* Tests:
+    * Increased timeout for HTTP requests in api-functional test framework to avoid error "HTTP request failed"
+    * Increased unit test coverage for Reports, CatalogRule, Config and CurrencySymbol modules
+    * Functional tests maintenance for Tax, Sales, Reports modules
+    * Created fixture generation scripts for functional tests
+    * Fixed CheckoutWithGiftMessagesTest functional test
+* Fixed bugs:
+    * Fixed wrong redirect after adding to compare, wish list or cart from private content blocks
+    * Fixed an issue where tax information was not saved in orders
+    * Fixed an issue where total amount was not set in the correct place
+    * Fixed an issue where product options details were missing while adding to wish list
+    * Fixed an issue with empty customer first name and last name when new address is added on backend
+    * Fixed an issue where it was not possible to create customer from backend if there was custom attribute
+    * Fixed an issue where email could not be retrieved from Quote address after adding an address in backend order creation
+    * Fixed XSS in order details
+* GitHub issues and requests:
+    * [#1389](https://github.com/magento/magento2/pull/1389) -- Replaced string check with simpler logic
+    * [#1412](https://github.com/magento/magento2/pull/1412) -- Fix typo - change getChildhtml to getChildHtml
+    * [#1415](https://github.com/magento/magento2/pull/1415) -- Add placeholder containers to invoice and shipment creation sections
+
+0.74.0-beta15
+=============
+* Framework improvements:
+    * Introduced Drag&Drop Columns functionality in scope of Enhanced Data Grids on CMS
+    * Improved Column Actions functionality in scope of Enhanced Data Grids on CMS
+    * Adapted Payment\Gateway framework to client requirements
+    * Removed 'field_expr' option from filters
+    * Added product details renderer list support on Catalog category page
+    * Security: Clickjacking solution - introduced X-Frame-Options
+    * Gift message was moved to shopping cart
+    * Improved simple products export
+    * Separated import of advanced prices
+    * Changed 'updated_at' filter for products export
+    * Added the link with sample product import file
+    * Cleared and improved the  messages and names in different modules
+    * Added mbstring extension as a requirement
+* Tests:
+    * Increased test coverage for the CatalogInventory, Email and Newsletter modules
+    * Added wait to form element before filling a value in functional tests
+    * Increased test coverage of Reports module
+    * Functional tests were fixed and maintained
+* Fixed bugs:
+    * Fixed loading of images from database media storage with separate connection
+    * Eliminated duplication of ComposerInformation class in Magento Framework and Setup Application
+    * Fixed an error message format inconsistency in theme uninstall command
+    * Fixed an issue where incorrect action name checks led to customer info leak
+    * Fixed an issue where /magento_version exposed too detailed version information
+    * Fixed an issue where generate data failed when table prefix exceeded length of 5
+    * Fixed an issue where product options were displayed not styled on "Edit Product from Wishlist" Frontend page
+    * Fixed an issue where payment information was displayed broken on "Order Management" Backend page forms
+    * Fixed an issue where admin panel pop-ups contained lots of empty space
+    * Fixed an issue where Customer account form was displayed broken
+    * Fixed an issue where all text fields were invisible in Backend "Add New Customer" page
+    * Fixed XSS issues in Magento - wishlist sending
+    * Fixed an issue where it was unable to specify all values of "Multiple Select" Product Custom Option to purchase
+    * Fixed an issue where setting a permission for 'ALL Groups' produced an error if other permissions existed
+    * Fixed an issue where stock was not updated when Stock indexer was in Update on Schedule mode
+    * Fixed an issue where it was not possible to update stock items of product using API service
+    * Fixed an issue where Customer review changes in backend were not reflected in frontend until cache was cleared
+    * Fixed an issue where cache was not updated when changing stock status using mass action
+    * Fixed an issue where Stock Items API service to return low stock information did not return correct results
+    * Fixed an issue where found records in global search in Backend could not be selected via keyboard
+    * Fixed an issue where Category menu items went out of screen when page side was reached
+    * Fixed an issue where subcategories in menu were shown instantly when user moved mouse quickly
+    * Fixed an issue where popup header was our of window range while creating group product
+    * Fixed an issue where region field was absent in customer address form on backend for "United Kingdom" country
+    * Fixed an ability to edit the Order from Admin panel
+    * Fixed an issue where email could not be retrieved from \Magento\Quote\Api\Data\AddressInterface after adding an address on OnePageCheckout
+    * Fixed an issue where Products were not displayed correctly across all storeviews of the catalog
+* GitHub issues:
+    * [#1378](https://github.com/magento/magento2/issues/1319) -- jquery-cookie.js is not published by deploy tool in production mode
+    * [#1314](https://github.com/magento/magento2/pull/1314)-- Fixed a bug where type attribute for tag button was missing
+    * [#1354](https://github.com/magento/magento2/pull/1354) -- Add gitter.im badge to ReadMe.
+    * [#1378](https://github.com/magento/magento2/pull/1378) -- Fix incorrect js filename
+
+0.74.0-beta14
+=============
+* Framework improvements:
+    * Introduced an ability to uninstall modules which were installed via composer (bin/magento module:uninstall 'moduleName')
+    * Introduced an ability to uninstall themes (bin/magento theme:uninstall 'themeName')
+    * Introduced an ability to backup and rollback DB and Media via CLI (bin/magento setup:backup, options are --code, --db or --media)
+    * Introduced an ability to uninstall language packages (bin/magento i18n:uninstall 'languagePack')
+    * Introduced API notation for the following modules: Backend, Backup, Cron, Log, PageCache
+    * Added join processors to search services, joined config for services with extension attributes
+    * Renamed hidden_tax to discount_tax_compensation
+    * The customer address entity table was transformed from EAV into a flat model to minimize database operations
+* Fixed bugs:
+    * Fixed an issue where Setup Wizard failed on readiness check when Magento was deployed by composer create-project
+    * Fixed the local file path disclosure when trying to browse image cache directory
+    * Fixed an issue where development errors resulted in too many redirects
+    * Fixed an integration test failure in Reports ViewedTest
+    * Fixed an issue where it was impossible to save existent Grouped Product with no child items
+    * Fixed an issue where message "We don't have as many "conf1" as you requested" appeared
+    * Fixed an issue where second product from bundle product was ordered as separate item after checkout
+    * Fixed an issue where configs for payments and shipping providers were not encrypted
+    * Fixed an issue where Table Rates shipping method did not work
+    * Fixed an issue where admin could not set locale properly on Account page
+    * Fixed incomplete generated results of single tenant compiler
+    * Fixed an issue with full page caching where one set of prices was cached for all customers
+    * Fixed incorrect urls for private content
+    * Fixed an issue where it was not possible to assign a product link to another product using API
+    * Fixed an issue where zip code was not displayed as required field on Create New Order page
+    * Fixed the Sample Data re-installation
+    * Fixed random fails on inventory tab for test CreateSimpleProductEntityTest
+* Tests:
+    * Covered various modules with unit tests
+    * Functional tests fixed and maintained
+* GitHub issues:
+    * [#1156](https://github.com/magento/magento2/pull/1156) -- Moves common code to all auto-generated Interceptor classes into a trait
+    * [#1206](https://github.com/magento/magento2/pull/1206) -- Allow modules to live outside of app/code directory
+    * [#1245](https://github.com/magento/magento2/pull/1245) -- Unable to save product per website wise
+    * [#1347](https://github.com/magento/magento2/pull/1347) -- Fixed failing Install during integration tests (MAGETWO-38482)
+    * [#1368](https://github.com/magento/magento2/pull/1368) -- Fix typo in getCurrentCategoryKey
+
+0.74.0-beta13
+=============
+* Framework improvements:
+    * Created Join Directive, Join Process for Tables, XML Config support to define a performance join for search services
+    * Added support of field weighting for MySQL Search Engine
+    * Modified indexer declaration to support field declaration
+    * Model related methods and properties are removed from Magento Object
+* Various improvements:
+    * Added supporting of lost product types for Product Import/Export
+    * Improved performance of Product Import/Export
+    * Implemented Payment\Gateway infrastructure as a new design for payment methods
+    * Fixed messages in Setup CLI
+    * JS Smart fixed scroll
+    * Improved sub-menu animation and sub-menu links mouse event effects
+    * Automated UI Documentation build process with Grunt.js
+    * Updated composer dependency to newer version
+    * Implemented direct web link on Magento order transactions records
+* Tests:
+    * Reduced Travis CI integration test time
+    * Increased test coverage for the Integration module
+    * Re-structured unit tests for the updater app to follow the convention used by the rest of Magento code
+* Fixed Bugs:
+    * Fixed Help links in Install Wizard
+    * Fixed an issue where composer install failed since ext-xsl was not available
+    * Fixed web installer on HHVM
+    * Fixed broken links to static assets when error occurs
+    * Fixed failed integration tests on Travis CI builds
+    * Fixed an issue where menu with one sub-menu item not being displayed
+    * Fixed an issue where IPN messages did not show relevant info about transaction
+    * Fixed an issue where Magento\Framework\Data\Form did not accept data-mage-init parameter
+    * Fixed an issue where not all specified "Multiple Select" Bundle options were added to Shopping Cart
+    * Fixed ConfigureProductInCustomerWishlistOnBackendTest functional test
+    * Fixed an issue with all mandatory fields in the Sales data interfaces
+    * Fixed an issue where billing and shipping sections did not contain address information on order print from Guest
+    * Fixed an issue where orders placed in different store views had duplicated IDs
+    * Fixed an issue where Shopping Cart Price Rules were not applying properly for Bundled products
+    * Fixed an issue where column coupon_rule_name was not filled in the sales_order table when you create the order
+    * Fixed an issue where customer registration or login on frontend created an empty cart
+    * Fixed an issue where Product Model sometimes values change in getters methods
+    * Fixed an issue where deleting option through API service for configurable product did not unlink variations
+    * Fixed an issue where there was no ability to place order using multishipping if cart contained virtual product
+    * Fixed an issue where "Terms and Conditions" was absent on order review step
+    * Fixed an issue where grid actions for "Shopping Cart Items" grid was absent in Customer Account (Backend)
+    * Fixed XSS vulnerability in Magento "Add to cart" link
+    * Fixed UI issues on view order info frontend pages for guest customer
+    * Fixed an issue where "Currency Rates" backend form was displayed broken
+    * Fixed an issue where padding was missed for Custom Price Checkbox on "Create Order" Backend page
+    * Fixed an issue where "Choose Variation" buttons lost alignment on "Create Configurable Product" Backend page
+    * Fixed an issue where "Date & Time" Custom option was displayed broken on "Create Order" Backend page
+    * Fixed an issue where colon was displayed before every Product Attribute label on Frontend
+    * Fixed an issue where record from url_rewrite table was not removed when CMS page deleted
+    * Fixed an issue where widget option "Number of Products to Display" did not work
+    * Fixed validation message issues for CMS pages
+    * Fixed an issue where "Click for Price" link was displayed in widgets for product with "Display Actual Price" != "On Gesture" MAP setting
+    * Fixed an issue where Form_key cookie was not listed in privacy page
+    * Fixed an issue where merchant wasn’t redirected to correspondent option when trying to enable Dashboard charts
+    * Fixed an issue where wrong message was displayed after exceeding maximum failed login attempts
+* GitHub issues:
+    * [#1292](https://github.com/magento/magento2/pull/1292) Admin menu with 1 submenu item does not show the subitem
+    * [#1133](https://github.com/magento/magento2/pull/1133) Getter methods shouldn't change values
+    * [#1263](https://github.com/magento/magento2/issues/1263) "We don't have as many "product name" as you requested" not showing in mini cart
+    * [#1284](https://github.com/magento/magento2/issues/1284) Order tracking link redirected to dashboard in admin
+
+0.74.0-beta12
+=============
+* MTF Improvements:
+    * Functional tests maintenance
+* Framework improvements:
+    * Customer entity table was transformed from EAV into a flat model to minimize DB operations
+    * Improved admin authentication and removed bypass
+    * Exposed CMS api's as web API
+* Fixed bugs:
+    * Fixed an issue where "Add Item To Return" button became disabled after required item fields were filled on Frontend
+    * Fixed an issue with fatal error during place order with non default time zone
+    * Fixed an issue where it was not possible to filter backups on name
+    * Fixed an issue where routeIdType did not allow numbers
+    * Fixed an issue with discounted prices for fixed bundle product
+    * Fixed an issue with catalog prices not including custom option prices
+    * Fixed an issue with tier prices being displayed 4 characters
+    * Fixed an issue with extra FPT labels in mini shopping cart
+    * Fixed an issue where it was not possible to place orders for products with FPT and catalog prices including tax
+    * Fixed an issue with FPT attribute being required when creating product
+    * Fixed an issue where final price was not recalculated after selecting product options
+    * Fixed an issue where tax labels were not displayed for Bundle options on 'multi-select' and 'dropdown' controls
+    * Fixed an issue where filters were not shown on product reviews report grid
+    * Fixed an issue where second customer address was not deleted from customer account
+    * Fixed an issue where custom options pop-up was still displayed after submit
+    * Fixed an issue where Second Product was not added to Shopping Cart from Wishlist at first atempt
+    * Fixed an issue where customer invalid email message was not displayed
+    * Fixed an issue where All Access Tokens for Customer without Tokens could not be revoked
+    * Fixed an issue where it was impossible to add Product to Shopping Cart from shared Wishlist
+    * Magento_Sendfriend module should have upper case 'F'
+    * Fixed set of issues with Ui module
+    * Fixed JavaScript error on Invoice creation page
+* Various improvements:
+    * Hide payment credentials in debug log
+    * Simplification of Payment Configuration
+    * Introduced new Dialog widget
+* Github issues:
+    * [#1330](https://github.com/magento/magento2/pull/1330) -- Removing unused memory limit in htaccess
+    * [#1307](https://github.com/magento/magento2/pull/1307) -- Corrected a sentence by removing a word
+
 0.74.0-beta11
 =============
 * Framework improvements:
@@ -5,14 +640,14 @@
     * Improved component Advanced Filtering component in scope of Enhanced Data Grids on CMS
 * Fixed bugs:
     * Fixed an issue where incorrect keys in REST request body allowed the request to go through successfully
-    * Fixed an issue where interceptors were Generated with Invalid __wakeup() 
+    * Fixed an issue where interceptors were Generated with Invalid __wakeup()
     * Fixed an issue where redirect on the current page was not working in certain conditions
     * Fixed an issue where first store could not be selected on frontend
     * Fixed an issue with performance toolkit category creation
     * Fixed an issue when columns 'Interval', 'Price Rule' had incorrect values in Coupon Usage report
-    * Fixed an issue where fatal error occured on Abandoned Carts report grid
+    * Fixed an issue where fatal error occurred on Abandoned Carts report grid
     * Fixed an issue where it was not possible to add product to shopping cart if Use Secure URLs in Frontend = Yes
-    * Fixed an issue where email was not required during Guest Checkout 
+    * Fixed an issue where email was not required during Guest Checkout
     * Fixed broken ability to skip reindex in `bin/magento setup:performance:generate-fixtures` command
     * Fixed an issue where `bin/magento indexer:reindex` command failed after `bin/magento setup:di:compile` was run
     * Fixed bug with broken JS i18n
@@ -332,7 +967,7 @@
     * The page and block data and repository interfaces
     * Updated the public API list
 * Framework improvements
-    * Improved the profile generator 
+    * Improved the profile generator
     * Introduced the new environment for Jasmine tests
 * Design
     * Inverted the new admin area styles scope, clean up the old styles
@@ -2550,7 +3185,7 @@
   * Canadian provincial sales taxes
   * Fixed issues with bundle product price inconsistency across the system
   * Added warnings if invalid tax configuration is created in the Admin panel
-  * Fixed issues with regards to hidden tax
+  * Fixed issues with regards to discount tax compensation
 * Fixed bugs:
   * Fixed an issue where grouped price was not applied for grouped products
   * Fixed an issue where a fatal error occurred when opening a grouped product page without assigned products on the frontend
@@ -2597,7 +3232,7 @@
   * Fixed an issue with status and visibility settings of a related product on the backend
   * Fixed an issue with unused DB indexes, which used resources, but did not contribute to higher performance
   * Fixed an issue where it was possible to create a downloadable product without specifying a link or a file
-  * Fixed an issue where a fatal error occured when opening a fixed bundle product with custom options page on the frontend
+  * Fixed an issue where a fatal error occurred when opening a fixed bundle product with custom options page on the frontend
   * Fixed an issue where the was a wrong config key for backend cataloginventory
 * Processed GitHub requests:
   * [#548] (https://github.com/magento/magento2/issues/548) -- Console installer doesn't checks filesystem permissions

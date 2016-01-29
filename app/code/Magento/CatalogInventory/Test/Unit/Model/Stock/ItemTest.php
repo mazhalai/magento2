@@ -58,12 +58,12 @@ class ItemTest extends \PHPUnit_Framework_TestCase
     protected $stockItemRepository;
 
     /**
-     * @var \Magento\CatalogInventory\Model\Resource\Stock\Item|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\CatalogInventory\Model\ResourceModel\Stock\Item|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $resource;
 
     /**
-     * @var \Magento\CatalogInventory\Model\Resource\Stock\Item\Collection|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\CatalogInventory\Model\ResourceModel\Stock\Item\Collection|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $resourceCollection;
 
@@ -110,7 +110,7 @@ class ItemTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->resource = $this->getMock(
-            'Magento\CatalogInventory\Model\Resource\Stock\Item',
+            'Magento\CatalogInventory\Model\ResourceModel\Stock\Item',
             [],
             [],
             '',
@@ -118,7 +118,7 @@ class ItemTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->resourceCollection = $this->getMock(
-            'Magento\CatalogInventory\Model\Resource\Stock\Item\Collection',
+            'Magento\CatalogInventory\Model\ResourceModel\Stock\Item\Collection',
             [],
             [],
             '',
@@ -402,5 +402,59 @@ class ItemTest extends \PHPUnit_Framework_TestCase
         $date = '2015-4-17';
         $this->item->setLowStockDate($date);
         $this->assertEquals($date, $this->item->getLowStockDate());
+    }
+
+    /**
+     * @param array $config
+     * @param mixed $expected
+     * @dataProvider getQtyIncrementsDataProvider(
+     */
+    public function testGetQtyIncrements($config, $expected)
+    {
+        $this->setDataArrayValue('qty_increments', $config['qty_increments']);
+        $this->setDataArrayValue('enable_qty_increments', $config['enable_qty_increments']);
+        $this->setDataArrayValue('use_config_qty_increments', $config['use_config_qty_increments']);
+        if ($config['use_config_qty_increments']) {
+            $this->stockConfiguration->expects($this->once())
+                ->method('getQtyIncrements')
+                ->with($this->storeId)
+                ->willReturn($config['qty_increments']);
+        } else {
+            $this->setDataArrayValue('qty_increments', $config['qty_increments']);
+        }
+        $this->assertEquals($expected, $this->item->getQtyIncrements());
+    }
+
+    /**
+     * @return array
+     */
+    public function getQtyIncrementsDataProvider()
+    {
+        return [
+            [
+                [
+                    'qty_increments' => 1,
+                    'enable_qty_increments' => true,
+                    'use_config_qty_increments' => true
+                ],
+                1
+            ],
+            [
+                [
+                    'qty_increments' => -2,
+                    'enable_qty_increments' => true,
+                    'use_config_qty_increments' => true
+                ],
+                false
+            ],
+            [
+                [
+                    'qty_increments' => 3,
+                    'enable_qty_increments' => true,
+                    'use_config_qty_increments' => false
+                ],
+                3
+            ],
+        ];
     }
 }

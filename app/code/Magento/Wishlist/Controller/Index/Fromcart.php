@@ -5,27 +5,77 @@
  */
 namespace Magento\Wishlist\Controller\Index;
 
+use Magento\Checkout\Helper\Cart as CartHelper;
+use Magento\Checkout\Model\Cart as CheckoutCart;
+use Magento\Customer\Model\Session;
 use Magento\Framework\App\Action;
+use Magento\Framework\Data\Form\FormKey\Validator;
+use Magento\Framework\Escaper;
 use Magento\Framework\Exception\NotFoundException;
-use Magento\Wishlist\Controller\IndexInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Wishlist\Controller\WishlistProviderInterface;
+use Magento\Wishlist\Helper\Data as WishlistHelper;
 
-class Fromcart extends Action\Action implements IndexInterface
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
+class Fromcart extends \Magento\Wishlist\Controller\AbstractIndex
 {
     /**
-     * @var \Magento\Wishlist\Controller\WishlistProviderInterface
+     * @var WishlistProviderInterface
      */
     protected $wishlistProvider;
 
     /**
+     * @var WishlistHelper
+     */
+    protected $wishlistHelper;
+
+    /**
+     * @var CheckoutCart
+     */
+    protected $cart;
+
+    /**
+     * @var CartHelper
+     */
+    protected $cartHelper;
+
+    /**
+     * @var Escaper
+     */
+    protected $escaper;
+
+    /**
+     * @var Validator
+     */
+    protected $formKeyValidator;
+
+    /**
      * @param Action\Context $context
-     * @param \Magento\Wishlist\Controller\WishlistProviderInterface $wishlistProvider
+     * @param WishlistProviderInterface $wishlistProvider
+     * @param WishlistHelper $wishlistHelper
+     * @param CheckoutCart $cart
+     * @param CartHelper $cartHelper
+     * @param Escaper $escaper
+     * @param Validator $formKeyValidator
      */
     public function __construct(
         Action\Context $context,
-        \Magento\Wishlist\Controller\WishlistProviderInterface $wishlistProvider
+        WishlistProviderInterface $wishlistProvider,
+        WishlistHelper $wishlistHelper,
+        CheckoutCart $cart,
+        CartHelper $cartHelper,
+        Escaper $escaper,
+        Validator $formKeyValidator
     ) {
         $this->wishlistProvider = $wishlistProvider;
+        $this->wishlistHelper = $wishlistHelper;
+        $this->cart = $cart;
+        $this->cartHelper = $cartHelper;
+        $this->escaper = $escaper;
+        $this->formKeyValidator = $formKeyValidator;
         parent::__construct($context);
     }
 
@@ -34,56 +84,49 @@ class Fromcart extends Action\Action implements IndexInterface
      *
      * @return \Magento\Framework\Controller\Result\Redirect
      * @throws NotFoundException
-     * @throws \Magento\Framework\Exception\LocalizedException
      * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
     public function execute()
     {
+        /** @var \Magento\Framework\Controller\Result\Redirect $resultRedirect */
+        $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
+        if (!$this->formKeyValidator->validate($this->getRequest())) {
+            return $resultRedirect->setPath('*/*/');
+        }
+
         $wishlist = $this->wishlistProvider->getWishlist();
         if (!$wishlist) {
             throw new NotFoundException(__('Page not found.'));
         }
-        $itemId = (int)$this->getRequest()->getParam('item');
 
-        /* @var \Magento\Checkout\Model\Cart $cart */
-        $cart = $this->_objectManager->get('Magento\Checkout\Model\Cart');
-        $this->_objectManager->get('Magento\Checkout\Model\Session');
+        try {
+            $itemId = (int)$this->getRequest()->getParam('item');
+            $item = $this->cart->getQuote()->getItemById($itemId);
+            if (!$item) {
+                throw new LocalizedException(
+                    __('The requested cart item doesn\'t exist.')
+                );
+            }
 
-        $item = $cart->getQuote()->getItemById($itemId);
-        if (!$item) {
-            throw new \Magento\Framework\Exception\LocalizedException(
-                __('The requested cart item doesn\'t exist.')
-            );
+            $productId = $item->getProductId();
+            $buyRequest = $item->getBuyRequest();
+            $wishlist->addNewItem($productId, $buyRequest);
+
+            $this->cart->getQuote()->removeItem($itemId);
+            $this->cart->save();
+
+            $this->wishlistHelper->calculate();
+            $wishlist->save();
+
+            $this->messageManager->addSuccessMessage(__(
+                "%1 has been moved to your wish list.",
+                $this->escaper->escapeHtml($item->getProduct()->getName())
+            ));
+        } catch (LocalizedException $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+        } catch (\Exception $e) {
+            $this->messageManager->addExceptionMessage($e, __('We can\'t move the item to the wish list.'));
         }
-
-        $productId = $item->getProductId();
-        $buyRequest = $item->getBuyRequest();
-
-        $wishlist->addNewItem($productId, $buyRequest);
-
-        $productIds[] = $productId;
-        $cart->getQuote()->removeItem($itemId);
-        $cart->save();
-        $this->_objectManager->get('Magento\Wishlist\Helper\Data')->calculate();
-        $productName = $this->_objectManager->get('Magento\Framework\Escaper')
-            ->escapeHtml($item->getProduct()->getName());
-        $wishlistName = $this->_objectManager->get('Magento\Framework\Escaper')
-            ->escapeHtml($wishlist->getName());
-        $this->messageManager->addSuccess(__("%1 has been moved to wish list %2", $productName, $wishlistName));
-        $wishlist->save();
-
-        return $this->getDefaultResult();
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @return \Magento\Framework\Controller\Result\Redirect
-     */
-    public function getDefaultResult()
-    {
-        /** @var \Magento\Framework\Controller\Result\Redirect $resultRedirect */
-        $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
-        return $resultRedirect->setUrl($this->_objectManager->get('Magento\Checkout\Helper\Cart')->getCartUrl());
+        return $resultRedirect->setUrl($this->cartHelper->getCartUrl());
     }
 }

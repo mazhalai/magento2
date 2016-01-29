@@ -8,7 +8,7 @@ namespace Magento\Catalog\Test\TestCase\Product;
 
 use Magento\Catalog\Test\Page\Adminhtml\CatalogProductEdit;
 use Magento\Catalog\Test\Page\Adminhtml\CatalogProductIndex;
-use Magento\ConfigurableProduct\Test\Block\Adminhtml\Product\Edit\Tab\Super\Config;
+use Magento\ConfigurableProduct\Test\Block\Adminhtml\Product\Edit\Tab\Variations\Config;
 use Magento\Downloadable\Test\Block\Adminhtml\Catalog\Product\Edit\Tab\Downloadable;
 use Magento\Mtf\Fixture\FixtureFactory;
 use Magento\Mtf\TestCase\Injectable;
@@ -19,14 +19,14 @@ use Magento\Mtf\TestCase\Injectable;
  * Test Flow:
  *
  * Preconditions:
- * 1. Create product according to dataSet
+ * 1. Create product according to dataset
  *
  * Steps:
  * 1. Open backend
  * 2. Go to Products > Catalog
  * 3. Open created product in preconditions
- * 4. Perform Actions from dataSet
- * 5. Fill data from dataSet
+ * 4. Perform Actions from dataset
+ * 5. Fill data from dataset
  * 6. Save
  * 7. Perform all assertions
  *
@@ -90,17 +90,17 @@ class ProductTypeSwitchingOnUpdateTest extends Injectable
     public function test($productOrigin, $product, $actionName)
     {
         // Preconditions
-        list($fixtureClass, $dataSet) = explode('::', $productOrigin);
-        $productOrigin = $this->fixtureFactory->createByCode(trim($fixtureClass), ['dataSet' => trim($dataSet)]);
+        list($fixtureClass, $dataset) = explode('::', $productOrigin);
+        $productOrigin = $this->fixtureFactory->createByCode(trim($fixtureClass), ['dataset' => trim($dataset)]);
         $productOrigin->persist();
-        list($fixtureClass, $dataSet) = explode('::', $product);
-        $product = $this->fixtureFactory->createByCode(trim($fixtureClass), ['dataSet' => trim($dataSet)]);
+        list($fixtureClass, $dataset) = explode('::', $product);
+        $product = $this->fixtureFactory->createByCode(trim($fixtureClass), ['dataset' => trim($dataset)]);
 
         // Steps
         $this->catalogProductIndex->open();
         $this->catalogProductIndex->getProductGrid()->searchAndOpen(['sku' => $productOrigin->getSku()]);
-        $this->catalogProductEdit->getProductForm()->fill($product);
         $this->performAction($actionName);
+        $this->catalogProductEdit->getProductForm()->fill($product);
         $this->catalogProductEdit->getFormPageActions()->save($product);
 
         return ['product' => $product];
@@ -125,12 +125,12 @@ class ProductTypeSwitchingOnUpdateTest extends Injectable
      *
      * @return void
      */
-    protected function deleteAttributes()
+    protected function deleteVariations()
     {
         $this->catalogProductEdit->getProductForm()->openTab('variations');
         /** @var Config $variationsTab */
-        $variationsTab = $this->catalogProductEdit->getProductForm()->getTabElement('variations');
-        $variationsTab->deleteAttributes();
+        $variationsTab = $this->catalogProductEdit->getProductForm()->getTab('variations');
+        $variationsTab->deleteVariations();
     }
 
     /**
@@ -142,7 +142,7 @@ class ProductTypeSwitchingOnUpdateTest extends Injectable
     {
         $this->catalogProductEdit->getProductForm()->openTab('downloadable_information');
         /** @var Downloadable $downloadableInfoTab */
-        $downloadableInfoTab = $this->catalogProductEdit->getProductForm()->getTabElement('downloadable_information');
+        $downloadableInfoTab = $this->catalogProductEdit->getProductForm()->getTab('downloadable_information');
         $downloadableInfoTab->getDownloadableBlock('Links')->clearDownloadableData();
     }
 }

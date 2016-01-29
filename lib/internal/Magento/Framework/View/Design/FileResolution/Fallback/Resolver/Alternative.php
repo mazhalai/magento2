@@ -6,7 +6,7 @@
 
 namespace Magento\Framework\View\Design\FileResolution\Fallback\Resolver;
 
-use Magento\Framework\Filesystem;
+use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\View\Design\Fallback\Rule\RuleInterface;
 use Magento\Framework\View\Design\FileResolution\Fallback;
 
@@ -23,17 +23,14 @@ class Alternative extends Simple
     /**
      * Constructor
      *
-     * @param Filesystem $filesystem
+     * @param ReadFactory $readFactory
      * @param \Magento\Framework\View\Design\Fallback\RulePool $rulePool
-     * @param Fallback\CacheDataInterface $cache
      * @param array $alternativeExtensions
-     * @throws \InvalidArgumentException
      */
     public function __construct(
-        Filesystem $filesystem,
+        ReadFactory $readFactory,
         \Magento\Framework\View\Design\Fallback\RulePool $rulePool,
-        Fallback\CacheDataInterface $cache,
-        array $alternativeExtensions
+        array $alternativeExtensions = []
     ) {
         foreach ($alternativeExtensions as $extension => $newExtensions) {
             if (!is_string($extension) || !is_array($newExtensions)) {
@@ -44,7 +41,7 @@ class Alternative extends Simple
             }
         }
         $this->alternativeExtensions = $alternativeExtensions;
-        parent::__construct($filesystem, $rulePool, $cache);
+        parent::__construct($readFactory, $rulePool);
     }
 
     /**

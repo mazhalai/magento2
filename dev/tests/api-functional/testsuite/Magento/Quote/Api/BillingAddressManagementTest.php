@@ -103,8 +103,8 @@ class BillingAddressManagementTest extends WebapiAbstract
         $addressData = [
             'firstname' => 'John',
             'lastname' => 'Smith',
-            'email' => 'cat@dog.com',
-            'company' => 'eBay Inc',
+            'email' => '',
+            'company' => 'Magento Commerce Inc.',
             'street' => ['Typical Street', 'Tiny House 18'],
             'city' => 'Big City',
             'region_id' => 12,
@@ -134,6 +134,7 @@ class BillingAddressManagementTest extends WebapiAbstract
             $this->assertContains($streetLine, $quote->getBillingAddress()->getStreet());
         }
         unset($addressData['street']);
+        unset($addressData['email']);
         $this->assertEquals('billing', $savedData['address_type']);
         //check the rest of fields
         foreach ($addressData as $key => $value) {
@@ -226,8 +227,7 @@ class BillingAddressManagementTest extends WebapiAbstract
         $addressData = [
             'firstname' => 'John',
             'lastname' => 'Smith',
-            'email' => 'cat@dog.com',
-            'company' => 'eBay Inc',
+            'company' => 'Magento Commerce Inc.',
             'street' => ['Typical Street', 'Tiny House 18'],
             'city' => 'Big City',
             'region_id' => 12,

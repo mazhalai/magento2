@@ -9,7 +9,8 @@ namespace Magento\ConfigurableProduct\Test\Constraint;
 use Magento\Catalog\Test\Fixture\CatalogProductAttribute;
 use Magento\Catalog\Test\Page\Adminhtml\CatalogProductIndex;
 use Magento\Catalog\Test\Page\Adminhtml\CatalogProductNew;
-use Magento\ConfigurableProduct\Test\Block\Adminhtml\Product\Edit\Tab\Super\Config as TabVariation;
+use Magento\ConfigurableProduct\Test\Block\Adminhtml\Product\Edit\Tab\Variations\Config as TabVariation;
+use Magento\ConfigurableProduct\Test\Fixture\ConfigurableProduct;
 use Magento\Mtf\Constraint\AbstractConstraint;
 
 /**
@@ -20,28 +21,28 @@ class AssertProductAttributeIsConfigurable extends AbstractConstraint
     /**
      * Assert check whether the attribute is used to create a configurable products.
      *
-     * @param CatalogProductAttribute $productAttribute
      * @param CatalogProductAttribute $attribute
+     * @param ConfigurableProduct $assertProduct
      * @param CatalogProductIndex $productGrid
      * @param CatalogProductNew $newProductPage
      */
     public function processAssert(
         CatalogProductAttribute $attribute,
+        ConfigurableProduct $assertProduct,
         CatalogProductIndex $productGrid,
-        CatalogProductNew $newProductPage,
-        CatalogProductAttribute $productAttribute = null
+        CatalogProductNew $newProductPage
     ) {
-        $attributeSearch = $productAttribute === null ? $attribute : $productAttribute;
         $productGrid->open();
         $productGrid->getGridPageActionBlock()->addProduct('configurable');
         $productBlockForm = $newProductPage->getProductForm();
+        $productBlockForm->fill($assertProduct);
         $productBlockForm->openTab('variations');
-
-        /** @var TabVariation $tabVariation */
-        $tabVariation = $productBlockForm->getTabElement('variations');
-        $configurableAttributeSelector = $tabVariation->getAttributeBlock()->getAttributeSelector();
+        /** @var \Magento\ConfigurableProduct\Test\Block\Adminhtml\Product\Edit\Tab\Variations\Config  $variationsTab */
+        $variationsTab = $productBlockForm->getTab('variations');
+        $variationsTab->createConfigurations();
+        $attributesGrid = $variationsTab->getAttributeBlock()->getAttributesGrid();
         \PHPUnit_Framework_Assert::assertTrue(
-            $configurableAttributeSelector->isExistAttributeInSearchResult($attributeSearch),
+            $attributesGrid->isRowVisible(['frontend_label' => $attribute->getFrontendLabel()]),
             "Product attribute is absent on the product page."
         );
     }

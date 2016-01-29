@@ -105,7 +105,7 @@ class Save extends \Magento\Catalog\Controller\Adminhtml\Product\Set
             $this->messageManager->addError($e->getMessage());
             $hasError = true;
         } catch (\Exception $e) {
-            $this->messageManager->addException($e, __('An error occurred while saving the attribute set.'));
+            $this->messageManager->addException($e, __('Something went wrong while saving the attribute set.'));
             $hasError = true;
         }
 

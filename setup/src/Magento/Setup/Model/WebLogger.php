@@ -8,6 +8,7 @@ namespace Magento\Setup\Model;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Filesystem;
+use Magento\Framework\Setup\LoggerInterface;
 
 /**
  * Web UI Logger
@@ -134,6 +135,16 @@ class WebLogger implements LoggerInterface
         if ($this->directory->isExist($this->logFile)) {
             $this->directory->delete($this->logFile);
         }
+    }
+
+    /**
+     * Checks existence of install.log file
+     *
+     * @return bool
+     */
+    public function logfileExists()
+    {
+        return ($this->directory->isExist($this->logFile));
     }
 
     /**

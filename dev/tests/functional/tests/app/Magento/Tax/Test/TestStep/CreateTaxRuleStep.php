@@ -63,7 +63,7 @@ class CreateTaxRuleStep implements TestStepInterface
             foreach ($taxRuleDataSets as $taxRuleDataSet) {
                 $taxRule = $this->fixtureFactory->createByCode(
                     'taxRule',
-                    ['dataSet' => $taxRuleDataSet]
+                    ['dataset' => $taxRuleDataSet]
                 );
                 $taxRule->persist();
                 $result['taxRule'] = $taxRule;
@@ -80,6 +80,8 @@ class CreateTaxRuleStep implements TestStepInterface
      */
     public function cleanup()
     {
-        $this->deleteAllTaxRule->run();
+        if ($this->taxRule !== null) {
+            $this->deleteAllTaxRule->run();
+        }
     }
 }

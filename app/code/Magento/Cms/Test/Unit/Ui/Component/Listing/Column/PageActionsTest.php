@@ -5,56 +5,91 @@
  */
 namespace Magento\Cms\Test\Unit\Ui\Component\Listing\Column;
 
+use Magento\Cms\Ui\Component\Listing\Column\PageActions;
+
 class PageActionsTest extends \PHPUnit_Framework_TestCase
 {
     public function testPrepareItemsByPageId()
     {
+        $pageId = 1;
         // Create Mocks and SUT
         $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
         /** @var \PHPUnit_Framework_MockObject_MockObject $urlBuilderMock */
         $urlBuilderMock = $this->getMockBuilder('Magento\Framework\UrlInterface')
             ->disableOriginalConstructor()
             ->getMock();
-        $inputUrl = 'href/url/for/edit/action';
+        $contextMock = $this->getMockBuilder('Magento\Framework\View\Element\UiComponent\ContextInterface')
+            ->getMockForAbstractClass();
+        $processor = $this->getMockBuilder('Magento\Framework\View\Element\UiComponent\Processor')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $contextMock->expects($this->any())->method('getProcessor')->willReturn($processor);
 
         /** @var \Magento\Cms\Ui\Component\Listing\Column\PageActions $model */
         $model = $objectManager->getObject(
             'Magento\Cms\Ui\Component\Listing\Column\PageActions',
             [
                 'urlBuilder' => $urlBuilderMock,
-                'url' => $inputUrl
+                'context' => $contextMock,
             ]
         );
 
         // Define test input and expectations
-        $items = ['data' => ['items' => [['page_id' => 1]]]];
-        $fullUrl = 'full-url-including-base.com/href/url/for/edit/action';
-        $name = 'item_name';
-
-        $editArray = [
-            'href' => $fullUrl,
-            'label' => __('Edit'),
-            'hidden' => true
+        $items = [
+            'data' => [
+                'items' => [
+                    [
+                        'page_id' => $pageId
+                    ]
+                ]
+            ]
         ];
+        $name = 'item_name';
         $expectedItems = [
             [
-                'page_id' => 1,
-                $name => ['edit' => $editArray]
+                'page_id' => $pageId,
+                $name => [
+                    'edit' => [
+                        'href' => 'test/url/edit',
+                        'label' => __('Edit'),
+                    ],
+                    'delete' => [
+                        'href' => 'test/url/delete',
+                        'label' => __('Delete'),
+                        'confirm' => [
+                            'title' => __('Delete ${ $.$data.title }'),
+                            'message' => __('Are you sure you wan\'t to delete a ${ $.$data.title } record?')
+                        ],
+                    ]
+                ],
             ]
         ];
 
         // Configure mocks and object data
-        $urlBuilderMock->expects($this->once())
+        $urlBuilderMock->expects($this->any())
             ->method('getUrl')
-            ->with($inputUrl, ['page_id' => 1])
-            ->willReturn($fullUrl);
+            ->willReturnMap(
+                [
+                    [
+                        PageActions::CMS_URL_PATH_EDIT,
+                        [
+                            'page_id' => $pageId
+                        ],
+                        'test/url/edit',
+                    ],
+                    [
+                        PageActions::CMS_URL_PATH_DELETE,
+                        [
+                            'page_id' => $pageId
+                        ],
+                        'test/url/delete',
+                    ],
+                ]
+            );
 
         $model->setName($name);
-        $model->prepareDataSource($items);
+        $items = $model->prepareDataSource($items);
         // Run test
-        $this->assertEquals(
-            $expectedItems,
-            $items['data']['items']
-        );
+        $this->assertEquals($expectedItems, $items['data']['items']);
     }
 }

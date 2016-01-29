@@ -5,7 +5,7 @@
  */
 namespace Magento\MediaStorage\Test\Unit\Model\File\Storage\Directory;
 
-use Magento\MediaStorage\Model\Resource\File\Storage\Directory\Database;
+use Magento\MediaStorage\Model\ResourceModel\File\Storage\Directory\Database;
 
 /**
  * Class DatabaseTest
@@ -103,7 +103,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             false
         );
         $this->resourceDirectoryDatabaseMock = $this->getMock(
-            'Magento\MediaStorage\Model\Resource\File\Storage\Directory\Database',
+            'Magento\MediaStorage\Model\ResourceModel\File\Storage\Directory\Database',
             [],
             [],
             '',
@@ -191,5 +191,14 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $this->directoryMock->expects($this->never())->method('getParentId')->will($this->returnValue(null));
 
         $this->directoryDatabase->importDirectories('not an array');
+    }
+
+    public function testSetGetConnectionName()
+    {
+        $this->assertSame($this->customConnectionName, $this->directoryDatabase->getConnectionName());
+        $this->directoryDatabase->setConnectionName('test');
+        $this->assertSame('test', $this->directoryDatabase->getConnectionName());
+        $this->directoryDatabase->unsetData();
+        $this->assertSame('test', $this->directoryDatabase->getConnectionName());
     }
 }

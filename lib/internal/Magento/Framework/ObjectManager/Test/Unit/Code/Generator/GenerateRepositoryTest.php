@@ -54,12 +54,16 @@ class GenerateRepositoryTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->ioObjectMock->expects($this->once())
-            ->method('getResultFileName')
+            ->method('generateResultFileName')
             ->with('\Magento\Framework\ObjectManager\Code\Generator\SampleRepository')
             ->willReturn('SampleRepository.php');
 
+        $repositoryCode = file_get_contents(__DIR__ . '/_files/SampleRepository.txt');
+        $this->ioObjectMock->expects($this->once())->method('writeResultFile')
+            ->with('SampleRepository.php', $repositoryCode);
+
         $model->expects($this->once())->method('_validateData')->willReturn(true);
-        $this->assertEquals('SampleRepository.php', $model->generate());
+        $this->assertEquals('SampleRepository.php', $model->generate(), "Generated repository is invalid.");
     }
 
     /**

@@ -5,6 +5,8 @@
  */
 namespace Magento\Catalog\Model\Product\Attribute\Backend;
 
+use \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
+
 /**
  * Catalog product price attribute backend model
  *
@@ -41,30 +43,38 @@ class Price extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
     protected $_config;
 
     /**
+     * @var \Magento\Framework\Locale\FormatInterface
+     */
+    protected $localeFormat;
+
+    /**
      * Construct
      *
      * @param \Magento\Directory\Model\CurrencyFactory $currencyFactory
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Helper\Data $catalogData
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
+     * @param \Magento\Framework\Locale\FormatInterface $localeFormat
      */
     public function __construct(
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Helper\Data $catalogData,
-        \Magento\Framework\App\Config\ScopeConfigInterface $config
+        \Magento\Framework\App\Config\ScopeConfigInterface $config,
+        \Magento\Framework\Locale\FormatInterface $localeFormat
     ) {
         $this->_currencyFactory = $currencyFactory;
         $this->_storeManager = $storeManager;
         $this->_helper = $catalogData;
         $this->_config = $config;
+        $this->localeFormat = $localeFormat;
     }
 
     /**
      * Set Attribute instance
      * Rewrite for redefine attribute scope
      *
-     * @param \Magento\Catalog\Model\Resource\Eav\Attribute $attribute
+     * @param \Magento\Catalog\Model\ResourceModel\Eav\Attribute $attribute
      * @return $this
      */
     public function setAttribute($attribute)
@@ -77,15 +87,15 @@ class Price extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
     /**
      * Redefine Attribute scope
      *
-     * @param \Magento\Catalog\Model\Resource\Eav\Attribute $attribute
+     * @param \Magento\Catalog\Model\ResourceModel\Eav\Attribute $attribute
      * @return $this
      */
     public function setScope($attribute)
     {
         if ($this->_helper->isPriceGlobal()) {
-            $attribute->setIsGlobal(\Magento\Catalog\Model\Resource\Eav\Attribute::SCOPE_GLOBAL);
+            $attribute->setIsGlobal(ScopedAttributeInterface::SCOPE_GLOBAL);
         } else {
-            $attribute->setIsGlobal(\Magento\Catalog\Model\Resource\Eav\Attribute::SCOPE_WEBSITE);
+            $attribute->setIsGlobal(ScopedAttributeInterface::SCOPE_WEBSITE);
         }
 
         return $this;
@@ -110,7 +120,7 @@ class Price extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
             return $this;
         }
 
-        if ($this->getAttribute()->getIsGlobal() == \Magento\Catalog\Model\Resource\Eav\Attribute::SCOPE_WEBSITE) {
+        if ($this->getAttribute()->getIsGlobal() == ScopedAttributeInterface::SCOPE_WEBSITE) {
             $baseCurrency = $this->_config->getValue(
                 \Magento\Directory\Model\Currency::XML_PATH_CURRENCY_BASE,
                 'default'
@@ -150,12 +160,25 @@ class Price extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
             return parent::validate($object);
         }
 
-        if (!preg_match('/^\d*(\.|,)?\d{0,4}$/i', $value) || $value < 0) {
+        if (!$this->isPositiveOrZero($value)) {
             throw new \Magento\Framework\Exception\LocalizedException(
                 __('Please enter a number 0 or greater in this field.')
             );
         }
 
         return true;
+    }
+
+    /**
+     * Returns whether the value is greater than, or equal to, zero
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    protected function isPositiveOrZero($value)
+    {
+        $value = $this->localeFormat->getNumber($value);
+        $isNegative = $value < 0;
+        return  !$isNegative;
     }
 }

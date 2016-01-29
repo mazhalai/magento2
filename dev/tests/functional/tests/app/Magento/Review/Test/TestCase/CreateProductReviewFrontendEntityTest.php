@@ -15,8 +15,6 @@ use Magento\Mtf\Client\BrowserInterface;
 use Magento\Mtf\TestCase\Injectable;
 
 /**
- * Test Flow:
- *
  * Preconditions:
  * 1. Create simple product.
  * 2. Create custom rating type.
@@ -25,7 +23,7 @@ use Magento\Mtf\TestCase\Injectable;
  * 1. Open frontend.
  * 2. Go to product page.
  * 3. Click "Be the first to review this product".
- * 4. Fill data according to dataSet.
+ * 4. Fill data according to dataset.
  * 5. click "Submit review".
  * 6. Perform all assertions.
  *
@@ -37,7 +35,7 @@ class CreateProductReviewFrontendEntityTest extends Injectable
     /* tags */
     const MVP = 'no';
     const DOMAIN = 'MX';
-    const TEST_TYPE = 'acceptance_test';
+    const TEST_TYPE = 'acceptance_test, extended_acceptance_test';
     /* end tags */
 
     /**
@@ -130,6 +128,7 @@ class CreateProductReviewFrontendEntityTest extends Injectable
             foreach ($ratings as $rating) {
                 $this->ratingIndex->getRatingGrid()->searchAndOpen(['rating_code' => $rating['title']]);
                 $this->ratingEdit->getPageActions()->delete();
+                $this->ratingEdit->getModalBlock()->acceptAlert();
             }
         }
     }

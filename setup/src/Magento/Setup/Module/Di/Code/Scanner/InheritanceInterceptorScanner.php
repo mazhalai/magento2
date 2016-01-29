@@ -5,8 +5,23 @@
  */
 namespace Magento\Setup\Module\Di\Code\Scanner;
 
+use Magento\Framework\ObjectManager\InterceptableValidator;
+
 class InheritanceInterceptorScanner implements ScannerInterface
 {
+    /**
+     * @var InterceptableValidator
+     */
+    private $interceptableValidator;
+
+    /**
+     * @param InterceptableValidator $interceptableValidator
+     */
+    public function __construct(InterceptableValidator $interceptableValidator)
+    {
+        $this->interceptableValidator = $interceptableValidator;
+    }
+
     /**
      * Get intercepted class names
      *
@@ -20,9 +35,7 @@ class InheritanceInterceptorScanner implements ScannerInterface
         foreach ($classes as $class) {
             foreach ($interceptedEntities as $interceptorClass) {
                 $interceptedEntity = substr($interceptorClass, 0, -12);
-                if (is_subclass_of($class, $interceptedEntity)
-                    && !$this->endsWith($class, 'RepositoryInterface\\Proxy')
-                    && !$this->endsWith($class, '\\Interceptor')) {
+                if (is_subclass_of($class, $interceptedEntity) && $this->interceptableValidator->validate($class)) {
                     $reflectionClass = new \ReflectionClass($class);
                     if (!$reflectionClass->isAbstract() && !$reflectionClass->isFinal()) {
                         $output[] = $class . '\\Interceptor';
@@ -30,22 +43,27 @@ class InheritanceInterceptorScanner implements ScannerInterface
                 }
             }
         }
-        $output = array_merge($interceptedEntities, $output);
+        $output = array_merge($this->filterOutAbstractClasses($interceptedEntities), $output);
         $output = array_unique($output);
         return $output;
     }
 
     /**
-     * Check if a string ends with a substring
+     * Filter out Interceptors defined for abstract classes
      *
-     * @param string $haystack
-     * @param string $needle
-     * @return bool
+     * @param string[] $interceptedEntities
+     * @return string[]
      */
-    private function endsWith($haystack, $needle)
+    private function filterOutAbstractClasses($interceptedEntities)
     {
-        // search forward starting from end minus needle length characters
-        return $needle === ""
-        || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== false);
+        $interceptedEntitiesFiltered = [];
+        foreach ($interceptedEntities as $interceptorClass) {
+            $interceptedEntity = substr($interceptorClass, 0, -12);
+            $reflectionInterceptedEntity = new \ReflectionClass($interceptedEntity);
+            if (!$reflectionInterceptedEntity->isAbstract() && !$reflectionInterceptedEntity->isFinal()) {
+                $interceptedEntitiesFiltered[] = $interceptorClass;
+            }
+        }
+        return $interceptedEntitiesFiltered;
     }
 }

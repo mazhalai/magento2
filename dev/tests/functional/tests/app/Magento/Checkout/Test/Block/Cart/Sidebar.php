@@ -11,31 +11,44 @@ use Magento\Mtf\Client\Locator;
 use Magento\Mtf\Fixture\FixtureInterface;
 
 /**
- * Class Sidebar
- * Mini shopping cart block
+ * Mini shopping cart block.
  */
 class Sidebar extends Block
 {
     /**
-     * Quantity input selector
+     * Quantity input selector.
      *
      * @var string
      */
     protected $qty = '//*[@class="product"]/*[@title="%s"]/following-sibling::*//*[contains(@class,"item-qty")]';
 
     /**
-     * Mini cart link selector
+     * Mini cart link selector.
      *
      * @var string
      */
     protected $cartLink = 'a.showcart';
 
     /**
-     * Mini cart content selector
+     * Minicart items quantity
      *
      * @var string
      */
-    protected $cartContent = 'div.minicart';
+    protected $productCounter = './/*[@class="counter-number"]';
+
+    /**
+     * Empty minicart message
+     *
+     * @var string
+     */
+    protected $emptyCartMessage = './/*[@id="minicart-content-wrapper"]//*[@class="subtitle empty"]';
+
+    /**
+     * Mini cart content selector.
+     *
+     * @var string
+     */
+    protected $cartContent = 'div.block-minicart';
 
     /**
      * Product list in mini shopping cart.
@@ -45,21 +58,35 @@ class Sidebar extends Block
     protected $cartProductList = './/*[contains(@role, "dialog") and not(contains(@style,"display: none;"))]';
 
     /**
-     * Selector for cart item block
+     * Selector for cart item block.
      *
      * @var string
      */
     protected $cartProductName = '//*[@id="mini-cart"]//li[.//a[normalize-space(text())="%s"]]';
 
     /**
-     * Counter qty locator
+     * Counter qty locator.
      *
      * @var string
      */
-    protected $counterQty = './/span[@class="counter qty"]';
+    protected $counterQty = '.minicart-wrapper .counter.qty';
 
     /**
-     * Open mini cart
+     * Locator value for Mini Shopping Cart wrapper.
+     *
+     * @var string
+     */
+    protected $counterNumberWrapper = '.minicart-wrapper';
+
+    /**
+     * Loading masc.
+     *
+     * @var string
+     */
+    protected $loadingMask = '.loading-mask';
+
+    /**
+     * Open mini cart.
      *
      * @return void
      */
@@ -72,7 +99,7 @@ class Sidebar extends Block
     }
 
     /**
-     * Wait counter qty visibility
+     * Wait counter qty visibility.
      *
      * @return void
      */
@@ -82,14 +109,35 @@ class Sidebar extends Block
         $selector = $this->counterQty;
         $browser->waitUntil(
             function () use ($browser, $selector) {
-                $counterQty = $browser->find($selector, Locator::SELECTOR_XPATH);
+                $counterQty = $browser->find($selector);
                 return $counterQty->isVisible() ? true : null;
             }
         );
     }
 
     /**
-     * Get product quantity
+     * Get empty minicart message
+     *
+     * @return string
+     */
+    public function getEmptyMessage()
+    {
+        $this->_rootElement->find($this->cartLink)->click();
+        return $this->_rootElement->find($this->emptyCartMessage, Locator::SELECTOR_XPATH)->getText();
+    }
+
+    /**
+     * Is minicart items quantity block visible
+     *
+     * @return bool
+     */
+    public function isItemsQtyVisible()
+    {
+        return $this->_rootElement->find($this->productCounter, Locator::SELECTOR_XPATH)->isVisible();
+    }
+
+    /**
+     * Get product quantity.
      *
      * @param string $productName
      * @return string
@@ -102,7 +150,7 @@ class Sidebar extends Block
     }
 
     /**
-     * Get cart item block
+     * Get cart item block.
      *
      * @param FixtureInterface $product
      * @return Item
@@ -127,5 +175,32 @@ class Sidebar extends Block
         }
 
         return $cartItem;
+    }
+
+    /**
+     * Wait for init minicart.
+     *
+     * @return void
+     */
+    public function waitInit()
+    {
+        $browser = $this->browser;
+        $selector = $this->counterNumberWrapper;
+        $browser->waitUntil(
+            function () use ($browser, $selector) {
+                $counterQty = $browser->find($selector);
+                return $counterQty->isVisible() ? true : null;
+            }
+        );
+    }
+
+    /**
+     * Wait for loader is not visible.
+     *
+     * @return void
+     */
+    public function waitLoader()
+    {
+        $this->waitForElementNotVisible($this->loadingMask);
     }
 }

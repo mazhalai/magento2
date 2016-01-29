@@ -120,8 +120,8 @@ class Instance extends \Magento\Framework\Model\AbstractModel
      * @param \Magento\Framework\Math\Random $mathRandom
      * @param \Magento\Framework\Filesystem $filesystem
      * @param \Magento\Widget\Helper\Conditions $conditionsHelper
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\Db $resourceCollection
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $relatedCacheTypes
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -139,8 +139,8 @@ class Instance extends \Magento\Framework\Model\AbstractModel
         \Magento\Framework\Math\Random $mathRandom,
         \Magento\Framework\Filesystem $filesystem,
         \Magento\Widget\Helper\Conditions $conditionsHelper,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\Db $resourceCollection = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $relatedCacheTypes = [],
         array $data = []
     ) {
@@ -166,7 +166,7 @@ class Instance extends \Magento\Framework\Model\AbstractModel
     protected function _construct()
     {
         parent::_construct();
-        $this->_init('Magento\Widget\Model\Resource\Widget\Instance');
+        $this->_init('Magento\Widget\Model\ResourceModel\Widget\Instance');
         $this->_layoutHandles = [
             'anchor_categories' => self::ANCHOR_CATEGORY_LAYOUT_HANDLE,
             'notanchor_categories' => self::NOTANCHOR_CATEGORY_LAYOUT_HANDLE,

@@ -29,7 +29,7 @@ class Content extends Tab
      *
      * @var string
      */
-    protected $widgetBlock = "./ancestor::body/div[div/div/*[@id='widget_options_form']]";
+    protected $widgetBlock = "//body//aside[div//*[@id='widget_options_form']]";
 
     /**
      * Insert Variable button selector.
@@ -50,23 +50,25 @@ class Content extends Tab
      *
      * @var string
      */
-    protected $content = '#page_content';
+    protected $content = '#contentEditor';
 
     /**
      * Content Heading input locator.
      *
      * @var string
      */
-    protected $contentHeading = '#page_content_heading';
+    protected $contentHeading = '[name="content_heading"]';
 
     /**
      * Clicking in content tab 'Insert Variable' button.
      *
+     * @param SimpleElement $element [optional]
      * @return void
      */
-    public function clickInsertVariable()
+    public function clickInsertVariable(SimpleElement $element = null)
     {
-        $addVariableButton = $this->_rootElement->find($this->addVariableButton);
+        $context = $element === null ? $this->_rootElement : $element;
+        $addVariableButton = $context->find($this->addVariableButton);
         if ($addVariableButton->isVisible()) {
             $addVariableButton->click();
         }
@@ -75,11 +77,13 @@ class Content extends Tab
     /**
      * Clicking in content tab 'Insert Widget' button.
      *
+     * @param SimpleElement $element [optional]
      * @return void
      */
-    public function clickInsertWidget()
+    public function clickInsertWidget(SimpleElement $element = null)
     {
-        $addWidgetButton = $this->_rootElement->find($this->addWidgetButton);
+        $context = $element === null ? $this->_rootElement : $element;
+        $addWidgetButton = $context->find($this->addWidgetButton);
         if ($addWidgetButton->isVisible()) {
             $addWidgetButton->click();
         }
@@ -118,14 +122,15 @@ class Content extends Tab
      * @param SimpleElement|null $element
      * @return $this
      */
-    public function fillFormTab(array $fields, SimpleElement $element = null)
+    public function setFieldsData(array $fields, SimpleElement $element = null)
     {
-        $element->find($this->content)->setValue($fields['content']['value']['content']);
+        $context = $element === null ? $this->_rootElement : $element;
+        $context->find($this->content)->setValue($fields['content']['value']['content']);
         if (isset($fields['content_heading']['value'])) {
             $element->find($this->contentHeading)->setValue($fields['content_heading']['value']);
         }
-        if (isset($fields['content']['value']['widget']['preset'])) {
-            foreach ($fields['content']['value']['widget']['preset'] as $widget) {
+        if (isset($fields['content']['value']['widget']['dataset'])) {
+            foreach ($fields['content']['value']['widget']['dataset'] as $widget) {
                 $this->clickInsertWidget();
                 $this->getWidgetBlock()->addWidget($widget);
             }
@@ -147,7 +152,7 @@ class Content extends Tab
      * @return array
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getDataFormTab($fields = null, SimpleElement $element = null)
+    public function getFieldsData($fields = null, SimpleElement $element = null)
     {
         return [
             'content' => [],

@@ -14,7 +14,7 @@ use Magento\Mtf\Constraint\AbstractConstraint;
  */
 class AssertSitemapSuccessSaveMessage extends AbstractConstraint
 {
-    const SUCCESS_MESSAGE = 'The sitemap has been saved.';
+    const SUCCESS_MESSAGE = 'You saved the sitemap.';
 
     /**
      * Assert that success message is displayed after sitemap save
@@ -24,7 +24,7 @@ class AssertSitemapSuccessSaveMessage extends AbstractConstraint
      */
     public function processAssert(SitemapIndex $sitemapPage)
     {
-        $actualMessage = $sitemapPage->getMessagesBlock()->getSuccessMessages();
+        $actualMessage = $sitemapPage->getMessagesBlock()->getSuccessMessage();
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_MESSAGE,
             $actualMessage,

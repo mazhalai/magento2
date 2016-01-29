@@ -11,7 +11,7 @@ use Magento\Framework\Data\Collection;
  * Filesystem items collection
  *
  * Can scan a folder for files and/or folders recursively.
- * Creates \Magento\Framework\Object instance for each item, with its filename and base name
+ * Creates \Magento\Framework\DataObject instance for each item, with its filename and base name
  *
  * Supports regexp masks that are applied to files and folders base names.
  * These masks apply before adding items to collection, during filesystem scanning
@@ -698,7 +698,10 @@ class Filesystem extends \Magento\Framework\Data\Collection
      */
     public function filterCallbackLike($field, $filterValue, $row)
     {
-        $filterValueRegex = str_replace('%', '(.*?)', str_replace('\'', '', preg_quote($filterValue, '/')));
+        $filterValue = trim(stripslashes($filterValue), '\'');
+        $filterValue = trim($filterValue, '%');
+        $filterValueRegex = '(.*?)' . preg_quote($filterValue, '/') . '(.*?)';
+
         return (bool)preg_match("/^{$filterValueRegex}\$/i", $row[$field]);
     }
 

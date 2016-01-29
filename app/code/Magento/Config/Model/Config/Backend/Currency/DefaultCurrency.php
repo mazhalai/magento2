@@ -29,10 +29,10 @@ class DefaultCurrency extends AbstractCurrency
 
         if (!in_array($this->getValue(), $this->_getAllowedCurrencies())) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __('Sorry, the default display currency you selected in not available in allowed currencies.')
+                __('Sorry, the default display currency you selected is not available in allowed currencies.')
             );
         }
 
-        return $this;
+        return parent::afterSave();
     }
 }

@@ -9,12 +9,16 @@ module.exports = function (grunt) {
 
     var _ = require('underscore'),
         path = require('path'),
+        themes = require('./dev/tools/grunt/configs/themes'),
         configDir = './dev/tools/grunt/configs',
         taskDir = './dev/tools/grunt/tasks';
 
     [
         taskDir + '/mage-minify',
         taskDir + '/deploy',
+        taskDir + '/black-list-generator',
+        taskDir + '/clean-black-list',
+        taskDir + '/static',
         'time-grunt'
     ].forEach(function (task) {
         require(task)(grunt);
@@ -60,32 +64,35 @@ module.exports = function (grunt) {
         },
 
         /**
-         * Refresh magento frontend & backend.
+         * Refresh themes.
          */
-        refresh: [
-            'exec:all',
-            'less:blank',
-            'less:luma',
-            'less:backend'
-        ],
+        refresh: function () {
+            var tasks = [
+                'clean',
+                'exec:all'
+            ];
+            _.each(themes, function(theme, name) {
+                tasks.push('less:' + name);
+            });
+            grunt.task.run(tasks);
+        },
+
         /**
          * Documentation
          */
         documentation: [
+            'replace:documentation',
             'less:documentation',
             'styledocco:documentation',
+            'usebanner:documentationCss',
+            'usebanner:documentationLess',
+            'usebanner:documentationHtml',
             'clean:var',
             'clean:pub'
         ],
 
         'legacy-build': [
             'mage-minify:legacy'
-        ],
-
-        'documentation-banners': [
-            'usebanner:documentationCss',
-            'usebanner:documentationLess',
-            'usebanner:documentationHtml'
         ],
 
         spec: function (theme) {

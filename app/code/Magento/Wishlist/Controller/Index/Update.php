@@ -7,10 +7,9 @@ namespace Magento\Wishlist\Controller\Index;
 
 use Magento\Framework\App\Action;
 use Magento\Framework\Exception\NotFoundException;
-use Magento\Wishlist\Controller\IndexInterface;
 use Magento\Framework\Controller\ResultFactory;
 
-class Update extends Action\Action implements IndexInterface
+class Update extends \Magento\Wishlist\Controller\AbstractIndex
 {
     /**
      * @var \Magento\Wishlist\Controller\WishlistProviderInterface
@@ -100,7 +99,7 @@ class Update extends Action\Action implements IndexInterface
                         $item->delete();
                     } catch (\Exception $e) {
                         $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
-                        $this->messageManager->addError(__('Can\'t delete item from wishlist'));
+                        $this->messageManager->addError(__('We can\'t delete item from Wish List right now.'));
                     }
                 }
 

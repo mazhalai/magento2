@@ -56,9 +56,9 @@ class ProductRepositoryTest extends WebapiAbstract
 
     protected function getConfigurableAttributeOptions()
     {
-        /** @var \Magento\Eav\Model\Resource\Entity\Attribute\Option\Collection $optionCollection */
+        /** @var \Magento\Eav\Model\ResourceModel\Entity\Attribute\Option\Collection $optionCollection */
         $optionCollection = $this->objectManager->create(
-            'Magento\Eav\Model\Resource\Entity\Attribute\Option\Collection'
+            'Magento\Eav\Model\ResourceModel\Entity\Attribute\Option\Collection'
         );
         $options = $optionCollection->setAttributeFilter($this->configurableAttribute->getId())->getData();
         return $options;
@@ -84,13 +84,9 @@ class ProductRepositoryTest extends WebapiAbstract
                 "position" => 0,
                 "values" => [
                     [
-                        "pricing_value" => 10,
-                        "is_percent" =>  0,
                         "value_index" =>  $options[0]['option_id'],
                     ],
                     [
-                        "pricing_value" => 5,
-                        "is_percent" =>  1,
                         "value_index" =>  $options[1]['option_id'],
                     ]
                 ],
@@ -130,7 +126,6 @@ class ProductRepositoryTest extends WebapiAbstract
 
         $response = $this->createConfigurableProduct();
         $this->assertEquals(self::CONFIGURABLE_PRODUCT_SKU, $response[ProductInterface::SKU]);
-        $this->assertEquals(50, $response['price']);
         $this->assertTrue(
             isset($response[ExtensibleDataInterface::EXTENSION_ATTRIBUTES_KEY]["configurable_product_options"])
         );
@@ -160,9 +155,6 @@ class ProductRepositoryTest extends WebapiAbstract
      */
     public function testDeleteConfigurableProductOption()
     {
-        $productId1 = 10;
-        $productId2 = 20;
-
         $response = $this->createConfigurableProduct();
         //delete existing option
         $response[ExtensibleDataInterface::EXTENSION_ATTRIBUTES_KEY]['configurable_product_options'] = [];
@@ -182,9 +174,9 @@ class ProductRepositoryTest extends WebapiAbstract
         );
         $resultConfigurableProductLinks
             = $response[ExtensibleDataInterface::EXTENSION_ATTRIBUTES_KEY]["configurable_product_links"];
-        $this->assertEquals(2, count($resultConfigurableProductLinks));
+        $this->assertEquals(0, count($resultConfigurableProductLinks));
 
-        $this->assertEquals([$productId1, $productId2], $resultConfigurableProductLinks);
+        $this->assertEquals([], $resultConfigurableProductLinks);
     }
 
     /**
@@ -206,11 +198,10 @@ class ProductRepositoryTest extends WebapiAbstract
             'position' => 1,
             'values' => [
                 [
-                    'pricing_value' => 15,
-                    'is_percent' => 1,
                     'value_index' => $option['values'][0]['value_index'],
                 ],
             ],
+            'product_id' => $response['id'],
         ];
         $response[ExtensibleDataInterface::EXTENSION_ATTRIBUTES_KEY]['configurable_product_options'][0] =
             $updatedOption;

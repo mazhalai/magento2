@@ -51,6 +51,20 @@ class Grid extends \Magento\Backend\Test\Block\Widget\Grid
     protected $configureLink = 'a[onclick*="configureItem"]';
 
     /**
+     * Secondary part of row locator template for getRow() method with strict option.
+     *
+     * @var string
+     */
+    protected $rowTemplateStrict = 'td[contains(.,normalize-space("%s"))]';
+
+    /**
+     * Selector for confirm.
+     *
+     * @var string
+     */
+    protected $confirmModal = '.confirm._show[data-role=modal]';
+
+    /**
      * Delete product
      *
      * @return void
@@ -58,7 +72,10 @@ class Grid extends \Magento\Backend\Test\Block\Widget\Grid
     protected function delete()
     {
         $this->_rootElement->find($this->rowItem . ' ' . $this->deleteLink)->click();
-        $this->browser->acceptAlert();
+        $element = $this->browser->find($this->confirmModal);
+        /** @var \Magento\Ui\Test\Block\Adminhtml\Modal $modal */
+        $modal = $this->blockFactory->create('Magento\Ui\Test\Block\Adminhtml\Modal', ['element' => $element]);
+        $modal->acceptAlert();
     }
 
     /**
@@ -86,26 +103,37 @@ class Grid extends \Magento\Backend\Test\Block\Widget\Grid
     }
 
     /**
+     * Check if specific row exists in grid.
+     *
+     * @param array $filter
+     * @param bool $isSearchable
+     * @param bool $isStrict
+     * @return bool
+     */
+    public function isRowVisible(array $filter, $isSearchable = true, $isStrict = true)
+    {
+        if (isset($filter['options'])) {
+            unset($filter['options']);
+        }
+        return parent::isRowVisible($filter, $isSearchable, $isStrict);
+    }
+
+    /**
      * Obtain specific row in grid
      *
      * @param array $filter
-     * @param bool $isSearchable [optional]
      * @param bool $isStrict [optional]
      * @return SimpleElement
      */
-    protected function getRow(array $filter, $isSearchable = true, $isStrict = true)
+    protected function getRow(array $filter, $isStrict = true)
     {
         $options = [];
-        $this->openFilterBlock();
         if (isset($filter['options'])) {
             $options = $filter['options'];
             unset($filter['options']);
         }
-        if ($isSearchable) {
-            $this->search($filter);
-        }
         $location = '//tr[';
-        $rowTemplate = 'td[contains(.,normalize-space("%s"))]';
+        $rowTemplate = ($isStrict) ? $this->rowTemplateStrict : $this->rowTemplate;
         $rows = [];
         foreach ($filter as $value) {
             $rows[] = sprintf($rowTemplate, $value);

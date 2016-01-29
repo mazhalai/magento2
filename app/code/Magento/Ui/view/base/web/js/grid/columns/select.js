@@ -3,23 +3,41 @@
  * See COPYING.txt for license details.
  */
 define([
-    './sortable'
-], function (Sortable) {
+    'underscore',
+    './column'
+], function (_, Column) {
     'use strict';
 
-    return Sortable.extend({
-        getLabel: function (data) {
+    return Column.extend({
+
+        /*eslint-disable eqeqeq*/
+        /**
+         * Retrieves label associated with a provided value.
+         *
+         * @returns {String}
+         */
+        getLabel: function () {
             var options = this.options || [],
-                label = '';
-            data = data || '';
+                values = this._super(),
+                label = [];
 
-            options.some(function (item) {
-                label = item.label;
+            if (!Array.isArray(values)) {
+                values = [values];
+            }
 
-                return item.value == data;
+            values = values.map(function (value) {
+                return value + '';
             });
 
-            return label;
+            options.forEach(function (item) {
+                if (_.contains(values, item.value + '')) {
+                    label.push(item.label);
+                }
+            });
+
+            return label.join(', ');
         }
+
+        /*eslint-enable eqeqeq*/
     });
 });

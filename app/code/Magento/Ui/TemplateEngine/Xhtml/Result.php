@@ -5,13 +5,17 @@
  */
 namespace Magento\Ui\TemplateEngine\Xhtml;
 
-use Magento\Ui\Component\Layout\Generator\Structure;
+use Magento\Framework\View\Layout\Generator\Structure;
 use Magento\Framework\View\Element\UiComponentInterface;
+use Magento\Framework\View\TemplateEngine\Xhtml\Template;
+use Magento\Framework\View\TemplateEngine\Xhtml\ResultInterface;
+use Magento\Framework\View\TemplateEngine\Xhtml\CompilerInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Result
  */
-class Result
+class Result implements ResultInterface
 {
     /**
      * @var Template
@@ -19,7 +23,7 @@ class Result
     protected $template;
 
     /**
-     * @var Compiler
+     * @var CompilerInterface
      */
     protected $compiler;
 
@@ -34,23 +38,29 @@ class Result
     protected $structure;
 
     /**
-     * Constructor
-     *
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * @param Template $template
-     * @param Compiler $compiler
+     * @param CompilerInterface $compiler
      * @param UiComponentInterface $component
      * @param Structure $structure
+     * @param LoggerInterface $logger
      */
     public function __construct(
         Template $template,
-        Compiler $compiler,
+        CompilerInterface $compiler,
         UiComponentInterface $component,
-        Structure $structure
+        Structure $structure,
+        LoggerInterface $logger
     ) {
         $this->template = $template;
         $this->compiler = $compiler;
         $this->component = $component;
         $this->structure = $structure;
+        $this->logger = $logger;
     }
 
     /**
@@ -94,7 +104,8 @@ class Result
             $this->appendLayoutConfiguration();
             $result = $this->compiler->postprocessing($this->template->__toString());
         } catch (\Exception $e) {
-            $result = '';
+            $this->logger->critical($e->getMessage());
+            $result = $e->getMessage();
         }
         return $result;
     }

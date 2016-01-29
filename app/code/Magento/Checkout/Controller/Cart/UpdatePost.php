@@ -4,9 +4,6 @@
  * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
-// @codingStandardsIgnoreFile
-
 namespace Magento\Checkout\Controller\Cart;
 
 class UpdatePost extends \Magento\Checkout\Controller\Cart
@@ -23,7 +20,7 @@ class UpdatePost extends \Magento\Checkout\Controller\Cart
         } catch (\Magento\Framework\Exception\LocalizedException $exception) {
             $this->messageManager->addError($exception->getMessage());
         } catch (\Exception $exception) {
-            $this->messageManager->addException($exception, __('We cannot update the shopping cart.'));
+            $this->messageManager->addException($exception, __('We can\'t update the shopping cart.'));
         }
     }
 
@@ -57,7 +54,7 @@ class UpdatePost extends \Magento\Checkout\Controller\Cart
                 $this->_objectManager->get('Magento\Framework\Escaper')->escapeHtml($e->getMessage())
             );
         } catch (\Exception $e) {
-            $this->messageManager->addException($e, __('We cannot update the shopping cart.'));
+            $this->messageManager->addException($e, __('We can\'t update the shopping cart.'));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
         }
     }

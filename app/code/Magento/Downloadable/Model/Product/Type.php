@@ -6,6 +6,7 @@
 namespace Magento\Downloadable\Model\Product;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface;
 
 /**
  * Downloadable product type model
@@ -25,22 +26,22 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
     protected $_downloadableFile = null;
 
     /**
-     * @var \Magento\Downloadable\Model\Resource\SampleFactory
+     * @var \Magento\Downloadable\Model\ResourceModel\SampleFactory
      */
     protected $_sampleResFactory;
 
     /**
-     * @var \Magento\Downloadable\Model\Resource\Link
+     * @var \Magento\Downloadable\Model\ResourceModel\Link
      */
     protected $_linkResource;
 
     /**
-     * @var \Magento\Downloadable\Model\Resource\Link\CollectionFactory
+     * @var \Magento\Downloadable\Model\ResourceModel\Link\CollectionFactory
      */
     protected $_linksFactory;
 
     /**
-     * @var \Magento\Downloadable\Model\Resource\Sample\CollectionFactory
+     * @var \Magento\Downloadable\Model\ResourceModel\Sample\CollectionFactory
      */
     protected $_samplesFactory;
 
@@ -60,6 +61,11 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
     private $typeHandler;
 
     /**
+     * @var JoinProcessorInterface
+     */
+    private $extensionAttributesJoinProcessor;
+
+    /**
      * Construct
      *
      * @param \Magento\Catalog\Model\Product\Option $catalogProductOption
@@ -71,13 +77,14 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
      * @param \Magento\Framework\Registry $coreRegistry
      * @param \Psr\Log\LoggerInterface $logger
      * @param ProductRepositoryInterface $productRepository
-     * @param \Magento\Downloadable\Model\Resource\SampleFactory $sampleResFactory
-     * @param \Magento\Downloadable\Model\Resource\Link $linkResource
-     * @param \Magento\Downloadable\Model\Resource\Link\CollectionFactory $linksFactory
-     * @param \Magento\Downloadable\Model\Resource\Sample\CollectionFactory $samplesFactory
+     * @param \Magento\Downloadable\Model\ResourceModel\SampleFactory $sampleResFactory
+     * @param \Magento\Downloadable\Model\ResourceModel\Link $linkResource
+     * @param \Magento\Downloadable\Model\ResourceModel\Link\CollectionFactory $linksFactory
+     * @param \Magento\Downloadable\Model\ResourceModel\Sample\CollectionFactory $samplesFactory
      * @param \Magento\Downloadable\Model\SampleFactory $sampleFactory
      * @param \Magento\Downloadable\Model\LinkFactory $linkFactory
      * @param TypeHandler\TypeHandlerInterface $typeHandler
+     * @param JoinProcessorInterface $extensionAttributesJoinProcessor
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -90,13 +97,14 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
         \Magento\Framework\Registry $coreRegistry,
         \Psr\Log\LoggerInterface $logger,
         ProductRepositoryInterface $productRepository,
-        \Magento\Downloadable\Model\Resource\SampleFactory $sampleResFactory,
-        \Magento\Downloadable\Model\Resource\Link $linkResource,
-        \Magento\Downloadable\Model\Resource\Link\CollectionFactory $linksFactory,
-        \Magento\Downloadable\Model\Resource\Sample\CollectionFactory $samplesFactory,
+        \Magento\Downloadable\Model\ResourceModel\SampleFactory $sampleResFactory,
+        \Magento\Downloadable\Model\ResourceModel\Link $linkResource,
+        \Magento\Downloadable\Model\ResourceModel\Link\CollectionFactory $linksFactory,
+        \Magento\Downloadable\Model\ResourceModel\Sample\CollectionFactory $samplesFactory,
         \Magento\Downloadable\Model\SampleFactory $sampleFactory,
         \Magento\Downloadable\Model\LinkFactory $linkFactory,
-        \Magento\Downloadable\Model\Product\TypeHandler\TypeHandlerInterface $typeHandler
+        \Magento\Downloadable\Model\Product\TypeHandler\TypeHandlerInterface $typeHandler,
+        JoinProcessorInterface $extensionAttributesJoinProcessor
     ) {
         $this->_sampleResFactory = $sampleResFactory;
         $this->_linkResource = $linkResource;
@@ -105,6 +113,7 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
         $this->_sampleFactory = $sampleFactory;
         $this->_linkFactory = $linkFactory;
         $this->typeHandler = $typeHandler;
+        $this->extensionAttributesJoinProcessor = $extensionAttributesJoinProcessor;
         parent::__construct(
             $catalogProductOption,
             $eavConfig,
@@ -127,17 +136,18 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
     public function getLinks($product)
     {
         if ($product->getDownloadableLinks() === null) {
-            $_linkCollection = $this->_linksFactory->create()->addProductToFilter(
-                $product->getId()
+            /** @var \Magento\Downloadable\Model\ResourceModel\Link\Collection $linkCollection */
+            $linkCollection = $this->_linksFactory->create()->addProductToFilter(
+                $product->getEntityId()
             )->addTitleToResult(
                 $product->getStoreId()
             )->addPriceToResult(
                 $product->getStore()->getWebsiteId()
             );
+            $this->extensionAttributesJoinProcessor->process($linkCollection);
             $linksCollectionById = [];
-            foreach ($_linkCollection as $link) {
+            foreach ($linkCollection as $link) {
                 /* @var \Magento\Downloadable\Model\Link $link */
-
                 $link->setProduct($product);
                 $linksCollectionById[$link->getId()] = $link;
             }
@@ -198,17 +208,18 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
      * Get downloadable product samples
      *
      * @param \Magento\Catalog\Model\Product $product
-     * @return \Magento\Downloadable\Model\Resource\Sample\Collection
+     * @return \Magento\Downloadable\Model\ResourceModel\Sample\Collection
      */
     public function getSamples($product)
     {
         if ($product->getDownloadableSamples() === null) {
-            $_sampleCollection = $this->_samplesFactory->create()->addProductToFilter(
-                $product->getId()
+            $sampleCollection = $this->_samplesFactory->create()->addProductToFilter(
+                $product->getEntityId()
             )->addTitleToResult(
                 $product->getStoreId()
             );
-            $product->setDownloadableSamples($_sampleCollection);
+            $this->extensionAttributesJoinProcessor->process($sampleCollection);
+            $product->setDownloadableSamples($sampleCollection);
         }
 
         return $product->getDownloadableSamples();
@@ -226,26 +237,6 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
     }
 
     /**
-     * Save Product downloadable information (links and samples)
-     *
-     * @param \Magento\Catalog\Model\Product $product
-     * @return $this
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
-     */
-    public function save($product)
-    {
-        parent::save($product);
-
-        if ($data = $product->getDownloadableData()) {
-            $this->typeHandler->save($product, $data);
-        }
-
-        return $this;
-    }
-
-    /**
      * Check if product can be bought
      *
      * @param \Magento\Catalog\Model\Product $product
@@ -257,10 +248,12 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
         parent::checkProductBuyState($product);
         $option = $product->getCustomOption('info_buyRequest');
         if ($option instanceof \Magento\Quote\Model\Quote\Item\Option) {
-            $buyRequest = new \Magento\Framework\Object(unserialize($option->getValue()));
+            $buyRequest = new \Magento\Framework\DataObject(unserialize($option->getValue()));
             if (!$buyRequest->hasLinks()) {
                 if (!$product->getLinksPurchasedSeparately()) {
-                    $allLinksIds = $this->_linksFactory->create()->addProductToFilter($product->getId())->getAllIds();
+                    $allLinksIds = $this->_linksFactory->create()->addProductToFilter(
+                        $product->getEntityId()
+                    )->getAllIds();
                     $buyRequest->setLinks($allLinksIds);
                     $product->addCustomOption('info_buyRequest', serialize($buyRequest->getData()));
                 } else {
@@ -299,39 +292,6 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
     }
 
     /**
-     * Setting flag if dowenloadable product can be or not in complex product
-     * based on link can be purchased separately or not
-     *
-     * @param \Magento\Catalog\Model\Product $product
-     * @return void
-     */
-    public function beforeSave($product)
-    {
-        parent::beforeSave($product);
-        if ($this->getLinkSelectionRequired($product)) {
-            $product->setTypeHasRequiredOptions(true)->setRequiredOptions(true);
-        } else {
-            $product->setTypeHasRequiredOptions(false)->setRequiredOptions(false);
-        }
-
-        // Update links_exist attribute value
-        $linksExist = false;
-        if ($data = $product->getDownloadableData()) {
-            if (isset($data['link'])) {
-                foreach ($data['link'] as $linkItem) {
-                    if (!isset($linkItem['is_delete']) || !$linkItem['is_delete']) {
-                        $linksExist = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        $product->setTypeHasOptions($linksExist);
-        $product->setLinksExist($linksExist);
-    }
-
-    /**
      * Retrieve additional searchable data from type instance
      * Using based on product id and store_id data
      *
@@ -342,12 +302,12 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
     {
         $searchData = parent::getSearchableData($product);
 
-        $linkSearchData = $this->_createLink()->getSearchableData($product->getId(), $product->getStoreId());
+        $linkSearchData = $this->_createLink()->getSearchableData($product->getEntityId(), $product->getStoreId());
         if ($linkSearchData) {
             $searchData = array_merge($searchData, $linkSearchData);
         }
 
-        $sampleSearchData = $this->_createSample()->getSearchableData($product->getId(), $product->getStoreId());
+        $sampleSearchData = $this->_createSample()->getSearchableData($product->getEntityId(), $product->getStoreId());
         if ($sampleSearchData) {
             $searchData = array_merge($searchData, $sampleSearchData);
         }
@@ -370,7 +330,7 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
      * Prepare selected options for downloadable product
      *
      * @param  \Magento\Catalog\Model\Product $product
-     * @param  \Magento\Framework\Object $buyRequest
+     * @param  \Magento\Framework\DataObject $buyRequest
      * @return array
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
@@ -440,14 +400,14 @@ class Type extends \Magento\Catalog\Model\Product\Type\Virtual
      * Prepare product and its configuration to be added to some products list.
      * Perform standard preparation process and then prepare options for downloadable links.
      *
-     * @param \Magento\Framework\Object $buyRequest
+     * @param \Magento\Framework\DataObject $buyRequest
      * @param \Magento\Catalog\Model\Product $product
      * @param string $processMode
      * @return \Magento\Framework\Phrase|array|string
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    protected function _prepareProduct(\Magento\Framework\Object $buyRequest, $product, $processMode)
+    protected function _prepareProduct(\Magento\Framework\DataObject $buyRequest, $product, $processMode)
     {
         $result = parent::_prepareProduct($buyRequest, $product, $processMode);
 

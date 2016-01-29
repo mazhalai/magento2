@@ -35,7 +35,6 @@ class CompositeTest extends \PHPUnit_Framework_TestCase
     {
         $this->registry->unregister('composite_configure_result_error_message');
         $this->registry->unregister(RegistryConstants::CURRENT_CUSTOMER_ID);
-        $this->registry->unregister(RegistryConstants::CURRENT_CUSTOMER);
         $this->registry->unregister('current_product');
         $this->registry->unregister('product');
     }
@@ -46,9 +45,14 @@ class CompositeTest extends \PHPUnit_Framework_TestCase
      */
     public function testRenderConfigureResult()
     {
-        $configureResult = new \Magento\Framework\Object();
+        /** @var \Magento\Catalog\Api\ProductRepositoryInterface $productRepository */
+        $productRepository = Bootstrap::getObjectManager()->create('Magento\Catalog\Api\ProductRepositoryInterface');
+        /** @var $product \Magento\Catalog\Model\Product */
+        $product = $productRepository->get('simple');
+
+        $configureResult = new \Magento\Framework\DataObject();
         $configureResult->setOk(true)
-            ->setProductId(1)
+            ->setProductId($product->getId())
             ->setCurrentCustomerId(1);
 
         $this->helper->renderConfigureResult($configureResult);
@@ -61,7 +65,7 @@ class CompositeTest extends \PHPUnit_Framework_TestCase
 
     public function testRenderConfigureResultNotOK()
     {
-        $configureResult = new \Magento\Framework\Object();
+        $configureResult = new \Magento\Framework\DataObject();
         $configureResult->setError(true)
             ->setMessage('Test Message');
 

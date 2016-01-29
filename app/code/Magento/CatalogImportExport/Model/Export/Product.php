@@ -5,7 +5,9 @@
  */
 namespace Magento\CatalogImportExport\Model\Export;
 
+use Magento\ImportExport\Model\Import;
 use \Magento\Store\Model\Store;
+use \Magento\CatalogImportExport\Model\Import\Product as ImportProduct;
 
 /**
  * Export entity product model
@@ -41,6 +43,8 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
 
     const COL_TYPE = '_type';
 
+    const COL_PRODUCT_WEBSITES = '_product_websites';
+
     const COL_CATEGORY = '_category';
 
     const COL_ROOT_CATEGORY = '_root_category';
@@ -48,6 +52,10 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     const COL_SKU = 'sku';
 
     const COL_VISIBILITY = 'visibility';
+
+    const COL_MEDIA_IMAGE = '_media_image';
+
+    const COL_ADDITIONAL_ATTRIBUTES = 'additional_attributes';
 
     /**
      * Pairs of attribute set ID-to-name.
@@ -77,10 +85,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
      */
     protected $_indexValueAttributes = [
         'status',
-        'tax_class_id',
-        'visibility',
         'gift_message_available',
-        'custom_design',
     ];
 
     /**
@@ -126,14 +131,14 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     /**
      * Product collection
      *
-     * @var \Magento\Catalog\Model\Resource\Product\CollectionFactory
+     * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory
      */
     protected $_entityCollectionFactory;
 
     /**
      * Product collection
      *
-     * @var \Magento\Catalog\Model\Resource\Product\Collection
+     * @var \Magento\Catalog\Model\ResourceModel\Product\Collection
      */
     protected $_entityCollection;
 
@@ -162,37 +167,37 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     protected $_logger;
 
     /**
-     * @var \Magento\Catalog\Model\Resource\ProductFactory
+     * @var \Magento\Catalog\Model\ResourceModel\ProductFactory
      */
     protected $_productFactory;
 
     /**
-     * @var \Magento\Eav\Model\Resource\Entity\Attribute\Set\Collection
+     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\Collection
      */
     protected $_attrSetColFactory;
 
     /**
-     * @var \Magento\Catalog\Model\Resource\Category\Collection
+     * @var \Magento\Catalog\Model\ResourceModel\Category\Collection
      */
     protected $_categoryColFactory;
 
     /**
-     * @var \Magento\Framework\App\Resource
+     * @var \Magento\Framework\App\ResourceConnection
      */
     protected $_resourceModel;
 
     /**
-     * @var \Magento\CatalogInventory\Model\Resource\Stock\ItemFactory
+     * @var \Magento\CatalogInventory\Model\ResourceModel\Stock\ItemFactory
      */
     protected $_itemFactory;
 
     /**
-     * @var \Magento\Catalog\Model\Resource\Product\Option\Collection
+     * @var \Magento\Catalog\Model\ResourceModel\Product\Option\Collection
      */
     protected $_optionColFactory;
 
     /**
-     * @var \Magento\Catalog\Model\Resource\Product\Attribute\Collection
+     * @var \Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection
      */
     protected $_attributeColFactory;
 
@@ -214,41 +219,140 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     protected $rowCustomizer;
 
     /**
+     * Map between import file fields and system fields/attributes
+     *
+     * @var array
+     */
+    protected $_fieldsMap = [
+        'image' => 'base_image',
+        'image_label' => "base_image_label",
+        'image' => 'base_image',
+        'image_label' => 'base_image_label',
+        'thumbnail' => 'thumbnail_image',
+        'thumbnail_label' => 'thumbnail_image_label',
+        self::COL_MEDIA_IMAGE => 'additional_images',
+        '_media_image_label' => 'additional_image_labels',
+        Product::COL_STORE => 'store_view_code',
+        Product::COL_ATTR_SET => 'attribute_set_code',
+        Product::COL_TYPE => 'product_type',
+        Product::COL_CATEGORY => 'categories',
+        Product::COL_PRODUCT_WEBSITES => 'product_websites',
+        'status' => 'product_online',
+        'news_from_date' => 'new_from_date',
+        'news_to_date' => 'new_to_date',
+        'options_container' => 'display_product_options_in',
+        'minimal_price' => 'map_price',
+        'msrp' => 'msrp_price',
+        'msrp_enabled' => 'map_enabled',
+        'special_from_date' => 'special_price_from_date',
+        'special_to_date' => 'special_price_to_date',
+        'min_qty' => 'out_of_stock_qty',
+        'backorders' => 'allow_backorders',
+        'min_sale_qty' => 'min_cart_qty',
+        'max_sale_qty' => 'max_cart_qty',
+        'notify_stock_qty' => 'notify_on_stock_below',
+        'meta_keyword' => 'meta_keywords',
+        'tax_class_id' => 'tax_class_name',
+    ];
+
+    /**
+     * Attributes codes which are appropriate for export and not the part of additional_attributes.
+     *
+     * @var array
+     */
+    protected $_exportMainAttrCodes = [
+        self::COL_SKU,
+        'name',
+        'description',
+        'short_description',
+        'weight',
+        'product_online',
+        'tax_class_name',
+        'visibility',
+        'price',
+        'special_price',
+        'special_price_from_date',
+        'special_price_to_date',
+        'url_key',
+        'meta_title',
+        'meta_keywords',
+        'meta_description',
+        'base_image',
+        'base_image_label',
+        'small_image',
+        'small_image_label',
+        'thumbnail_image',
+        'thumbnail_image_label',
+        'swatch_image',
+        'swatch_image_label',
+        'created_at',
+        'updated_at',
+        'new_from_date',
+        'new_to_date',
+        'display_product_options_in',
+        'map_price',
+        'msrp_price',
+        'map_enabled',
+        'special_price_from_date',
+        'special_price_to_date',
+        'gift_message_available',
+        'custom_design',
+        'custom_design_from',
+        'custom_design_to',
+        'custom_layout_update',
+        'page_layout',
+        'product_options_container',
+        'msrp_price',
+        'msrp_display_actual_price_type',
+        'map_enabled',
+        'country_of_manufacture',
+        'map_price',
+        'display_product_options_in',
+    ];
+
+    /**
+     * @var \Magento\Framework\Model\Entity\MetadataPool
+     */
+    protected $metadataPool;
+
+    /**
      * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
      * @param \Magento\Eav\Model\Config $config
-     * @param \Magento\Framework\App\Resource $resource
+     * @param \Magento\Framework\App\ResourceConnection $resource
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Psr\Log\LoggerInterface $logger
-     * @param \Magento\Catalog\Model\Resource\Product\Collection $collection
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
      * @param \Magento\ImportExport\Model\Export\ConfigInterface $exportConfig
-     * @param \Magento\Catalog\Model\Resource\ProductFactory $productFactory
-     * @param \Magento\Eav\Model\Resource\Entity\Attribute\Set\CollectionFactory $attrSetColFactory
-     * @param \Magento\Catalog\Model\Resource\Category\CollectionFactory $categoryColFactory
-     * @param \Magento\CatalogInventory\Model\Resource\Stock\ItemFactory $itemFactory
-     * @param \Magento\Catalog\Model\Resource\Product\Option\CollectionFactory $optionColFactory
-     * @param \Magento\Catalog\Model\Resource\Product\Attribute\CollectionFactory $attributeColFactory
+     * @param \Magento\Catalog\Model\ResourceModel\ProductFactory $productFactory
+     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory $attrSetColFactory
+     * @param \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryColFactory
+     * @param \Magento\CatalogInventory\Model\ResourceModel\Stock\ItemFactory $itemFactory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Option\CollectionFactory $optionColFactory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory $attributeColFactory
      * @param Product\Type\Factory $_typeFactory
      * @param \Magento\Catalog\Model\Product\LinkTypeProvider $linkTypeProvider
      * @param \Magento\CatalogImportExport\Model\Export\RowCustomizerInterface $rowCustomizer
+     * @param \Magento\Framework\Model\Entity\MetadataPool $metadataPool
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Magento\Eav\Model\Config $config,
-        \Magento\Framework\App\Resource $resource,
+        \Magento\Framework\App\ResourceConnection $resource,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Psr\Log\LoggerInterface $logger,
-        \Magento\Catalog\Model\Resource\Product\CollectionFactory $collectionFactory,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $collectionFactory,
         \Magento\ImportExport\Model\Export\ConfigInterface $exportConfig,
-        \Magento\Catalog\Model\Resource\ProductFactory $productFactory,
-        \Magento\Eav\Model\Resource\Entity\Attribute\Set\CollectionFactory $attrSetColFactory,
-        \Magento\Catalog\Model\Resource\Category\CollectionFactory $categoryColFactory,
-        \Magento\CatalogInventory\Model\Resource\Stock\ItemFactory $itemFactory,
-        \Magento\Catalog\Model\Resource\Product\Option\CollectionFactory $optionColFactory,
-        \Magento\Catalog\Model\Resource\Product\Attribute\CollectionFactory $attributeColFactory,
+        \Magento\Catalog\Model\ResourceModel\ProductFactory $productFactory,
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory $attrSetColFactory,
+        \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryColFactory,
+        \Magento\CatalogInventory\Model\ResourceModel\Stock\ItemFactory $itemFactory,
+        \Magento\Catalog\Model\ResourceModel\Product\Option\CollectionFactory $optionColFactory,
+        \Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory $attributeColFactory,
         \Magento\CatalogImportExport\Model\Export\Product\Type\Factory $_typeFactory,
         \Magento\Catalog\Model\Product\LinkTypeProvider $linkTypeProvider,
-        \Magento\CatalogImportExport\Model\Export\RowCustomizerInterface $rowCustomizer
+        \Magento\CatalogImportExport\Model\Export\RowCustomizerInterface $rowCustomizer,
+        \Magento\Framework\Model\Entity\MetadataPool $metadataPool
     ) {
         $this->_entityCollectionFactory = $collectionFactory;
         $this->_exportConfig = $exportConfig;
@@ -263,6 +367,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
         $this->_typeFactory = $_typeFactory;
         $this->_linkTypeProvider = $linkTypeProvider;
         $this->rowCustomizer = $rowCustomizer;
+        $this->metadataPool = $metadataPool;
 
         parent::__construct($localeDate, $config, $resource, $storeManager);
 
@@ -296,7 +401,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     protected function initCategories()
     {
         $collection = $this->_categoryColFactory->create()->addNameToResult();
-        /* @var $collection \Magento\Catalog\Model\Resource\Category\Collection */
+        /* @var $collection \Magento\Catalog\Model\ResourceModel\Category\Collection */
         foreach ($collection as $category) {
             $structure = preg_split('#/+#', $category->getPath());
             $pathSize = count($structure);
@@ -348,7 +453,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
         }
         if (!$this->_productTypeModels) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __('There are no product types available for export')
+                __('There are no product types available for export.')
             );
         }
         $this->_disabledAttrs = array_unique($this->_disabledAttrs);
@@ -371,75 +476,6 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     }
 
     /**
-     * Prepare products tier prices
-     *
-     * @param  int[] $productIds
-     * @return array
-     */
-    protected function prepareTierPrices(array $productIds)
-    {
-        if (empty($productIds)) {
-            return [];
-        }
-        $select = $this->_connection->select()->from(
-            $this->_resourceModel->getTableName('catalog_product_entity_tier_price')
-        )->where(
-            'entity_id IN(?)',
-            $productIds
-        );
-
-        $rowTierPrices = [];
-        $stmt = $this->_connection->query($select);
-        while ($tierRow = $stmt->fetch()) {
-            $rowTierPrices[$tierRow['entity_id']][] = [
-                '_tier_price_customer_group' => $tierRow['all_groups']
-                    ? self::VALUE_ALL
-                    : $tierRow['customer_group_id'],
-                '_tier_price_website' => 0 ==
-                $tierRow['website_id'] ? self::VALUE_ALL : $this->_websiteIdToCode[$tierRow['website_id']],
-                '_tier_price_qty' => $tierRow['qty'],
-                '_tier_price_price' => $tierRow['value'],
-            ];
-        }
-
-        return $rowTierPrices;
-    }
-
-    /**
-     * Prepare products group prices
-     *
-     * @param  int[] $productIds
-     * @return array
-     */
-    protected function prepareGroupPrices(array $productIds)
-    {
-        if (empty($productIds)) {
-            return [];
-        }
-        $select = $this->_connection->select()->from(
-            $this->_resourceModel->getTableName('catalog_product_entity_group_price')
-        )->where(
-            'entity_id IN(?)',
-            $productIds
-        );
-
-        $rowGroupPrices = [];
-        $statement = $this->_connection->query($select);
-        while ($groupRow = $statement->fetch()) {
-            $rowGroupPrices[$groupRow['entity_id']][] = [
-                '_group_price_customer_group' => $groupRow['all_groups']
-                    ? self::VALUE_ALL
-                    : $groupRow['customer_group_id'],
-                '_group_price_website' => 0 ==
-                $groupRow['website_id'] ? self::VALUE_ALL : $this->_websiteIdToCode[$groupRow['website_id']],
-                '_group_price_price' => $groupRow['value'],
-            ];
-        }
-
-        return $rowGroupPrices;
-    }
-
-    /**
      * Prepare products media gallery
      *
      * @param  int[] $productIds
@@ -450,29 +486,39 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
         if (empty($productIds)) {
             return [];
         }
+        $linkField = $this->metadataPool
+            ->getMetadata(\Magento\Catalog\Api\Data\ProductInterface::class)
+            ->getLinkField();
         $select = $this->_connection->select()->from(
-            ['mg' => $this->_resourceModel->getTableName('catalog_product_entity_media_gallery')],
+            ['mgvte' => $this->_resourceModel->getTableName('catalog_product_entity_media_gallery_value_to_entity')],
             [
-                'mg.entity_id',
+                'mgvte.' . $linkField,
+                'mgvte.value_id'
+            ]
+        )->joinLeft(
+            ['mg' => $this->_resourceModel->getTableName('catalog_product_entity_media_gallery')],
+            '(mg.value_id = mgvte.value_id)',
+            [
                 'mg.attribute_id',
                 'filename' => 'mg.value',
-                'mgv.label',
-                'mgv.position',
-                'mgv.disabled'
             ]
         )->joinLeft(
             ['mgv' => $this->_resourceModel->getTableName('catalog_product_entity_media_gallery_value')],
             '(mg.value_id = mgv.value_id AND mgv.store_id = 0)',
-            []
+            [
+                'mgv.label',
+                'mgv.position',
+                'mgv.disabled'
+            ]
         )->where(
-            'mg.entity_id IN(?)',
+            'mgvte.' . $linkField . ' IN(?)',
             $productIds
         );
 
         $rowMediaGallery = [];
         $stmt = $this->_connection->query($select);
         while ($mediaRow = $stmt->fetch()) {
-            $rowMediaGallery[$mediaRow['entity_id']][] = [
+            $rowMediaGallery[$mediaRow[$linkField]][] = [
                 '_media_attribute_id' => $mediaRow['attribute_id'],
                 '_media_image' => $mediaRow['filename'],
                 '_media_label' => $mediaRow['label'],
@@ -529,8 +575,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
         if (empty($productIds)) {
             return [];
         }
-        $adapter = $this->_connection;
-        $select = $adapter->select()->from(
+        $select = $this->_connection->select()->from(
             ['cpl' => $this->_resourceModel->getTableName('catalog_product_link')],
             [
                 'cpl.product_id',
@@ -545,14 +590,14 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
             []
         )->joinLeft(
             ['cpla' => $this->_resourceModel->getTableName('catalog_product_link_attribute')],
-            $adapter->quoteInto(
+            $this->_connection->quoteInto(
                 '(cpla.link_type_id = cpl.link_type_id AND cpla.product_link_attribute_code = ?)',
                 'position'
             ),
             []
         )->joinLeft(
             ['cplaq' => $this->_resourceModel->getTableName('catalog_product_link_attribute')],
-            $adapter->quoteInto(
+            $this->_connection->quoteInto(
                 '(cplaq.link_type_id = cpl.link_type_id AND cplaq.product_link_attribute_code = ?)',
                 'qty'
             ),
@@ -573,7 +618,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
             $productIds
         );
 
-        $stmt = $adapter->query($select);
+        $stmt = $this->_connection->query($select);
         $linksRows = [];
         while ($linksRow = $stmt->fetch()) {
             $linksRows[$linksRow['product_id']][$linksRow['link_type_id']][] = [
@@ -599,14 +644,16 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
         if (!isset($rowCategories[$productId])) {
             return false;
         }
-
-        $categoryId = array_shift($rowCategories[$productId]);
-        if ($categoryId) {
-            $dataRow[self::COL_ROOT_CATEGORY] = $this->_rootCategories[$categoryId];
+        $categories = [];
+        foreach ($rowCategories[$productId] as $categoryId) {
+            $categoryPath = $this->_rootCategories[$categoryId];
             if (isset($this->_categories[$categoryId])) {
-                $dataRow[self::COL_CATEGORY] = $this->_categories[$categoryId];
+                $categoryPath .= '/' . $this->_categories[$categoryId];
             }
+            $categories[] = $categoryPath;
         }
+        $dataRow[self::COL_CATEGORY] = implode(Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR, $categories);
+        unset($rowCategories[$productId]);
 
         return true;
     }
@@ -616,7 +663,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
      */
     public function _getHeaderColumns()
     {
-        return $this->_headerColumns;
+        return $this->_customHeadersMapping($this->_headerColumns);
     }
 
     /**
@@ -630,18 +677,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     {
         if (!$this->_headerColumns) {
             $customOptCols = [
-                '_custom_option_store',
-                '_custom_option_type',
-                '_custom_option_title',
-                '_custom_option_is_required',
-                '_custom_option_price',
-                '_custom_option_sku',
-                '_custom_option_max_characters',
-                '_custom_option_sort_order',
-                '_custom_option_row_title',
-                '_custom_option_row_price',
-                '_custom_option_row_sku',
-                '_custom_option_row_sort',
+                'custom_options',
             ];
             $this->_headerColumns = array_merge(
                 [
@@ -650,29 +686,34 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
                     self::COL_ATTR_SET,
                     self::COL_TYPE,
                     self::COL_CATEGORY,
-                    self::COL_ROOT_CATEGORY,
-                    '_product_websites',
+                    self::COL_PRODUCT_WEBSITES,
                 ],
-                $this->_getExportAttrCodes(),
+                $this->_getExportMainAttrCodes(),
+                [self::COL_ADDITIONAL_ATTRIBUTES],
                 reset($stockItemRows) ? array_keys(end($stockItemRows)) : [],
                 [],
                 [
-                    '_related_sku',
-                    '_related_position',
-                    '_crosssell_sku',
-                    '_crosssell_position',
-                    '_upsell_sku',
-                    '_upsell_position'
+                    'related_skus',
+                    'crosssell_skus',
+                    'upsell_skus',
                 ],
-                ['_tier_price_website', '_tier_price_customer_group', '_tier_price_qty', '_tier_price_price'],
-                ['_group_price_website', '_group_price_customer_group', '_group_price_price'],
-                ['_media_attribute_id', '_media_image', '_media_label', '_media_position', '_media_is_disabled']
+                ['additional_images', 'additional_image_labels', 'hide_from_product_page']
             );
             // have we merge custom options columns
             if ($customOptionsData) {
                 $this->_headerColumns = array_merge($this->_headerColumns, $customOptCols);
             }
         }
+    }
+
+    /**
+     * Get attributes codes which are appropriate for export and not the part of additional_attributes.
+     *
+     * @return array
+     */
+    protected function _getExportMainAttrCodes()
+    {
+        return $this->_exportMainAttrCodes;
     }
 
     /**
@@ -767,7 +808,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
                 $writer->setHeaderCols($this->_getHeaderColumns());
             }
             foreach ($exportData as $dataRow) {
-                $writer->writeRow($dataRow);
+                $writer->writeRow($this->_customFieldsMapping($dataRow));
             }
             if ($entityCollection->getCurPage() >= $entityCollection->getLastPageNumber()) {
                 break;
@@ -833,6 +874,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
              * @var \Magento\Catalog\Model\Product $item
              */
             foreach ($collection as $itemId => $item) {
+                $additionalAttributes = [];
                 foreach ($this->_getExportAttrCodes() as $code) {
                     $attrValue = $item->getData($code);
                     if (!$this->isValidAttributeValue($code, $attrValue)) {
@@ -842,21 +884,48 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
                     if (isset($this->_attributeValues[$code][$attrValue]) && !empty($this->_attributeValues[$code])) {
                         $attrValue = $this->_attributeValues[$code][$attrValue];
                     }
+                    $fieldName = isset($this->_fieldsMap[$code]) ? $this->_fieldsMap[$code] : $code;
+
+                    if ($this->_attributeTypes[$code] === 'datetime') {
+                        $attrValue = $this->_localeDate->formatDateTime(
+                            new \DateTime($attrValue),
+                            \IntlDateFormatter::SHORT,
+                            \IntlDateFormatter::SHORT
+                        );
+                    }
 
                     if ($storeId != Store::DEFAULT_STORE_ID
-                        && isset($data[$itemId][Store::DEFAULT_STORE_ID][$code])
-                        && $data[$itemId][Store::DEFAULT_STORE_ID][$code] == $attrValue
+                        && isset($data[$itemId][Store::DEFAULT_STORE_ID][$fieldName])
+                        && $data[$itemId][Store::DEFAULT_STORE_ID][$fieldName] == $attrValue
                     ) {
                         continue;
                     }
 
                     if ($this->_attributeTypes[$code] !== 'multiselect') {
                         if (is_scalar($attrValue)) {
-                            $data[$itemId][$storeId][$code] = $attrValue;
+                            if (!in_array($fieldName, $this->_getExportMainAttrCodes())) {
+                                $additionalAttributes[$fieldName] = $fieldName .
+                                    ImportProduct::PAIR_NAME_VALUE_SEPARATOR . $attrValue;
+                            }
+                            $data[$itemId][$storeId][$fieldName] = $attrValue;
                         }
                     } else {
                         $this->collectMultiselectValues($item, $code, $storeId);
+                        if (!empty($this->collectedMultiselectsData[$storeId][$itemId][$code])) {
+                            $additionalAttributes[$code] = $fieldName .
+                                ImportProduct::PAIR_NAME_VALUE_SEPARATOR . implode(
+                                    ImportProduct::PSEUDO_MULTI_LINE_SEPARATOR,
+                                    $this->collectedMultiselectsData[$storeId][$itemId][$code]
+                                );
+                        }
                     }
+                }
+
+                if (!empty($additionalAttributes)) {
+                    $data[$itemId][$storeId][self::COL_ADDITIONAL_ATTRIBUTES] =
+                        implode(Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR, $additionalAttributes);
+                } else {
+                    unset($data[$itemId][$storeId][self::COL_ADDITIONAL_ATTRIBUTES]);
                 }
 
                 if (!empty($data[$itemId][$storeId]) || $this->hasMultiselectData($item, $storeId)) {
@@ -865,6 +934,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
                     $data[$itemId][$storeId][self::COL_ATTR_SET] = $this->_attrSetIdToName[$attrSetId];
                     $data[$itemId][$storeId][self::COL_TYPE] = $item->getTypeId();
                 }
+                $data[$itemId][$storeId][self::COL_SKU] = $item->getSku();
                 $data[$itemId][$storeId]['store_id'] = $storeId;
                 $data[$itemId][$storeId]['product_id'] = $itemId;
             }
@@ -894,20 +964,19 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
                 array_keys($this->_websiteIdToCode),
                 $item->getWebsites()
             );
-            $rowCategories[$item->getId()] = $item->getCategoryIds();
+            $rowCategories[$item->getId()] = array_combine($item->getCategoryIds(), $item->getCategoryIds());
         }
         $collection->clear();
 
         $allCategoriesIds = array_merge(array_keys($this->_categories), array_keys($this->_rootCategories));
+        $allCategoriesIds = array_combine($allCategoriesIds, $allCategoriesIds);
         foreach ($rowCategories as &$categories) {
-            $categories = array_intersect($categories, $allCategoriesIds);
+            $categories = array_intersect_key($categories, $allCategoriesIds);
         }
 
         $data['rowWebsites'] = $rowWebsites;
         $data['rowCategories'] = $rowCategories;
         $data['mediaGalery'] = $this->getMediaGallery($productIds);
-        $data['rowTierPrices'] = $this->prepareTierPrices($productIds);
-        $data['rowGroupPrices'] = $this->prepareGroupPrices($productIds);
         $data['linksRows'] = $this->prepareLinks($productIds);
 
         $data['customOptionsData'] = $this->getCustomOptionsData($productIds);
@@ -934,7 +1003,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     protected function collectMultiselectValues($item, $attrCode, $storeId)
     {
         $attrValue = $item->getData($attrCode);
-        $optionIds = explode(',', $attrValue);
+        $optionIds = explode(Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR, $attrValue);
         $options = array_intersect_key(
             $this->_attributeValues[$attrCode],
             array_flip($optionIds)
@@ -969,85 +1038,159 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
 
     /**
      * @param array $dataRow
-     * @param array $multirawData
+     * @param array $multiRawData
      * @return array
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    protected function addMultirowData($dataRow, $multirawData)
+    protected function addMultirowData($dataRow, $multiRawData)
     {
         $result = [];
         $productId = $dataRow['product_id'];
         $storeId = $dataRow['store_id'];
+        $sku = $dataRow[self::COL_SKU];
 
         unset($dataRow['product_id']);
         unset($dataRow['store_id']);
+        unset($dataRow[self::COL_SKU]);
 
-        while (true) {
-            if (Store::DEFAULT_STORE_ID == $storeId) {
-                unset($dataRow[self::COL_STORE]);
-                $this->updateDataWithCategoryColumns($dataRow, $multirawData['rowCategories'], $productId);
-                if (!empty($multirawData['rowWebsites'][$productId])) {
-                    $dataRow['_product_websites'] = $this->_websiteIdToCode[
-                        array_shift($multirawData['rowWebsites'][$productId])
-                    ];
+        if (Store::DEFAULT_STORE_ID == $storeId) {
+            unset($dataRow[self::COL_STORE]);
+            $this->updateDataWithCategoryColumns($dataRow, $multiRawData['rowCategories'], $productId);
+            if (!empty($multiRawData['rowWebsites'][$productId])) {
+                $websiteCodes = [];
+                foreach ($multiRawData['rowWebsites'][$productId] as $productWebsite) {
+                    $websiteCodes[] = $this->_websiteIdToCode[$productWebsite];
                 }
-                if (!empty($multirawData['rowTierPrices'][$productId])) {
-                    $dataRow = array_merge($dataRow, array_shift($multirawData['rowTierPrices'][$productId]));
-                }
-                if (!empty($multirawData['rowGroupPrices'][$productId])) {
-                    $dataRow = array_merge($dataRow, array_shift($multirawData['rowGroupPrices'][$productId]));
-                }
-                if (!empty($multirawData['mediaGalery'][$productId])) {
-                    $dataRow = array_merge($dataRow, array_shift($multirawData['mediaGalery'][$productId]));
-                }
-                foreach ($this->_linkTypeProvider->getLinkTypes() as $linkTypeName => $linkId) {
-                    if (!empty($multirawData['linksRows'][$productId][$linkId])) {
-                        $colPrefix = '_' . $linkTypeName . '_';
+                $dataRow[self::COL_PRODUCT_WEBSITES] =
+                    implode(Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR, $websiteCodes);
+                $multiRawData['rowWebsites'][$productId] = [];
+            }
+            if (!empty($multiRawData['mediaGalery'][$productId])) {
+                $additionalImages = [];
+                $additionalImageLabels = [];
+                $additionalImageIsDisabled = [];
+                foreach ($multiRawData['mediaGalery'][$productId] as $mediaItem) {
+                    $additionalImages[] = $mediaItem['_media_image'];
+                    $additionalImageLabels[] = $mediaItem['_media_label'];
 
-                        $linkData = array_shift($multirawData['linksRows'][$productId][$linkId]);
-                        $dataRow[$colPrefix . 'position'] = $linkData['position'];
-                        $dataRow[$colPrefix . 'sku'] = $linkData['sku'];
+                    if ($mediaItem['_media_is_disabled'] == true) {
+                        $additionalImageIsDisabled[] = $mediaItem['_media_image'];
+                    }
+                }
+                $dataRow['additional_images'] =
+                    implode(Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR, $additionalImages);
+                $dataRow['additional_image_labels'] =
+                    implode(Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR, $additionalImageLabels);
+                $dataRow['hide_from_product_page'] =
+                    implode(Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR, $additionalImageIsDisabled);
+                $multiRawData['mediaGalery'][$productId] = [];
+            }
+            foreach ($this->_linkTypeProvider->getLinkTypes() as $linkTypeName => $linkId) {
+                if (!empty($multiRawData['linksRows'][$productId][$linkId])) {
+                    $colPrefix = $linkTypeName . '_';
 
+                    $associations = [];
+                    foreach ($multiRawData['linksRows'][$productId][$linkId] as $linkData) {
                         if ($linkData['default_qty'] !== null) {
-                            $dataRow[$colPrefix . 'default_qty'] = $linkData['default_qty'];
+                            $skuItem = $linkData['sku'] . ImportProduct::PAIR_NAME_VALUE_SEPARATOR .
+                                $linkData['default_qty'];
+                        } else {
+                            $skuItem = $linkData['sku'];
                         }
+                        $associations[$skuItem] = $linkData['position'];
                     }
-                }
-                $dataRow = $this->rowCustomizer->addData($dataRow, $productId);
-
-                if (!empty($multirawData['customOptionsData'][$productId])) {
-                    $dataRow = array_merge($dataRow, array_shift($multirawData['customOptionsData'][$productId]));
-                }
-            }
-
-            if (!empty($this->collectedMultiselectsData[$storeId][$productId])) {
-                foreach (array_keys($this->collectedMultiselectsData[$storeId][$productId]) as $attrKey) {
-                    if (!empty($this->collectedMultiselectsData[$storeId][$productId][$attrKey])) {
-                        $dataRow[$attrKey] = array_shift(
-                            $this->collectedMultiselectsData[$storeId][$productId][$attrKey]
-                        );
-                    }
+                    $multiRawData['linksRows'][$productId][$linkId] = [];
+                    asort($associations);
+                    $dataRow[$colPrefix . 'skus'] =
+                        implode(Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR, array_keys($associations));
                 }
             }
+            $dataRow = $this->rowCustomizer->addData($dataRow, $productId);
 
-            if (empty($dataRow)) {
-                break;
-            } elseif ($storeId != Store::DEFAULT_STORE_ID) {
-                $dataRow[self::COL_STORE] = $this->_storeIdToCode[$storeId];
-                $dataRow[self::COL_SKU] = null;
-                $dataRow[self::COL_ATTR_SET] = null;
-                $dataRow[self::COL_TYPE] = null;
-                if (isset($productData[Store::DEFAULT_STORE_ID][self::COL_VISIBILITY])) {
-                    $dataRow[self::COL_VISIBILITY] = $productData[Store::DEFAULT_STORE_ID][self::COL_VISIBILITY];
-                }
-            }
-
-            $result[] = $dataRow;
-            $dataRow = [];
         }
 
+        if (!empty($this->collectedMultiselectsData[$storeId][$productId])) {
+            foreach (array_keys($this->collectedMultiselectsData[$storeId][$productId]) as $attrKey) {
+                if (!empty($this->collectedMultiselectsData[$storeId][$productId][$attrKey])) {
+                    $dataRow[$attrKey] = implode(
+                        Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR,
+                        $this->collectedMultiselectsData[$storeId][$productId][$attrKey]
+                    );
+                }
+            }
+        }
+
+        if (!empty($multiRawData['customOptionsData'][$productId][$storeId])) {
+            $customOptionsRows = $multiRawData['customOptionsData'][$productId][$storeId];
+            $multiRawData['customOptionsData'][$productId][$storeId] = [];
+            $customOptions = implode(ImportProduct::PSEUDO_MULTI_LINE_SEPARATOR, $customOptionsRows);
+
+            $dataRow = array_merge($dataRow, ['custom_options' => $customOptions]);
+        }
+
+        if (empty($dataRow)) {
+            return $result;
+        } elseif ($storeId != Store::DEFAULT_STORE_ID) {
+            $dataRow[self::COL_STORE] = $this->_storeIdToCode[$storeId];
+            if (isset($productData[Store::DEFAULT_STORE_ID][self::COL_VISIBILITY])) {
+                $dataRow[self::COL_VISIBILITY] = $productData[Store::DEFAULT_STORE_ID][self::COL_VISIBILITY];
+            }
+        }
+        $dataRow[self::COL_SKU] = $sku;
+        $result[] = $dataRow;
+
         return $result;
+    }
+
+    /**
+     * Custom fields mapping for changed purposes of fields and field names
+     *
+     * @param array $rowData
+     *
+     * @return array
+     */
+    protected function _customFieldsMapping($rowData)
+    {
+        foreach ($this->_fieldsMap as $systemFieldName => $fileFieldName) {
+            if (isset($rowData[$systemFieldName])) {
+                $rowData[$fileFieldName] = $rowData[$systemFieldName];
+                unset($rowData[$systemFieldName]);
+            }
+        }
+        return $rowData;
+    }
+
+    /**
+     * Custom headers mapping for changed field names
+     *
+     * @param array $rowData
+     *
+     * @return array
+     */
+    protected function _customHeadersMapping($rowData)
+    {
+        foreach ($rowData as $key => $fieldName) {
+            if (isset($this->_fieldsMap[$fieldName])) {
+                $rowData[$key] = $this->_fieldsMap[$fieldName];
+            }
+        }
+        return $rowData;
+    }
+
+    /**
+     * @param array $option
+     * @return string
+     */
+    protected function optionRowToCellString($option)
+    {
+        $result = [];
+
+        foreach ($option as $key => $value) {
+            $result[] = $key . ImportProduct::PAIR_NAME_VALUE_SEPARATOR . $value;
+        }
+
+        return implode(Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR, $result);
     }
 
     /**
@@ -1059,10 +1202,15 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     protected function getCustomOptionsData($productIds)
     {
         $customOptionsData = [];
-        $customOptionsDataPre = [];
 
         foreach (array_keys($this->_storeIdToCode) as $storeId) {
-            $options = $this->_optionColFactory->create()->reset()->addTitleToResult(
+            if (Store::DEFAULT_STORE_ID != $storeId) {
+                continue;
+            }
+            $options = $this->_optionColFactory->create();
+            /* @var \Magento\Catalog\Model\ResourceModel\Product\Option\Collection $options*/
+            $options->addOrder('sort_order');
+            $options->reset()->addOrder('sort_order')->addTitleToResult(
                 $storeId
             )->addPriceToResult(
                 $storeId
@@ -1075,71 +1223,31 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
             foreach ($options as $option) {
                 $row = [];
                 $productId = $option['product_id'];
-                $optionId = $option['option_id'];
 
-                if (Store::DEFAULT_STORE_ID == $storeId) {
-                    $row['_custom_option_type'] = $option['type'];
-                    $row['_custom_option_title'] = $option['title'];
-                    $row['_custom_option_is_required'] = $option['is_require'];
-                    $row['_custom_option_price'] = $option['price'] . ($option['price_type'] == 'percent' ? '%' : '');
-                    $row['_custom_option_sku'] = $option['sku'];
-                    $row['_custom_option_max_characters'] = $option['max_characters'];
-                    $row['_custom_option_sort_order'] = $option['sort_order'];
-                } else {
-                    $row['_custom_option_title'] = $option['title'];
-                }
+                $row['name'] = $option['title'];
+                $row['type'] = $option['type'];
+                $row['required'] = $option['is_require'];
+                $row['price'] = $option['price'];
+                $row['price_type'] = ($option['price_type'] == 'percent') ? $option['price_type'] : 'fixed';
+                $row['sku'] = $option['sku'];
+
                 $values = $option->getValues();
+
                 if ($values) {
-                    $firstValue = array_shift($values);
-                    $priceType = $firstValue['price_type'] == 'percent' ? '%' : '';
-
-                    if (Store::DEFAULT_STORE_ID == $storeId) {
-                        $row['_custom_option_row_title'] = $firstValue['title'];
-                        $row['_custom_option_row_price'] = $firstValue['price'] . $priceType;
-                        $row['_custom_option_row_sku'] = $firstValue['sku'];
-                        $row['_custom_option_row_sort'] = $firstValue['sort_order'];
-                    } else {
-                        $row['_custom_option_row_title'] = $firstValue['title'];
+                    foreach ($values as $value) {
+                        $valuePriceType = ($value['price_type'] == 'percent') ? $value['price_type'] : 'fixed';
+                        $row['option_title'] = $value['title'];
+                        $row['price'] = $value['price'];
+                        $row['price_type'] = $valuePriceType;
+                        $row['sku'] = $value['sku'];
+                        $customOptionsData[$productId][$storeId][] = $this->optionRowToCellString($row);
                     }
-                }
-
-                if (Store::DEFAULT_STORE_ID != $storeId) {
-                    $row['_custom_option_store'] = $this->_storeIdToCode[$storeId];
-                }
-                $customOptionsDataPre[$productId][$optionId][] = $row;
-
-                foreach ($values as $value) {
-                    $row = [];
-                    $valuePriceType = $value['price_type'] == 'percent' ? '%' : '';
-
-                    if (Store::DEFAULT_STORE_ID == $storeId) {
-                        $row['_custom_option_row_title'] = $value['title'];
-                        $row['_custom_option_row_price'] = $value['price'] . $valuePriceType;
-                        $row['_custom_option_row_sku'] = $value['sku'];
-                        $row['_custom_option_row_sort'] = $value['sort_order'];
-                    } else {
-                        $row['_custom_option_row_title'] = $value['title'];
-                    }
-                    if ($row) {
-                        if (Store::DEFAULT_STORE_ID != $storeId) {
-                            $row['_custom_option_store'] = $this->_storeIdToCode[$storeId];
-                        }
-                        $customOptionsDataPre[$option['product_id']][$optionId][] = $row;
-                    }
+                } else {
+                    $customOptionsData[$productId][$storeId][] = $this->optionRowToCellString($row);
                 }
                 $option = null;
             }
             $options = null;
-        }
-
-        foreach ($customOptionsDataPre as $productId => $optionsData) {
-            $customOptionsData[$productId] = [];
-            foreach ($optionsData as $optionId => $optionRows) {
-                $customOptionsData[$productId] = array_merge(
-                    $customOptionsData[$productId],
-                    $optionRows
-                );
-            }
         }
 
         return $customOptionsData;
@@ -1148,12 +1256,13 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     /**
      * Clean up already loaded attribute collection.
      *
-     * @param \Magento\Eav\Model\Resource\Entity\Attribute\Collection $collection
-     * @return \Magento\Eav\Model\Resource\Entity\Attribute\Collection
+     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection $collection
+     * @return \Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection
      */
-    public function filterAttributeCollection(\Magento\Eav\Model\Resource\Entity\Attribute\Collection $collection)
+    public function filterAttributeCollection(\Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection $collection)
     {
         $validTypes = array_keys($this->_productTypeModels);
+        $validTypes = array_combine($validTypes, $validTypes);
 
         foreach (parent::filterAttributeCollection($collection) as $attribute) {
             if (in_array($attribute->getAttributeCode(), $this->_bannedAttributes)) {
@@ -1161,7 +1270,8 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
                 continue;
             }
             $attrApplyTo = $attribute->getApplyTo();
-            $attrApplyTo = $attrApplyTo ? array_intersect($attrApplyTo, $validTypes) : $validTypes;
+            $attrApplyTo = array_combine($attrApplyTo, $attrApplyTo);
+            $attrApplyTo = $attrApplyTo ? array_intersect_key($attrApplyTo, $validTypes) : $validTypes;
 
             if ($attrApplyTo) {
                 foreach ($attrApplyTo as $productType) {
@@ -1181,7 +1291,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     /**
      * Entity attributes collection getter.
      *
-     * @return \Magento\Catalog\Model\Resource\Product\Attribute\Collection
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection
      */
     public function getAttributeCollection()
     {

@@ -37,7 +37,7 @@ class CreditmemoCreateTest extends WebapiAbstract
     public function testInvoke()
     {
         /** @var \Magento\Sales\Model\Order $order */
-        $orderCollection = $this->objectManager->get('Magento\Sales\Model\Resource\Order\Collection');
+        $orderCollection = $this->objectManager->get('Magento\Sales\Model\ResourceModel\Order\Collection');
         $order = $orderCollection->getFirstItem();
 
 //        $order = $this->objectManager->create('Magento\Sales\Model\Order')->loadByIncrementId('100000001');
@@ -67,9 +67,9 @@ class CreditmemoCreateTest extends WebapiAbstract
             'base_currency_code' => null,
             'base_discount_amount' => null,
             'base_grand_total' => null,
-            'base_hidden_tax_amount' => null,
+            'base_discount_tax_compensation_amount' => null,
             'base_shipping_amount' => null,
-            'base_shipping_hidden_tax_amnt' => null,
+            'base_shipping_discount_tax_compensation_amnt' => null,
             'base_shipping_incl_tax' => null,
             'base_shipping_tax_amount' => null,
             'base_subtotal' => null,
@@ -86,14 +86,14 @@ class CreditmemoCreateTest extends WebapiAbstract
             'entity_id' => null,
             'global_currency_code' => null,
             'grand_total' => null,
-            'hidden_tax_amount' => null,
+            'discount_tax_compensation_amount' => null,
             'increment_id' => null,
             'invoice_id' => null,
             'order_currency_code' => null,
             'order_id' => $order->getId(),
             'shipping_address_id' => null,
             'shipping_amount' => null,
-            'shipping_hidden_tax_amount' => null,
+            'shipping_discount_tax_compensation_amount' => null,
             'shipping_incl_tax' => null,
             'shipping_tax_amount' => null,
             'state' => null,

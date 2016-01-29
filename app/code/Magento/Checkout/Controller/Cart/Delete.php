@@ -15,12 +15,16 @@ class Delete extends \Magento\Checkout\Controller\Cart
      */
     public function execute()
     {
+        if (!$this->_formKeyValidator->validate($this->getRequest())) {
+            return $this->resultRedirectFactory->create()->setPath('*/*/');
+        }
+
         $id = (int)$this->getRequest()->getParam('id');
         if ($id) {
             try {
                 $this->cart->removeItem($id)->save();
             } catch (\Exception $e) {
-                $this->messageManager->addError(__('We cannot remove the item.'));
+                $this->messageManager->addError(__('We can\'t remove the item.'));
                 $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
             }
         }

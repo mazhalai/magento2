@@ -5,6 +5,9 @@
  */
 namespace Magento\ImportExport\Block\Adminhtml\Import\Edit;
 
+use Magento\ImportExport\Model\Import;
+use Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregatorInterface;
+
 /**
  * Import edit form block
  *
@@ -57,6 +60,7 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
      * Add fieldsets
      *
      * @return $this
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     protected function _prepareForm()
     {
@@ -83,7 +87,8 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
                 'label' => __('Entity Type'),
                 'required' => true,
                 'onchange' => 'varienImport.handleEntityTypeSelector();',
-                'values' => $this->_entityFactory->create()->toOptionArray()
+                'values' => $this->_entityFactory->create()->toOptionArray(),
+                'after_element_html' => $this->getDownloadSampleFileHtml(),
             ]
         );
 
@@ -104,7 +109,69 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
                     'label' => __('Import Behavior'),
                     'required' => true,
                     'disabled' => true,
-                    'values' => $this->_behaviorFactory->create($behaviorClass)->toOptionArray()
+                    'values' => $this->_behaviorFactory->create($behaviorClass)->toOptionArray(),
+                    'class' => $behaviorCode,
+                    'onchange' => 'varienImport.handleImportBehaviorSelector();',
+                    'note' => ' ',
+                ]
+            );
+            $fieldsets[$behaviorCode]->addField(
+                $behaviorCode . \Magento\ImportExport\Model\Import::FIELD_NAME_VALIDATION_STRATEGY,
+                'select',
+                [
+                    'name' => \Magento\ImportExport\Model\Import::FIELD_NAME_VALIDATION_STRATEGY,
+                    'title' => __(' '),
+                    'label' => __(' '),
+                    'required' => true,
+                    'class' => $behaviorCode,
+                    'disabled' => true,
+                    'values' => [
+                        ProcessingErrorAggregatorInterface::VALIDATION_STRATEGY_STOP_ON_ERROR => 'Stop on Error',
+                        ProcessingErrorAggregatorInterface::VALIDATION_STRATEGY_SKIP_ERRORS => 'Skip error entries'
+                    ],
+                    'after_element_html' => $this->getDownloadSampleFileHtml(),
+                ]
+            );
+            $fieldsets[$behaviorCode]->addField(
+                $behaviorCode . '_' . \Magento\ImportExport\Model\Import::FIELD_NAME_ALLOWED_ERROR_COUNT,
+                'text',
+                [
+                    'name' => \Magento\ImportExport\Model\Import::FIELD_NAME_ALLOWED_ERROR_COUNT,
+                    'label' => __('Allowed Errors Count'),
+                    'title' => __('Allowed Errors Count'),
+                    'required' => true,
+                    'disabled' => true,
+                    'value' => 10,
+                    'class' => $behaviorCode . ' validate-number validate-greater-than-zero input-text',
+                    'note' => __(
+                        'Please specify number of errors to halt import process'
+                    ),
+                ]
+            );
+            $fieldsets[$behaviorCode]->addField(
+                $behaviorCode . '_' . \Magento\ImportExport\Model\Import::FIELD_FIELD_SEPARATOR,
+                'text',
+                [
+                    'name' => \Magento\ImportExport\Model\Import::FIELD_FIELD_SEPARATOR,
+                    'label' => __('Field separator'),
+                    'title' => __('Field separator'),
+                    'required' => true,
+                    'disabled' => true,
+                    'class' => $behaviorCode,
+                    'value' => ',',
+                ]
+            );
+            $fieldsets[$behaviorCode]->addField(
+                $behaviorCode . \Magento\ImportExport\Model\Import::FIELD_FIELD_MULTIPLE_VALUE_SEPARATOR,
+                'text',
+                [
+                    'name' => \Magento\ImportExport\Model\Import::FIELD_FIELD_MULTIPLE_VALUE_SEPARATOR,
+                    'label' => __('Multiple value separator'),
+                    'title' => __('Multiple value separator'),
+                    'required' => true,
+                    'disabled' => true,
+                    'class' => $behaviorCode,
+                    'value' => Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR,
                 ]
             );
         }
@@ -125,10 +192,38 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
                 'class' => 'input-file'
             ]
         );
+        $fieldsets['upload']->addField(
+            \Magento\ImportExport\Model\Import::FIELD_NAME_IMG_FILE_DIR,
+            'text',
+            [
+                'name' => \Magento\ImportExport\Model\Import::FIELD_NAME_IMG_FILE_DIR,
+                'label' => __('Images File Directory'),
+                'title' => __('Images File Directory'),
+                'required' => false,
+                'class' => 'input-text',
+                'note' => __(
+                    'For Type "Local Server" use relative path to Magento installation,
+                                e.g. var/export, var/import, var/export/some/dir'
+                ),
+            ]
+        );
 
         $form->setUseContainer(true);
         $this->setForm($form);
 
         return parent::_prepareForm();
+    }
+
+    /**
+     * Get download sample file html
+     *
+     * @return string
+     */
+    protected function getDownloadSampleFileHtml()
+    {
+        $html = '<span id="sample-file-span" class="no-display"><a id="sample-file-link" href="#">'
+            . __('Download Sample File')
+            . '</a></span>';
+        return $html;
     }
 }

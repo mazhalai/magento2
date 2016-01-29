@@ -18,7 +18,7 @@ class AssertOrderStatusSuccessAssignMessage extends AbstractConstraint
     /**
      * OrderStatus assigning success message
      */
-    const SUCCESS_MESSAGE = 'You have assigned the order status.';
+    const SUCCESS_MESSAGE = 'You assigned the order status.';
 
     /**
      * Assert that success message is displayed after order status assigning
@@ -30,7 +30,7 @@ class AssertOrderStatusSuccessAssignMessage extends AbstractConstraint
     {
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_MESSAGE,
-            $orderStatusIndexPage->getMessagesBlock()->getSuccessMessages()
+            $orderStatusIndexPage->getMessagesBlock()->getSuccessMessage()
         );
     }
 

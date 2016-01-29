@@ -37,7 +37,7 @@ class CreateCategoryRewriteEntityTest extends Injectable
     /* tags */
     const MVP = 'yes';
     const DOMAIN = 'PS';
-    const TEST_TYPE = 'acceptance_test';
+    const TEST_TYPE = 'acceptance_test, extended_acceptance_test';
     /* end tags */
 
     /**
@@ -71,7 +71,7 @@ class CreateCategoryRewriteEntityTest extends Injectable
         $this->urlRewriteIndex = $urlRewriteIndex;
         $category = $fixtureFactory->createByCode(
             'category',
-            ['dataSet' => 'default_subcategory']
+            ['dataset' => 'default_subcategory']
         );
         $category->persist();
         return ['category' => $category];

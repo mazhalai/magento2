@@ -14,7 +14,7 @@ use Magento\TestFramework\Helper\Bootstrap;
 /**
  * Test class for Magento\User\Controller\Adminhtml\User\InvalidateToken.
  */
-class InvalidateTokenTest extends \Magento\Backend\Utility\Controller
+class InvalidateTokenTest extends \Magento\TestFramework\TestCase\AbstractBackendController
 {
     /**
      * @magentoDataFixture Magento/User/_files/user_with_role.php
@@ -50,9 +50,9 @@ class InvalidateTokenTest extends \Magento\Backend\Utility\Controller
         /** @var \Magento\Integration\Api\AdminTokenServiceInterface $tokenService */
         $tokenService = Bootstrap::getObjectManager()->get('Magento\Integration\Api\AdminTokenServiceInterface');
 
-        /** @var \Magento\Integration\Model\Resource\Oauth\Token\CollectionFactory $tokenModelCollectionFactory */
+        /** @var \Magento\Integration\Model\ResourceModel\Oauth\Token\CollectionFactory $tokenModelCollectionFactory */
         $tokenModelCollectionFactory = Bootstrap::getObjectManager()->get(
-            'Magento\Integration\Model\Resource\Oauth\Token\CollectionFactory'
+            'Magento\Integration\Model\ResourceModel\Oauth\Token\CollectionFactory'
         );
 
         /** @var \Magento\User\Model\User $userModel */

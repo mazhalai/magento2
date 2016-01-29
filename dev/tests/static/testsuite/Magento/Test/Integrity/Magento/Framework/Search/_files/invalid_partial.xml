@@ -5,7 +5,7 @@
  * See COPYING.txt for license details.
  */
 -->
-<requests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../../../../../../lib/internal/Magento/Framework/Search/etc/search_request.xsd">
+<requests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Search/etc/search_request.xsd">
     <request query="sugested_search_container" index="product">
         <dimensions>
         </dimensions>
@@ -17,7 +17,7 @@
                 <queryReference clause="not" ref="fulltext_search_query"/>
             </query>
             <query xsi:type="matchQuery" value="$fulltext_search_query$" name="fulltext_search_query" boost="5">
-                <match field="title" boost="2"/>
+                <match field="title"/>
                 <match field="description"/>
             </query>
             <query xsi:type="filteredQuery" name="promoted_documents_boost">

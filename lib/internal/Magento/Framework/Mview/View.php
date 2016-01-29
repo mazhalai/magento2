@@ -11,7 +11,7 @@ namespace Magento\Framework\Mview;
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class View extends \Magento\Framework\Object implements ViewInterface
+class View extends \Magento\Framework\DataObject implements ViewInterface
 {
     /**
      * @var string
@@ -65,6 +65,50 @@ class View extends \Magento\Framework\Object implements ViewInterface
         $this->changelog = $changelog;
         $this->subscriptionFactory = $subscriptionFactory;
         parent::__construct($data);
+    }
+
+    /**
+     * Return ID
+     *
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->getData($this->_idFieldName);
+    }
+
+    /**
+     * Set ID
+     *
+     * @param string $id
+     * @return $this
+     */
+    public function setId($id)
+    {
+        $this->setData($this->_idFieldName, $id);
+        return $this;
+    }
+
+    /**
+     * Id field name setter
+     *
+     * @param  string $name
+     * @return $this
+     */
+    public function setIdFieldName($name)
+    {
+        $this->_idFieldName = $name;
+        return $this;
+    }
+
+    /**
+     * Id field name getter
+     *
+     * @return string
+     */
+    public function getIdFieldName()
+    {
+        return $this->_idFieldName;
     }
 
     /**

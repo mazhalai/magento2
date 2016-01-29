@@ -12,19 +12,16 @@ use Magento\Integration\Test\Page\Adminhtml\IntegrationNew;
 use Magento\Mtf\TestCase\Injectable;
 
 /**
- * Test Creation for Create Integration Entity
- *
- * Test Flow:
  * Steps:
  * 1. Log in to backend as admin user.
- * 2. Navigate to System > Extensions > Integrations
+ * 2. Navigate to System > Extensions > Integrations.
  * 3. Start to create new Integration.
  * 4. Fill in all data according to data set.
  * 5. Click "Save" button.
  * 6. Perform all assertions.
  *
  * @group Web_API_Framework_(PS)
- * @ZephyrId MAGETWO-26009
+ * @ZephyrId MAGETWO-26009, MAGETWO-16755, MAGETWO-16819, MAGETWO-16820
  */
 class CreateIntegrationEntityTest extends Injectable
 {
@@ -34,21 +31,21 @@ class CreateIntegrationEntityTest extends Injectable
     /* end tags */
 
     /**
-     * Integration grid page
+     * Integration grid page.
      *
      * @var IntegrationIndex
      */
     protected $integrationIndexPage;
 
     /**
-     * Integration new page
+     * Integration new page.
      *
      * @var IntegrationNew
      */
     protected $integrationNewPage;
 
     /**
-     * Injection data
+     * Injection data.
      *
      * @param IntegrationIndex $integrationIndex
      * @param IntegrationNew $integrationNew
@@ -61,7 +58,7 @@ class CreateIntegrationEntityTest extends Injectable
     }
 
     /**
-     * Create Integration Entity test
+     * Create Integration Entity test.
      *
      * @param Integration $integration
      * @return void

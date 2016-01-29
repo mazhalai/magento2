@@ -47,11 +47,7 @@ class PaymentMethodManagementTest extends \Magento\TestFramework\TestCase\Webapi
             "cartId" => $cartId,
             "method" => [
                 'method' => 'checkmo',
-                'po_number' => null,
-                'cc_owner' => 'John',
-                'cc_type' => null,
-                'cc_exp_year' => null,
-                'cc_exp_month' => null,
+                'po_number' => null
             ],
         ];
 
@@ -84,11 +80,7 @@ class PaymentMethodManagementTest extends \Magento\TestFramework\TestCase\Webapi
             "cartId" => $cartId,
             "method" => [
                 'method' => 'checkmo',
-                'po_number' => '200',
-                'cc_owner' => 'tester',
-                'cc_type' => 'test',
-                'cc_exp_year' => '2014',
-                'cc_exp_month' => '1',
+                'po_number' => '200'
             ],
         ];
         $this->assertNotNull($this->_webApiCall($serviceInfo, $requestData));
@@ -120,52 +112,10 @@ class PaymentMethodManagementTest extends \Magento\TestFramework\TestCase\Webapi
             "cartId" => $cartId,
             "method" => [
                 'method' => 'checkmo',
-                'po_number' => '200',
-                'cc_owner' => 'tester',
-                'cc_type' => 'test',
-                'cc_exp_year' => '2014',
-                'cc_exp_month' => '1',
+                'po_number' => '200'
             ],
         ];
 
-        $this->assertNotNull($this->_webApiCall($serviceInfo, $requestData));
-    }
-
-    /**
-     * @magentoApiDataFixture Magento/Checkout/_files/quote_with_virtual_product_saved.php
-     * @expectedException \Exception
-     * @expectedExceptionMessage Billing address is not set
-     */
-    public function testSetPaymentWithVirtualProductWithoutAddress()
-    {
-        /** @var \Magento\Quote\Model\Quote  $quote */
-        $quote = $this->objectManager->create('\Magento\Quote\Model\Quote');
-        $quote->load('test_order_with_virtual_product_without_address', 'reserved_order_id');
-        $cartId = $quote->getId();
-
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => self::RESOURCE_PATH . $cartId . '/selected-payment-method',
-                'httpMethod' => \Magento\Framework\Webapi\Rest\Request::HTTP_METHOD_PUT,
-            ],
-            'soap' => [
-                'service' => self::SERVICE_NAME,
-                'serviceVersion' => self::SERVICE_VERSION,
-                'operation' => self::SERVICE_NAME . 'set',
-            ],
-        ];
-
-        $requestData = [
-            "cartId" => $cartId,
-            "method" => [
-                'method' => 'checkmo',
-                'po_number' => '200',
-                'cc_owner' => 'tester',
-                'cc_type' => 'test',
-                'cc_exp_year' => '2014',
-                'cc_exp_month' => '1',
-            ],
-        ];
         $this->assertNotNull($this->_webApiCall($serviceInfo, $requestData));
     }
 
@@ -197,11 +147,7 @@ class PaymentMethodManagementTest extends \Magento\TestFramework\TestCase\Webapi
             "cartId" => $cartId,
             "method" => [
                 'method' => 'checkmo',
-                'po_number' => '200',
-                'cc_owner' => 'tester',
-                'cc_type' => 'test',
-                'cc_exp_year' => '2014',
-                'cc_exp_month' => '1',
+                'po_number' => '200'
             ],
         ];
         $this->assertNotNull($this->_webApiCall($serviceInfo, $requestData));
@@ -355,11 +301,7 @@ class PaymentMethodManagementTest extends \Magento\TestFramework\TestCase\Webapi
         $requestData = [
             "method" => [
                 'method' => 'checkmo',
-                'po_number' => '200',
-                'cc_owner' => 'tester',
-                'cc_type' => 'test',
-                'cc_exp_year' => '2014',
-                'cc_exp_month' => '1',
+                'po_number' => '200'
             ],
         ];
 
@@ -371,7 +313,7 @@ class PaymentMethodManagementTest extends \Magento\TestFramework\TestCase\Webapi
      */
     protected function getPaymentMethodFieldsForAssert()
     {
-        return ['method', 'po_number', 'cc_owner', 'cc_type', 'cc_exp_year', 'cc_exp_month', 'additional_data'];
+        return ['method', 'po_number', 'additional_data'];
     }
 
     /**

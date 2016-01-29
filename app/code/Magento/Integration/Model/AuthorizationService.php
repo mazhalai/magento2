@@ -6,8 +6,8 @@
 
 namespace Magento\Integration\Model;
 
-use Magento\Authorization\Model\Resource\Role\CollectionFactory as RoleCollectionFactory;
-use Magento\Authorization\Model\Resource\Rules\CollectionFactory as RulesCollectionFactory;
+use Magento\Authorization\Model\ResourceModel\Role\CollectionFactory as RoleCollectionFactory;
+use Magento\Authorization\Model\ResourceModel\Rules\CollectionFactory as RulesCollectionFactory;
 use Magento\Authorization\Model\Role;
 use Magento\Authorization\Model\RoleFactory;
 use Magento\Authorization\Model\RulesFactory;
@@ -104,7 +104,7 @@ class AuthorizationService implements \Magento\Integration\Api\AuthorizationServ
         } catch (\Exception $e) {
             $this->_logger->critical($e);
             throw new LocalizedException(
-                __('Error happened while granting permissions. Check exception log for details.')
+                __('Sorry, something went wrong granting permissions. You can find out more in the exceptions log.')
             );
         }
     }
@@ -127,7 +127,10 @@ class AuthorizationService implements \Magento\Integration\Api\AuthorizationServ
         } catch (\Exception $e) {
             $this->_logger->critical($e);
             throw new LocalizedException(
-                __('Error happened while deleting role and permissions. Check exception log for details.')
+                __(
+                    'Something went wrong while deleting roles and permissions.'
+                    . ' You can find out more in the exceptions log.'
+                )
             );
         }
     }

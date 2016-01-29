@@ -10,7 +10,7 @@ use Magento\Mtf\Client\Element;
 use Magento\Mtf\Client\Locator;
 use Magento\Mtf\Fixture\FixtureInterface;
 use Magento\Mtf\Client\Element\SimpleElement;
-use Magento\Backend\Test\Block\Widget\Form as ParentForm;
+use Magento\Mtf\Block\Form as ParentForm;
 
 /**
  * Class AffectedAttributeSet
@@ -23,14 +23,14 @@ class AffectedAttributeSet extends ParentForm
      *
      * @var string
      */
-    protected $confirmButton = '//button[contains(@id,"confirm-button")]';
+    protected $confirmButton = '[data-role=action]';
 
     /**
      * Locator buttons new name attribute set
      *
      * @var string
      */
-    protected $affectedAttributeSetNew = '#affected-attribute-set-new';
+    protected $affectedAttributeSetNew = '#new-affected-attribute-set';
 
     /**
      * Fill popup form
@@ -61,6 +61,6 @@ class AffectedAttributeSet extends ParentForm
      */
     public function confirm()
     {
-        $this->_rootElement->find($this->confirmButton, Locator::SELECTOR_XPATH)->click();
+        $this->_rootElement->find($this->confirmButton, Locator::SELECTOR_CSS)->click();
     }
 }

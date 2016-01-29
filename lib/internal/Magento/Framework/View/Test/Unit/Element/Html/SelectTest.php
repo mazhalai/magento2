@@ -127,7 +127,7 @@ class SelectTest extends \PHPUnit_Framework_TestCase
             .   '<option value="testValue"  paramKey="paramValue" >testLabel</option>'
             .   '<option value="selectedValue" selected="selected"  paramKey="paramValue" '
             .       ' paramKey2="paramValue2" >selectedLabel</option>'
-            .   '<optgroup label="groupLabel">'
+            .   '<optgroup label="groupLabel" data-optgroup-name="groupLabel">'
             .       '<option value="groupElementValue" >GroupElementLabel</option>'
             .       '<option value="selectedGroupElementValue" selected="selected" >SelectedGroupElementLabel</option>'
             .   '</optgroup>'
@@ -157,8 +157,9 @@ class SelectTest extends \PHPUnit_Framework_TestCase
         $this->select->setValue($selectedValue);
 
         $result = '<select name="testName" id="testId" class="testClass" title="testTitle" >'
-            . '<option value="testValue" #{option_extra_attr_4016862802} >testLabel</option>'
-            . '<option value="selectedValue" selected="selected" #{option_extra_attr_662265145} >selectedLabel</option>'
+            . '<option value="testValue" <%= option_extra_attrs.option_4016862802 %> >testLabel</option>'
+            . '<option value="selectedValue" selected="selected" <%= option_extra_attrs.option_662265145 %> >'
+            . 'selectedLabel</option>'
             . '</select>';
 
         $this->select->setIsRenderToJsTemplate(true);

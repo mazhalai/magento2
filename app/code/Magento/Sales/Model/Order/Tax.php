@@ -7,8 +7,8 @@ namespace Magento\Sales\Model\Order;
 
 /**
  *
- * @method \Magento\Sales\Model\Resource\Order\Tax _getResource()
- * @method \Magento\Sales\Model\Resource\Order\Tax getResource()
+ * @method \Magento\Sales\Model\ResourceModel\Order\Tax _getResource()
+ * @method \Magento\Sales\Model\ResourceModel\Order\Tax getResource()
  * @method int getOrderId()
  * @method \Magento\Sales\Model\Order\Tax setOrderId(int $value)
  * @method string getCode()
@@ -29,8 +29,6 @@ namespace Magento\Sales\Model\Order;
  * @method \Magento\Sales\Model\Order\Tax setProcess(int $value)
  * @method float getBaseRealAmount()
  * @method \Magento\Sales\Model\Order\Tax setBaseRealAmount(float $value)
- * @method int getHidden()
- * @method \Magento\Sales\Model\Order\Tax setHidden(int $value)
  *
  * @author      Magento Core Team <core@magentocommerce.com>
  */
@@ -41,6 +39,6 @@ class Tax extends \Magento\Framework\Model\AbstractModel
      */
     protected function _construct()
     {
-        $this->_init('Magento\Sales\Model\Resource\Order\Tax');
+        $this->_init('Magento\Sales\Model\ResourceModel\Order\Tax');
     }
 }

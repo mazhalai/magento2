@@ -33,7 +33,7 @@ use Magento\UrlRewrite\Service\V1\Data\UrlRewrite;
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Category extends \Magento\Catalog\Model\AbstractModel implements
-    \Magento\Framework\Object\IdentityInterface,
+    \Magento\Framework\DataObject\IdentityInterface,
     \Magento\Catalog\Api\Data\CategoryInterface,
     \Magento\Catalog\Api\Data\CategoryTreeInterface
 {
@@ -43,7 +43,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
      */
     const ENTITY = 'catalog_category';
 
-    /**
+    /**#@+
      * Category display modes
      */
     const DM_PRODUCT = 'PRODUCTS';
@@ -51,7 +51,16 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     const DM_PAGE = 'PAGE';
 
     const DM_MIXED = 'PRODUCTS_AND_PAGE';
+    /**#@-*/
 
+    /**
+     * Id of root category
+     */
+    const ROOT_CATEGORY_ID = 0;
+
+    /**
+     * Id of category tree root
+     */
     const TREE_ROOT_ID = 1;
 
     const CACHE_TAG = 'catalog_category';
@@ -151,7 +160,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     /**
      * Category tree model
      *
-     * @var \Magento\Catalog\Model\Resource\Category\Tree
+     * @var \Magento\Catalog\Model\ResourceModel\Category\Tree
      */
     protected $_treeModel = null;
 
@@ -172,21 +181,21 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     /**
      * Product collection factory
      *
-     * @var \Magento\Catalog\Model\Resource\Product\CollectionFactory
+     * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory
      */
     protected $_productCollectionFactory;
 
     /**
      * Store collection factory
      *
-     * @var \Magento\Store\Model\Resource\Store\CollectionFactory
+     * @var \Magento\Store\Model\ResourceModel\Store\CollectionFactory
      */
     protected $_storeCollectionFactory;
 
     /**
      * Category tree factory
      *
-     * @var \Magento\Catalog\Model\Resource\Category\TreeFactory
+     * @var \Magento\Catalog\Model\ResourceModel\Category\TreeFactory
      */
     protected $_categoryTreeFactory;
 
@@ -201,7 +210,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     /** @var UrlFinderInterface */
     protected $urlFinder;
 
-    /** @var \Magento\Indexer\Model\IndexerRegistry */
+    /** @var \Magento\Framework\Indexer\IndexerRegistry */
     protected $indexerRegistry;
 
     /**
@@ -221,20 +230,20 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
      * @param AttributeValueFactory $customAttributeFactory
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Api\CategoryAttributeRepositoryInterface $metadataService
-     * @param Resource\Category\Tree $categoryTreeResource
-     * @param Resource\Category\TreeFactory $categoryTreeFactory
-     * @param \Magento\Store\Model\Resource\Store\CollectionFactory $storeCollectionFactory
+     * @param \Magento\Catalog\Model\ResourceModel\Category\Tree $categoryTreeResource
+     * @param \Magento\Catalog\Model\ResourceModel\Category\TreeFactory $categoryTreeFactory
+     * @param \Magento\Store\Model\ResourceModel\Store\CollectionFactory $storeCollectionFactory
      * @param \Magento\Framework\UrlInterface $url
-     * @param Resource\Product\CollectionFactory $productCollectionFactory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param Config $catalogConfig
      * @param \Magento\Framework\Filter\FilterManager $filter
      * @param Indexer\Category\Flat\State $flatState
      * @param \Magento\CatalogUrlRewrite\Model\CategoryUrlPathGenerator $categoryUrlPathGenerator
      * @param UrlFinderInterface $urlFinder
-     * @param \Magento\Indexer\Model\IndexerRegistry $indexerRegistry
+     * @param \Magento\Framework\Indexer\IndexerRegistry $indexerRegistry
      * @param CategoryRepositoryInterface $categoryRepository
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\Db $resourceCollection
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
@@ -245,20 +254,20 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
         AttributeValueFactory $customAttributeFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Api\CategoryAttributeRepositoryInterface $metadataService,
-        \Magento\Catalog\Model\Resource\Category\Tree $categoryTreeResource,
-        \Magento\Catalog\Model\Resource\Category\TreeFactory $categoryTreeFactory,
-        \Magento\Store\Model\Resource\Store\CollectionFactory $storeCollectionFactory,
+        \Magento\Catalog\Model\ResourceModel\Category\Tree $categoryTreeResource,
+        \Magento\Catalog\Model\ResourceModel\Category\TreeFactory $categoryTreeFactory,
+        \Magento\Store\Model\ResourceModel\Store\CollectionFactory $storeCollectionFactory,
         \Magento\Framework\UrlInterface $url,
-        \Magento\Catalog\Model\Resource\Product\CollectionFactory $productCollectionFactory,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \Magento\Catalog\Model\Config $catalogConfig,
         \Magento\Framework\Filter\FilterManager $filter,
         Indexer\Category\Flat\State $flatState,
         \Magento\CatalogUrlRewrite\Model\CategoryUrlPathGenerator $categoryUrlPathGenerator,
         UrlFinderInterface $urlFinder,
-        \Magento\Indexer\Model\IndexerRegistry $indexerRegistry,
+        \Magento\Framework\Indexer\IndexerRegistry $indexerRegistry,
         CategoryRepositoryInterface $categoryRepository,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\Db $resourceCollection = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->metadataService = $metadataService;
@@ -295,10 +304,10 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     {
         // If Flat Index enabled then use it but only on frontend
         if ($this->flatState->isAvailable()) {
-            $this->_init('Magento\Catalog\Model\Resource\Category\Flat');
+            $this->_init('Magento\Catalog\Model\ResourceModel\Category\Flat');
             $this->_useFlatResource = true;
         } else {
-            $this->_init('Magento\Catalog\Model\Resource\Category');
+            $this->_init('Magento\Catalog\Model\ResourceModel\Category');
         }
     }
 
@@ -338,7 +347,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     /**
      * Retrieve category tree model
      *
-     * @return \Magento\Catalog\Model\Resource\Category\Tree
+     * @return \Magento\Catalog\Model\ResourceModel\Category\Tree
      */
     public function getTreeModel()
     {
@@ -348,7 +357,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     /**
      * Enter description here...
      *
-     * @return \Magento\Catalog\Model\Resource\Category\Tree
+     * @return \Magento\Catalog\Model\ResourceModel\Category\Tree
      */
     public function getTreeModelInstance()
     {
@@ -374,8 +383,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
         } catch (NoSuchEntityException $e) {
             throw new \Magento\Framework\Exception\LocalizedException(
                 __(
-                    'Sorry, but we can\'t move the category because we can\'t find the new parent category you'
-                    . ' selected.'
+                    'Sorry, but we can\'t find the new parent category you selected.'
                 ),
                 $e
             );
@@ -383,13 +391,12 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
 
         if (!$this->getId()) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __('Sorry, but we can\'t move the category because we can\'t find the new category you selected.')
+                __('Sorry, but we can\'t find the new category you selected.')
             );
         } elseif ($parent->getId() == $this->getId()) {
             throw new \Magento\Framework\Exception\LocalizedException(
                 __(
-                    'We can\'t perform this category move operation because the parent category matches the child'
-                    . 'category.'
+                    'We can\'t move the category because the parent category name matches the child category name.'
                 )
             );
         }
@@ -451,7 +458,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     /**
      * Get category products collection
      *
-     * @return \Magento\Framework\Data\Collection\Db
+     * @return \Magento\Framework\Data\Collection\AbstractDb
      */
     public function getProductCollection()
     {
@@ -917,11 +924,8 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
      */
     public function getProductCount()
     {
-        if (!$this->hasProductCount()) {
-            $count = $this->_getResource()->getProductCount($this);
-            // load product count
-            $this->setData(self::KEY_PRODUCT_COUNT, $count);
-        }
+        $count = $this->_getResource()->getProductCount($this);
+        $this->setData(self::KEY_PRODUCT_COUNT, $count);
         return $this->getData(self::KEY_PRODUCT_COUNT);
     }
 
@@ -933,7 +937,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
      * @param bool $sorted
      * @param bool $asCollection
      * @param bool $toLoad
-     * @return \Magento\Framework\Data\Tree\Node\Collection|\Magento\Catalog\Model\Resource\Category\Collection
+     * @return \Magento\Framework\Data\Tree\Node\Collection|\Magento\Catalog\Model\ResourceModel\Category\Collection
      */
     public function getCategories($parent, $recursionLevel = 0, $sorted = false, $asCollection = false, $toLoad = true)
     {
@@ -944,7 +948,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     /**
      * Return parent categories of current category
      *
-     * @return \Magento\Framework\Object[]|\Magento\Catalog\Model\Category[]
+     * @return \Magento\Framework\DataObject[]|\Magento\Catalog\Model\Category[]
      */
     public function getParentCategories()
     {
@@ -954,7 +958,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
     /**
      * Return children categories of current category
      *
-     * @return \Magento\Catalog\Model\Resource\Category\Collection|\Magento\Catalog\Model\Category[]
+     * @return \Magento\Catalog\Model\ResourceModel\Category\Collection|\Magento\Catalog\Model\Category[]
      */
     public function getChildrenCategories()
     {
@@ -1079,9 +1083,10 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
                 $flatIndexer->reindexRow($this->getId());
             }
         }
-        $affectedProductIds = $this->getAffectedProductIds();
         $productIndexer = $this->indexerRegistry->get(Indexer\Category\Product::INDEXER_ID);
-        if (!$productIndexer->isScheduled() && !empty($affectedProductIds)) {
+        if (!$productIndexer->isScheduled()
+            && (!empty($this->getAffectedProductIds()) || $this->dataHasChangedFor('is_anchor'))
+        ) {
             $productIndexer->reindexList($this->getPathIds());
         }
     }

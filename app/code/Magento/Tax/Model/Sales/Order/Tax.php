@@ -6,8 +6,8 @@
 namespace Magento\Tax\Model\Sales\Order;
 
 /**
- * @method \Magento\Tax\Model\Resource\Sales\Order\Tax _getResource()
- * @method \Magento\Tax\Model\Resource\Sales\Order\Tax getResource()
+ * @method \Magento\Tax\Model\ResourceModel\Sales\Order\Tax _getResource()
+ * @method \Magento\Tax\Model\ResourceModel\Sales\Order\Tax getResource()
  * @method int getOrderId()
  * @method \Magento\Tax\Model\Sales\Order\Tax setOrderId(int $value)
  * @method int getPriority()
@@ -18,8 +18,6 @@ namespace Magento\Tax\Model\Sales\Order;
  * @method \Magento\Tax\Model\Sales\Order\Tax setProcess(int $value)
  * @method float getBaseRealAmount()
  * @method \Magento\Tax\Model\Sales\Order\Tax setBaseRealAmount(float $value)
- * @method int getHidden()
- * @method \Magento\Tax\Model\Sales\Order\Tax setHidden(int $value)
  * @codeCoverageIgnore
  */
 class Tax extends \Magento\Framework\Model\AbstractExtensibleModel implements
@@ -40,7 +38,7 @@ class Tax extends \Magento\Framework\Model\AbstractExtensibleModel implements
      */
     protected function _construct()
     {
-        $this->_init('Magento\Tax\Model\Resource\Sales\Order\Tax');
+        $this->_init('Magento\Tax\Model\ResourceModel\Sales\Order\Tax');
     }
 
     /**

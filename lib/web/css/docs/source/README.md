@@ -14,6 +14,7 @@ The library provides the ability to customize all of the following user interfac
 * actions-toolbar
 * breadcrumbs
 * buttons
+* components
 * drop-downs
 * forms
 * icons
@@ -39,40 +40,42 @@ Magento UI library is located under `/lib/web/` folder. It and employs:
 * `images/` folder where default images are placed
 * `jquery/` folder where jQuery and jQuery widgets are placed
 
-###Magento UI library structure
+### Magento UI library structure
 
 ```css
 /lib/web/
     ├── css/
     │    ├── docs/ (Library documentation)
     │    │    ├── source/
-    │    │    │    ├── actions-toolbar.less
-    │    │    │    ├── breadcrumbs.less
-    │    │    │    ├── buttons.less
+    │    │    │    ├── _actions-toolbar.less
+    │    │    │    ├── _breadcrumbs.less
+    │    │    │    ├── _buttons.less
+    │    │    │    ├── _dropdowns.less
+    │    │    │    ├── _forms.less
+    │    │    │    ├── _icons.less
+    │    │    │    ├── _layout.less
+    │    │    │    ├── _lib.less
+    │    │    │    ├── _loaders.less
+    │    │    │    ├── _messages.less
+    │    │    │    ├── _pages.less
+    │    │    │    ├── _popups.less
+    │    │    │    ├── _rating.less
+    │    │    │    ├── _resets.less
+    │    │    │    ├── _responsive.less
+    │    │    │    ├── _sections.less
+    │    │    │    ├── _tables.less
+    │    │    │    ├── _tooltips.less
+    │    │    │    ├── _typography.less
+    │    │    │    ├── _utilities.less
+    │    │    │    ├── _variables.less
+    │    │    │    ├── _components.less
     │    │    │    ├── docs.less
-    │    │    │    ├── dropdowns.less
-    │    │    │    ├── forms.less
-    │    │    │    ├── icons.less
-    │    │    │    ├── layout.less
-    │    │    │    ├── lib.less
-    │    │    │    ├── loaders.less
-    │    │    │    ├── messages.less
-    │    │    │    ├── pages.less
-    │    │    │    ├── popups.less
-    │    │    │    ├── rating.less
-    │    │    │    ├── resets.less
-    │    │    │    ├── responsive.less
-    │    │    │    ├── sections.less
-    │    │    │    ├── tables.less
-    │    │    │    ├── tooltips.less
-    │    │    │    ├── typography.less
-    │    │    │    ├── utilities.less
-    │    │    │    ├── variables.less
     │    │    │    └── README.md
     │    │    ├─── extends.html
     │    │    ├─── actions-toolbar.html
     │    │    ├─── breadcrumbs.html
     │    │    ├─── buttons.html
+    │    │    ├─── components.html
     │    │    ├─── docs.css
     │    │    ├─── docs.html
     │    │    ├─── dropdowns.html
@@ -94,34 +97,37 @@ Magento UI library is located under `/lib/web/` folder. It and employs:
     │    │    ├─── typography.html
     │    │    ├─── utilities.html
     │    │    └─── variables.html
-    │    ├── source/
-    │    │    ├── lib/ (Library source files)
-    │    │    │    ├── _extends.less
-    │    │    │    ├── _actions-toolbar.less
-    │    │    │    ├── _breadcrumbs.less
-    │    │    │    ├── _buttons.less
-    │    │    │    ├── _dropdowns.less
-    │    │    │    ├── _forms.less
-    │    │    │    ├── _icons.less
-    │    │    │    ├── _layout.less
-    │    │    │    ├── _lib.less
-    │    │    │    ├── _loaders.less
-    │    │    │    ├── _messages.less
-    │    │    │    ├── _navigation.less
-    │    │    │    ├── _pages.less
-    │    │    │    ├── _popups.less
-    │    │    │    ├── _rating.less
-    │    │    │    ├── _resets.less
-    │    │    │    ├── _responsive.less
-    │    │    │    ├── _sections.less
-    │    │    │    ├── _tables.less
-    │    │    │    ├── _tooltips.less
-    │    │    │    ├── _typography.less
-    │    │    │    ├── _utilities.less
-    │    │    │    └── _variables.less
-    │    │    ├── _extend.less
-    │    │    └── _theme.less
-    │    └── styles.less
+    │    └── source/
+    │          ├── components/ (Reusable components files)
+    │          │    └── _modals.less
+    │          ├── lib/ (Library source files)
+    │          │    └── variables/ (Decoupled variables)
+    │          │          └── ...
+    │          │    ├── _extends.less
+    │          │    ├── _actions-toolbar.less
+    │          │    ├── _breadcrumbs.less
+    │          │    ├── _buttons.less
+    │          │    ├── _dropdowns.less
+    │          │    ├── _forms.less
+    │          │    ├── _icons.less
+    │          │    ├── _layout.less
+    │          │    ├── _lib.less
+    │          │    ├── _loaders.less
+    │          │    ├── _messages.less
+    │          │    ├── _navigation.less
+    │          │    ├── _pages.less
+    │          │    ├── _popups.less
+    │          │    ├── _rating.less
+    │          │    ├── _resets.less
+    │          │    ├── _responsive.less
+    │          │    ├── _sections.less
+    │          │    ├── _tables.less
+    │          │    ├── _tooltips.less
+    │          │    ├── _typography.less
+    │          │    ├── _utilities.less
+    │          │    └── _variables.less
+    │          ├── _extend.less
+    │          └── _theme.less
     ├── fonts/
     │    └── Blank-Theme-Icons/ (Library custom icons font)
     ├── images/

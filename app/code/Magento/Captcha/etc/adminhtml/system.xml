@@ -5,7 +5,7 @@
  * See COPYING.txt for license details.
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Config/etc/system_file.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="admin">
             <group id="captcha" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
@@ -82,7 +82,7 @@
             <group id="captcha" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>CAPTCHA</label>
                 <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Enable CAPTCHA on Frontend</label>
+                    <label>Enable CAPTCHA on Storefront</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="font" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="0">

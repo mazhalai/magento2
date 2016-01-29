@@ -4,27 +4,19 @@
  * See COPYING.txt for license details.
  */
 -->
+<a
+    class="action-menu-item"
+    if="$col.isSingle($row()._rowIndex)"
+    repeat="foreach: $col.getVisibleActions($row()._rowIndex), item: '$action'"
+    click="$col.getActionHandler($action())"
+    text="$action().label"
+    attr="href: $action().href"/>
 
-<td data-bind="visible: visible" class="data-grid-actions-cell">
-    <!-- ko if: getDisplayed(row[field.index]).length > 1 -->
-    <div class="action-select-wrap _active">
-        <button class="action-select">
-            <span data-bind="text: $t('Select')"></span>
-        </button>
-        <ul class="action-menu _active">
-            <li>
-                <a
-                    class="action-menu-item"
-                    data-bind="attr: {href: displayed[0].href},
-                               text: displayed[0].label"></a>
-            </li>
-        </ul>
-    </div>
-    <!-- /ko -->
-    <!-- ko ifnot: getDisplayed(row[field.index]).length > 1 -->
-    <a
-        class="action-menu-item"
-        data-bind="attr: {href: displayed[0].href},
-                               text: displayed[0].label"></a>
-    <!-- /ko -->
-</td>
+<div class="action-select-wrap" if="$col.isMultiple($row()._rowIndex)" collapsible>
+    <button class="action-select" translate="'Select'" toggleCollapsible/>
+    <ul class="action-menu" css="_active: $collapsible.opened">
+        <li repeat="foreach: $col.getVisibleActions($row()._rowIndex), item: '$action'">
+            <a class="action-menu-item" click="$col.getActionHandler($action())" text="$action().label" attr="href: $action().href, 'data-action': 'item-' + $action().index"/>
+        </li>
+    </ul>
+</div>

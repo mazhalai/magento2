@@ -101,6 +101,11 @@ abstract class IntegrationTest extends \PHPUnit_Framework_TestCase
      */
     protected $resultRedirectFactory;
 
+    /**
+     * @var \Magento\Framework\Controller\ResultFactory|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $resultFactory;
+
     /** Sample integration ID */
     const INTEGRATION_ID = 1;
 
@@ -220,6 +225,11 @@ abstract class IntegrationTest extends \PHPUnit_Framework_TestCase
             ->setMethods(['create'])
             ->getMock();
 
+        $this->resultFactory = $this->getMockBuilder('Magento\Framework\Controller\ResultFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['create'])
+            ->getMock();
+
         $contextParameters = [
             'view' => $this->_viewMock,
             'objectManager' => $this->_objectManagerMock,
@@ -228,7 +238,8 @@ abstract class IntegrationTest extends \PHPUnit_Framework_TestCase
             'request' => $this->_requestMock,
             'response' => $this->_responseMock,
             'messageManager' => $this->_messageManager,
-            'resultRedirectFactory' => $this->resultRedirectFactory
+            'resultRedirectFactory' => $this->resultRedirectFactory,
+            'resultFactory' => $this->resultFactory
         ];
 
         $this->_backendActionCtxMock = $this->_objectManagerHelper->getObject(
@@ -236,7 +247,8 @@ abstract class IntegrationTest extends \PHPUnit_Framework_TestCase
             $contextParameters
         );
 
-        $integrationCollection = $this->getMockBuilder('\Magento\Integration\Model\Resource\Integration\Collection')
+        $integrationCollection =
+            $this->getMockBuilder('\Magento\Integration\Model\ResourceModel\Integration\Collection')
             ->disableOriginalConstructor()
             ->setMethods(['addUnsecureUrlsFilter', 'getSize'])
             ->getMock();
@@ -285,11 +297,11 @@ abstract class IntegrationTest extends \PHPUnit_Framework_TestCase
     /**
      * Return sample Integration Data
      *
-     * @return \Magento\Framework\Object
+     * @return \Magento\Framework\DataObject
      */
     protected function _getSampleIntegrationData()
     {
-        return new \Magento\Framework\Object(
+        return new \Magento\Framework\DataObject(
             [
                 Info::DATA_NAME => 'nameTest',
                 Info::DATA_ID => self::INTEGRATION_ID,

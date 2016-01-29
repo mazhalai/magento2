@@ -5,7 +5,7 @@
  * See COPYING.txt for license details.
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../Store/etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <system>
             <media_storage_configuration>
@@ -77,7 +77,7 @@
                         <label>Forgot password</label>
                     </user_forgotpassword>
                     <guest_checkout>
-                        <label>Checkout as Guest</label>
+                        <label>Check Out as Guest</label>
                     </guest_checkout>
                     <register_during_checkout>
                         <label>Register during Checkout</label>

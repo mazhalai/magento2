@@ -26,7 +26,7 @@
     </div>
 </div>
 
-<h2 class="page-title">{{$state.current.header}}</h2>
+<h2 class="page-sub-title">{{$state.current.header}}</h2>
 
 <div
     class="message message-success"
@@ -51,6 +51,7 @@
     novalidate
     name="database"
     role="form"
+    autocomplete="off"
     >
 
 <?php
@@ -334,7 +335,7 @@
             id="dbTablePrefix"
             class="form-el-input"
             tooltip-placement="right"
-            tooltip="Enter a prefix for database tables created in this installation. Use letters, numbers or underscores, and begin with a letter (Ex: ‘mg1_’)"
+            tooltip="Enter a prefix for database tables created in this installation. Use letters, numbers or underscores, and begin with a letter (Ex: ‘mg1_’). Table prefix length can't be more than 5 characters."
             tooltip-trigger="focus"
             tooltip-append-to-body="true"
             type="text"

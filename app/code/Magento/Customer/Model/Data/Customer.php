@@ -10,7 +10,7 @@ use \Magento\Framework\Api\AttributeValueFactory;
 
 /**
  * Class Customer
- *
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  */
 class Customer extends \Magento\Framework\Api\AbstractExtensibleObject implements
     \Magento\Customer\Api\Data\CustomerInterface
@@ -95,6 +95,16 @@ class Customer extends \Magento\Framework\Api\AbstractExtensibleObject implement
     public function getCreatedIn()
     {
         return $this->_get(self::CREATED_IN);
+    }
+
+    /**
+     * Get updated at time
+     *
+     * @return string|null
+     */
+    public function getUpdatedAt()
+    {
+        return $this->_get(self::UPDATED_AT);
     }
 
     /**
@@ -238,6 +248,16 @@ class Customer extends \Magento\Framework\Api\AbstractExtensibleObject implement
     }
 
     /**
+     * Get disable auto group change flag.
+     *
+     * @return int|null
+     */
+    public function getDisableAutoGroupChange()
+    {
+        return $this->_get(self::DISABLE_AUTO_GROUP_CHANGE);
+    }
+
+    /**
      * Set customer id
      *
      * @param int $id
@@ -301,6 +321,17 @@ class Customer extends \Magento\Framework\Api\AbstractExtensibleObject implement
     public function setCreatedAt($createdAt)
     {
         return $this->setData(self::CREATED_AT, $createdAt);
+    }
+
+    /**
+     * Set updated at time
+     *
+     * @param string $updatedAt
+     * @return $this
+     */
+    public function setUpdatedAt($updatedAt)
+    {
+        return $this->setData(self::UPDATED_AT, $updatedAt);
     }
 
     /**
@@ -444,6 +475,17 @@ class Customer extends \Magento\Framework\Api\AbstractExtensibleObject implement
     public function setAddresses(array $addresses = null)
     {
         return $this->setData(self::KEY_ADDRESSES, $addresses);
+    }
+
+    /**
+     * Set disable auto group change flag.
+     *
+     * @param int $disableAutoGroupChange
+     * @return $this
+     */
+    public function setDisableAutoGroupChange($disableAutoGroupChange)
+    {
+        return $this->setData(self::DISABLE_AUTO_GROUP_CHANGE, $disableAutoGroupChange);
     }
 
     /**

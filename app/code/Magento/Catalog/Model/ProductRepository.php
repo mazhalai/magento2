@@ -7,13 +7,10 @@
 namespace Magento\Catalog\Model;
 
 use Magento\Catalog\Api\Data\ProductInterface;
-use Magento\Catalog\Model\Product\Gallery\MimeTypeExtensionMap;
-use Magento\Catalog\Model\Resource\Product\Collection;
+use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Framework\Api\Data\ImageContentInterface;
 use Magento\Framework\Api\Data\ImageContentInterfaceFactory;
-use Magento\Framework\Api\ImageContentValidatorInterface;
 use Magento\Framework\Api\ImageProcessorInterface;
-use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -25,6 +22,11 @@ use Magento\Framework\Exception\StateException;
  */
 class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterface
 {
+    /**
+     * @var \Magento\Catalog\Api\ProductCustomOptionRepositoryInterface
+     */
+    protected $optionRepository;
+
     /**
      * @var ProductFactory
      */
@@ -61,27 +63,17 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
     protected $filterBuilder;
 
     /**
-     * @var \Magento\Catalog\Model\Resource\Product\CollectionFactory
+     * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory
      */
     protected $collectionFactory;
 
     /**
-     * @var \Magento\Catalog\Model\Resource\Product
+     * @var \Magento\Catalog\Model\ResourceModel\Product
      */
     protected $resourceModel;
 
     /*
-     * @var \Magento\Catalog\Model\Product\Initialization\Helper\ProductLinks
-     */
-    protected $linkInitializer;
-
-    /*
-     * @param \Magento\Catalog\Model\Product\LinkTypeProvider
-     */
-    protected $linkTypeProvider;
-
-    /*
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $storeManager;
 
@@ -96,29 +88,9 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
     protected $metadataService;
 
     /**
-     * @var \Magento\Eav\Model\Config
-     */
-    protected $eavConfig;
-
-    /**
-     * @var \Magento\Framework\Api\ExtensibleDataObjectConverter
-     */
-    protected $extensibleDataObjectConverter;
-
-    /**
-     * @var \Magento\Catalog\Model\Product\Option\Converter
-     */
-    protected $optionConverter;
-
-    /**
      * @var \Magento\Framework\Filesystem
      */
     protected $fileSystem;
-
-    /**
-     * @var ImageContentValidatorInterface
-     */
-    protected $contentValidator;
 
     /**
      * @var ImageContentInterfaceFactory
@@ -126,59 +98,60 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
     protected $contentFactory;
 
     /**
-     * @var MimeTypeExtensionMap
-     */
-    protected $mimeTypeExtensionMap;
-
-    /**
      * @var ImageProcessorInterface
      */
     protected $imageProcessor;
 
     /**
+     * @var \Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface
+     */
+    protected $extensionAttributesJoinProcessor;
+
+    /**
+     * @var \Magento\Catalog\Model\Product\Gallery\Processor
+     */
+    protected $mediaGalleryProcessor;
+
+    /**
      * @param ProductFactory $productFactory
      * @param \Magento\Catalog\Controller\Adminhtml\Product\Initialization\Helper $initializationHelper
      * @param \Magento\Catalog\Api\Data\ProductSearchResultsInterfaceFactory $searchResultsFactory
-     * @param Resource\Product\CollectionFactory $collectionFactory
+     * @param ResourceModel\Product\CollectionFactory $collectionFactory
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Catalog\Api\ProductAttributeRepositoryInterface $attributeRepository
-     * @param Resource\Product $resourceModel
-     * @param \Magento\Catalog\Model\Product\Initialization\Helper\ProductLinks $linkInitializer
-     * @param \Magento\Catalog\Model\Product\LinkTypeProvider $linkTypeProvider
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager ,
+     * @param ResourceModel\Product $resourceModel
+     * @param Product\Initialization\Helper\ProductLinks $linkInitializer
+     * @param Product\LinkTypeProvider $linkTypeProvider
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Catalog\Api\ProductAttributeRepositoryInterface $metadataServiceInterface
      * @param \Magento\Framework\Api\ExtensibleDataObjectConverter $extensibleDataObjectConverter
-     * @param \Magento\Eav\Model\Config $eavConfig
-     * @param \Magento\Catalog\Model\Product\Option\Converter $optionConverter
      * @param \Magento\Framework\Filesystem $fileSystem
-     * @param ImageContentValidatorInterface $contentValidator
      * @param ImageContentInterfaceFactory $contentFactory
-     * @param MimeTypeExtensionMap $mimeTypeExtensionMap
      * @param ImageProcessorInterface $imageProcessor
+     * @param \Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface $extensionAttributesJoinProcessor
+     * @param Product\Gallery\Processor $mediaGalleryProcessor
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         ProductFactory $productFactory,
         \Magento\Catalog\Controller\Adminhtml\Product\Initialization\Helper $initializationHelper,
         \Magento\Catalog\Api\Data\ProductSearchResultsInterfaceFactory $searchResultsFactory,
-        \Magento\Catalog\Model\Resource\Product\CollectionFactory $collectionFactory,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $collectionFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Catalog\Api\ProductAttributeRepositoryInterface $attributeRepository,
-        \Magento\Catalog\Model\Resource\Product $resourceModel,
+        \Magento\Catalog\Model\ResourceModel\Product $resourceModel,
         \Magento\Catalog\Model\Product\Initialization\Helper\ProductLinks $linkInitializer,
         \Magento\Catalog\Model\Product\LinkTypeProvider $linkTypeProvider,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Catalog\Api\ProductAttributeRepositoryInterface $metadataServiceInterface,
         \Magento\Framework\Api\ExtensibleDataObjectConverter $extensibleDataObjectConverter,
-        \Magento\Catalog\Model\Product\Option\Converter $optionConverter,
         \Magento\Framework\Filesystem $fileSystem,
-        ImageContentValidatorInterface $contentValidator,
         ImageContentInterfaceFactory $contentFactory,
-        MimeTypeExtensionMap $mimeTypeExtensionMap,
-        \Magento\Eav\Model\Config $eavConfig,
-        ImageProcessorInterface $imageProcessor
+        ImageProcessorInterface $imageProcessor,
+        \Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface $extensionAttributesJoinProcessor,
+        \Magento\Catalog\Model\Product\Gallery\Processor $mediaGalleryProcessor
     ) {
         $this->productFactory = $productFactory;
         $this->collectionFactory = $collectionFactory;
@@ -193,13 +166,11 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
         $this->filterBuilder = $filterBuilder;
         $this->metadataService = $metadataServiceInterface;
         $this->extensibleDataObjectConverter = $extensibleDataObjectConverter;
-        $this->optionConverter = $optionConverter;
         $this->fileSystem = $fileSystem;
-        $this->contentValidator = $contentValidator;
         $this->contentFactory = $contentFactory;
-        $this->mimeTypeExtensionMap = $mimeTypeExtensionMap;
-        $this->eavConfig = $eavConfig;
         $this->imageProcessor = $imageProcessor;
+        $this->extensionAttributesJoinProcessor = $extensionAttributesJoinProcessor;
+        $this->mediaGalleryProcessor = $mediaGalleryProcessor;
     }
 
     /**
@@ -207,7 +178,7 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
      */
     public function get($sku, $editMode = false, $storeId = null, $forceReload = false)
     {
-        $cacheKey = $this->getCacheKey(func_get_args());
+        $cacheKey = $this->getCacheKey([$editMode, $storeId]);
         if (!isset($this->instances[$sku][$cacheKey]) || $forceReload) {
             $product = $this->productFactory->create();
 
@@ -233,7 +204,7 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
      */
     public function getById($productId, $editMode = false, $storeId = null, $forceReload = false)
     {
-        $cacheKey = $this->getCacheKey(func_get_args());
+        $cacheKey = $this->getCacheKey([$editMode, $storeId]);
         if (!isset($this->instancesById[$productId][$cacheKey]) || $forceReload) {
             $product = $this->productFactory->create();
             if ($editMode) {
@@ -260,8 +231,6 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
      */
     protected function getCacheKey($data)
     {
-        unset($data[0]);
-        unset($data['forceReload']);
         $serializeData = [];
         foreach ($data as $key => $value) {
             if (is_object($value)) {
@@ -287,82 +256,84 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
         if ($createNew) {
             $product = $this->productFactory->create();
             if ($this->storeManager->hasSingleStore()) {
-                $product->setWebsiteIds([$this->storeManager->getStore(true)->getWebsite()->getId()]);
+                $product->setWebsiteIds([$this->storeManager->getStore(true)->getWebsiteId()]);
             }
         } else {
             unset($this->instances[$productData['sku']]);
             $product = $this->get($productData['sku']);
             $this->initializationHelper->initialize($product);
         }
+
         foreach ($productData as $key => $value) {
             $product->setData($key, $value);
         }
+        $this->assignProductToWebsites($product);
 
         return $product;
     }
 
     /**
-     * Process product options, creating new options, updating and deleting existing options
-     *
-     * @param \Magento\Catalog\Api\Data\ProductInterface $product
-     * @param array $newOptions
-     * @return $this
-     * @throws NoSuchEntityException
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @param \Magento\Catalog\Model\Product $product
+     * @return void
      */
-    private function processOptions(\Magento\Catalog\Api\Data\ProductInterface $product, $newOptions)
+    private function assignProductToWebsites(\Magento\Catalog\Model\Product $product)
     {
-        //existing options by option_id
-        /** @var \Magento\Catalog\Api\Data\ProductCustomOptionInterface[] $existingOptions */
-        $existingOptions = $product->getOptions();
-        if ($existingOptions === null) {
-            $existingOptions = [];
-        }
+        if (!$this->storeManager->hasSingleStore()) {
 
-        $newOptionIds = [];
-        foreach ($newOptions as $key => $option) {
-            if (isset($option['option_id'])) {
-                //updating existing option
-                $optionId = $option['option_id'];
-                if (!isset($existingOptions[$optionId])) {
-                    throw new NoSuchEntityException(__('Product option with id %1 does not exist', $optionId));
-                }
-                $existingOption = $existingOptions[$optionId];
-                $newOptionIds[] = $option['option_id'];
-                if (isset($option['values'])) {
-                    //updating option values
-                    $optionValues = $option['values'];
-                    $valueIds = [];
-                    foreach ($optionValues as $optionValue) {
-                        if (isset($optionValue['option_type_id'])) {
-                            $valueIds[] = $optionValue['option_type_id'];
-                        }
-                    }
-                    $originalValues = $existingOption->getValues();
-                    foreach ($originalValues as $originalValue) {
-                        if (!in_array($originalValue->getOptionTypeId(), $valueIds)) {
-                            $originalValue->setData('is_delete', 1);
-                            $optionValues[] = $originalValue->getData();
-                        }
-                    }
-                    $newOptions[$key]['values'] = $optionValues;
-                } else {
-                    $existingOptionData = $this->optionConverter->toArray($existingOption);
-                    if (isset($existingOptionData['values'])) {
-                        $newOptions[$key]['values'] = $existingOptionData['values'];
-                    }
-                }
+            if ($this->storeManager->getStore()->getCode() == \Magento\Store\Model\Store::ADMIN_CODE) {
+                $websiteIds = array_keys($this->storeManager->getWebsites());
+            } else {
+                $websiteIds = [$this->storeManager->getStore()->getWebsiteId()];
             }
+
+            $product->setWebsiteIds(array_unique(array_merge($product->getWebsiteIds(), $websiteIds)));
+        }
+    }
+
+    /**
+     * @param ProductInterface $product
+     * @param array $newEntry
+     * @return $this
+     * @throws InputException
+     * @throws StateException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    protected function processNewMediaGalleryEntry(
+        ProductInterface $product,
+        array  $newEntry
+    ) {
+        /** @var ImageContentInterface $contentDataObject */
+        $contentDataObject = $newEntry['content'];
+
+        /** @var \Magento\Catalog\Model\Product\Media\Config $mediaConfig */
+        $mediaConfig = $product->getMediaConfig();
+        $mediaTmpPath = $mediaConfig->getBaseTmpMediaPath();
+
+        $relativeFilePath = $this->imageProcessor->processImageContent($mediaTmpPath, $contentDataObject);
+        $tmpFilePath = $mediaConfig->getTmpMediaShortUrl($relativeFilePath);
+
+        if (!$product->hasGalleryAttribute()) {
+            throw new StateException(__('Requested product does not support images.'));
         }
 
-        $optionIdsToDelete = array_diff(array_keys($existingOptions), $newOptionIds);
-        foreach ($optionIdsToDelete as $optionId) {
-            $optionToDelete = $existingOptions[$optionId];
-            $optionDataArray = $this->optionConverter->toArray($optionToDelete);
-            $optionDataArray['is_delete'] = 1;
-            $newOptions[] = $optionDataArray;
-        }
-        $product->setProductOptions($newOptions);
+        $imageFileUri = $this->mediaGalleryProcessor->addImage(
+            $product,
+            $tmpFilePath,
+            isset($newEntry['types']) ? $newEntry['types'] : [],
+            true,
+            isset($newEntry['disabled']) ? $newEntry['disabled'] : true
+        );
+        // Update additional fields that are still empty after addImage call
+        $this->mediaGalleryProcessor->updateImage(
+            $product,
+            $imageFileUri,
+            [
+                'label' => $newEntry['label'],
+                'position' => $newEntry['position'],
+                'disabled' => $newEntry['disabled'],
+                'media_type' => $newEntry['media_type'],
+            ]
+        );
         return $this;
     }
 
@@ -426,54 +397,6 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
 
     /**
      * @param ProductInterface $product
-     * @param array $newEntry
-     * @return $this
-     * @throws InputException
-     * @throws StateException
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    protected function processNewMediaGalleryEntry(
-        ProductInterface $product,
-        array  $newEntry
-    ) {
-        /** @var ImageContentInterface $contentDataObject */
-        $contentDataObject = $newEntry['content'];
-
-        /** @var \Magento\Catalog\Model\Product\Media\Config $mediaConfig */
-        $mediaConfig = $product->getMediaConfig();
-        $mediaTmpPath = $mediaConfig->getBaseTmpMediaPath();
-
-        $relativeFilePath = $this->imageProcessor->processImageContent($mediaTmpPath, $contentDataObject);
-        $tmpFilePath = $mediaConfig->getTmpMediaShortUrl($relativeFilePath);
-
-        /** @var \Magento\Catalog\Model\Product\Attribute\Backend\Media $galleryAttributeBackend */
-        $galleryAttributeBackend = $product->getGalleryAttributeBackend();
-        if ($galleryAttributeBackend == null) {
-            throw new StateException(__('Requested product does not support images.'));
-        }
-
-        $imageFileUri = $galleryAttributeBackend->addImage(
-            $product,
-            $tmpFilePath,
-            isset($newEntry['types']) ? $newEntry['types'] : [],
-            true,
-            isset($newEntry['disabled']) ? $newEntry['disabled'] : true
-        );
-        // Update additional fields that are still empty after addImage call
-        $galleryAttributeBackend->updateImage(
-            $product,
-            $imageFileUri,
-            [
-                'label' => $newEntry['label'],
-                'position' => $newEntry['position'],
-                'disabled' => $newEntry['disabled'],
-            ]
-        );
-        return $this;
-    }
-
-    /**
-     * @param ProductInterface $product
      * @param array $mediaGalleryEntries
      * @return $this
      * @throws InputException
@@ -508,14 +431,12 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
             $newEntries = $mediaGalleryEntries;
         }
 
-        /** @var \Magento\Catalog\Model\Product\Attribute\Backend\Media $galleryAttributeBackend */
-        $galleryAttributeBackend = $product->getGalleryAttributeBackend();
-        $galleryAttributeBackend->clearMediaAttribute($product, array_keys($product->getMediaAttributes()));
+        $this->mediaGalleryProcessor->clearMediaAttribute($product, array_keys($product->getMediaAttributes()));
         $images = $product->getMediaGallery('images');
         if ($images) {
             foreach ($images as $image) {
                 if (!isset($image['removed']) && !empty($image['types'])) {
-                    $galleryAttributeBackend->setMediaAttribute($product, $image['types'], $image['file']);
+                    $this->mediaGalleryProcessor->setMediaAttribute($product, $image['types'], $image['file']);
                 }
             }
         }
@@ -542,31 +463,31 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
      */
     public function save(\Magento\Catalog\Api\Data\ProductInterface $product, $saveOptions = false)
     {
-        if ($saveOptions) {
-            $productOptions = $product->getProductOptions();
-        }
-        $isDeleteOptions = $product->getIsDeleteOptions();
-        $groupPrices = $product->getData('group_price');
         $tierPrices = $product->getData('tier_price');
 
-        $productId = $this->resourceModel->getIdBySku($product->getSku());
-        $ignoreLinksFlag = $product->getData('ignore_links_flag');
+        try {
+            $existingProduct = $this->get($product->getSku());
+
+            $product->setData(
+                $this->resourceModel->getLinkField(),
+                $existingProduct->getData($this->resourceModel->getLinkField())
+            );
+        } catch (NoSuchEntityException $e) {
+            $existingProduct = null;
+        }
+
         $productDataArray = $this->extensibleDataObjectConverter
             ->toNestedArray($product, [], 'Magento\Catalog\Api\Data\ProductInterface');
+        $productDataArray = array_replace($productDataArray, $product->getData());
+        unset($productDataArray['media_gallery']);
 
+        $ignoreLinksFlag = $product->getData('ignore_links_flag');
         $productLinks = null;
         if (!$ignoreLinksFlag && $ignoreLinksFlag !== null) {
             $productLinks = $product->getProductLinks();
         }
-
-        $product = $this->initializeProductData($productDataArray, empty($productId));
-
-        if (isset($productDataArray['options'])) {
-            if (!empty($productDataArray['options']) || $isDeleteOptions) {
-                $this->processOptions($product, $productDataArray['options']);
-                $product->setCanSaveCustomOptions(true);
-            }
-        }
+        $productDataArray['store_id'] = (int)$this->storeManager->getStore()->getId();
+        $product = $this->initializeProductData($productDataArray, empty($existingProduct));
 
         $this->processLinks($product, $productLinks);
         if (isset($productDataArray['media_gallery_entries'])) {
@@ -580,13 +501,6 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
             );
         }
         try {
-            if ($saveOptions) {
-                $product->setProductOptions($productOptions);
-                $product->setCanSaveCustomOptions(true);
-            }
-            if ($groupPrices !== null) {
-                $product->setData('group_price', $groupPrices);
-            }
             if ($tierPrices !== null) {
                 $product->setData('tier_price', $tierPrices);
             }
@@ -638,21 +552,11 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
      */
     public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria)
     {
-        /** @var \Magento\Catalog\Model\Resource\Product\Collection $collection */
+        /** @var \Magento\Catalog\Model\ResourceModel\Product\Collection $collection */
         $collection = $this->collectionFactory->create();
-        $defaultAttributeSetId = $this->eavConfig
-            ->getEntityType(\Magento\Catalog\Api\Data\ProductAttributeInterface::ENTITY_TYPE_CODE)
-            ->getDefaultAttributeSetId();
-        $extendedSearchCriteria = $this->searchCriteriaBuilder->addFilter(
-            [
-                $this->filterBuilder
-                    ->setField('attribute_set_id')
-                    ->setValue($defaultAttributeSetId)
-                    ->create(),
-            ]
-        );
+        $this->extensionAttributesJoinProcessor->process($collection);
 
-        foreach ($this->metadataService->getList($extendedSearchCriteria->create())->getItems() as $metadata) {
+        foreach ($this->metadataService->getList($this->searchCriteriaBuilder->create())->getItems() as $metadata) {
             $collection->addAttributeToSelect($metadata->getAttributeCode());
         }
         $collection->joinAttribute('status', 'catalog_product/status', 'entity_id', null, 'inner');
@@ -667,7 +571,7 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
             $field = $sortOrder->getField();
             $collection->addOrder(
                 $field,
-                ($sortOrder->getDirection() == SearchCriteriaInterface::SORT_ASC) ? 'ASC' : 'DESC'
+                ($sortOrder->getDirection() == SortOrder::SORT_ASC) ? 'ASC' : 'DESC'
             );
         }
         $collection->setCurPage($searchCriteria->getCurrentPage());
@@ -693,10 +597,21 @@ class ProductRepository implements \Magento\Catalog\Api\ProductRepositoryInterfa
         Collection $collection
     ) {
         $fields = [];
+        $categoryFilter = [];
         foreach ($filterGroup->getFilters() as $filter) {
-            $condition = $filter->getConditionType() ? $filter->getConditionType() : 'eq';
-            $fields[] = ['attribute' => $filter->getField(), $condition => $filter->getValue()];
+            $conditionType = $filter->getConditionType() ? $filter->getConditionType() : 'eq';
+
+            if ($filter->getField() == 'category_id') {
+                $categoryFilter[$conditionType][] = $filter->getValue();
+                continue;
+            }
+            $fields[] = ['attribute' => $filter->getField(), $conditionType => $filter->getValue()];
         }
+
+        if ($categoryFilter) {
+            $collection->addCategoriesFilter($categoryFilter);
+        }
+
         if ($fields) {
             $collection->addFieldToFilter($fields);
         }

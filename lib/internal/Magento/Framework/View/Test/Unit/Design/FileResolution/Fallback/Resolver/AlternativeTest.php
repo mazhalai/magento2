@@ -32,13 +32,9 @@ class AlternativeTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->directory = $this->getMock('\Magento\Framework\Filesystem\Directory\Read', [], [], '', false);
-        $this->directory->expects($this->any())
-            ->method('getRelativePath')
-            ->will($this->returnArgument(0));
-        $filesystem = $this->getMock('\Magento\Framework\Filesystem', [], [], '', false);
-        $filesystem->expects($this->once())
-            ->method('getDirectoryRead')
-            ->with(DirectoryList::ROOT)
+        $readFactory = $this->getMock('\Magento\Framework\Filesystem\Directory\ReadFactory', [], [], '', false);
+        $readFactory->expects($this->any())
+            ->method('create')
             ->will($this->returnValue($this->directory));
         $this->rule = $this->getMock(
             '\Magento\Framework\View\Design\Fallback\Rule\RuleInterface', [], [], '', false
@@ -48,13 +44,7 @@ class AlternativeTest extends \PHPUnit_Framework_TestCase
             ->method('getRule')
             ->with('type')
             ->will($this->returnValue($this->rule));
-        $cache = $this->getMockForAbstractClass(
-            'Magento\Framework\View\Design\FileResolution\Fallback\CacheDataInterface'
-        );
-        $cache->expects($this->any())
-            ->method('getFromCache')
-            ->will($this->returnValue(false));
-        $this->object = new Alternative($filesystem, $rulePool, $cache, ['css' => ['less']]);
+        $this->object = new Alternative($readFactory, $rulePool, ['css' => ['less']]);
     }
 
     /**
@@ -67,12 +57,9 @@ class AlternativeTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException('\InvalidArgumentException', "\$alternativeExtensions must be an array with format:"
             . " array('ext1' => array('ext1', 'ext2'), 'ext3' => array(...)]");
 
-        $filesystem = $this->getMock('Magento\Framework\Filesystem', [], [], '', false);
+        $readFactory = $this->getMock('Magento\Framework\Filesystem\Directory\ReadFactory', [], [], '', false);
         $rulePool = $this->getMock('Magento\Framework\View\Design\Fallback\RulePool', [], [], '', false);
-        $cache = $this->getMockForAbstractClass(
-            'Magento\Framework\View\Design\FileResolution\Fallback\CacheDataInterface'
-        );
-        new Alternative($filesystem, $rulePool, $cache, $alternativeExtensions);
+        new Alternative($readFactory, $rulePool, $alternativeExtensions);
     }
 
     /**
@@ -100,8 +87,8 @@ class AlternativeTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue(['some/dir']));
 
         $fileExistsMap = [
-            ['some/dir/file.css', false],
-            ['some/dir/file.less', true],
+            ['file.css', false],
+            ['file.less', true],
         ];
         $this->directory->expects($this->any())
             ->method('isExist')

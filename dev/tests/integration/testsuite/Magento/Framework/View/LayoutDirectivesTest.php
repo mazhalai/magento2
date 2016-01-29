@@ -75,9 +75,19 @@ class LayoutDirectivesTest extends \PHPUnit_Framework_TestCase
     public function testRenderElement()
     {
         $layout = $this->_getLayoutModel('render.xml');
-        $this->assertEmpty($layout->renderElement('nonexisting_element'));
         $this->assertEquals('124', $layout->renderElement('container_one'));
         $this->assertEquals('12', $layout->renderElement('block_one'));
+    }
+
+    /**
+     * @expectedException \OutOfBoundsException
+     * @expectedExceptionMessage No element found with ID 'nonexisting_element'
+     * @magentoAppIsolation enabled
+     */
+    public function testRenderNonExistentElementShouldThrowException()
+    {
+        $layout = $this->_getLayoutModel('render.xml');
+        $this->assertEmpty($layout->renderElement('nonexisting_element'));
     }
 
     /**
@@ -119,11 +129,11 @@ class LayoutDirectivesTest extends \PHPUnit_Framework_TestCase
     {
         $layout = $this->_getLayoutModel('arguments_object_type.xml');
         $this->assertInstanceOf(
-            'Magento\Framework\Data\Collection\Db',
+            'Magento\Framework\Data\Collection',
             $layout->getBlock('block_with_object_args')->getOne()
         );
         $this->assertInstanceOf(
-            'Magento\Framework\Data\Collection\Db',
+            'Magento\Framework\Data\Collection',
             $layout->getBlock('block_with_object_args')->getTwo()
         );
         $this->assertEquals(3, $layout->getBlock('block_with_object_args')->getThree());

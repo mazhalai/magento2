@@ -43,10 +43,10 @@ class ShipmentListTest extends WebapiAbstract
             'Magento\Framework\Api\FilterBuilder'
         );
 
-        $searchCriteriaBuilder->addFilter([$filterBuilder->setField('shipment_status')->setValue(1)->create()]);
+        $searchCriteriaBuilder->addFilters([$filterBuilder->setField('shipment_status')->setValue(1)->create()]);
         $searchData = $searchCriteriaBuilder->create()->__toArray();
 
-        $requestData = ['criteria' => $searchData];
+        $requestData = ['searchCriteria' => $searchData];
         $serviceInfo = [
             'rest' => [
                 'resourcePath' => self::RESOURCE_PATH . '?' . http_build_query($requestData),

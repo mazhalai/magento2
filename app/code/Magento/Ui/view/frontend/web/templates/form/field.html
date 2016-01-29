@@ -4,7 +4,7 @@
  * See COPYING.txt for license details.
  */
 -->
-<div class="field" data-bind="visible: visible, attr: {'name': element.dataScope}, css: getStyles()">
+<div class="field" data-bind="visible: visible, attr: {'name': element.dataScope}, css: additionalClasses">
 
     <label class="label" data-bind="attr: { for: element.uid }">
         <!-- ko if: element.label -->
@@ -12,7 +12,7 @@
         <!-- /ko -->
     </label>
 
-    <div class="control">
+    <div class="control" data-bind="css: {'_with-tooltip': element.tooltip}">
         <!-- ko ifnot: element.hasAddons() -->
             <!-- ko template: element.elementTmpl --><!-- /ko -->
         <!-- /ko -->
@@ -41,6 +41,10 @@
 
         <!-- ko if: element.error() -->
             <div class="mage-error" data-bind="attr: { for: element.uid }, text: element.error" generated="true"></div>
+        <!-- /ko -->
+
+        <!-- ko if: element.warn() -->
+            <div class="message warning" generated="true"><span data-bind="text: element.warn"></span></div>
         <!-- /ko -->
     </div>
 </div>

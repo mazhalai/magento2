@@ -13,8 +13,8 @@ use Magento\Customer\Model\Address\AddressModelInterface;
 /**
  * Sales order address model
  *
- * @method \Magento\Sales\Model\Resource\Order\Address _getResource()
- * @method \Magento\Sales\Model\Resource\Order\Address getResource()
+ * @method \Magento\Sales\Model\ResourceModel\Order\Address _getResource()
+ * @method \Magento\Sales\Model\ResourceModel\Order\Address getResource()
  * @method \Magento\Customer\Api\Data\AddressInterface getCustomerAddressData()
  * @method Address setCustomerAddressData(\Magento\Customer\Api\Data\AddressInterface $value)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -61,8 +61,8 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
      * @param \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
      * @param \Magento\Directory\Model\RegionFactory $regionFactory
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\Db $resourceCollection
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      */
     public function __construct(
@@ -72,8 +72,8 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
         \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Directory\Model\RegionFactory $regionFactory,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\Db $resourceCollection = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $data = $this->implodeStreetField($data);
@@ -98,11 +98,13 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
      */
     protected function _construct()
     {
-        $this->_init('Magento\Sales\Model\Resource\Order\Address');
+        $this->_init('Magento\Sales\Model\ResourceModel\Order\Address');
     }
 
     /**
      * Set order
+     *
+     * @codeCoverageIgnore
      *
      * @param \Magento\Sales\Model\Order $order
      * @return $this
@@ -174,7 +176,7 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
      *
      * @param array|string $key
      * @param null $value
-     * @return \Magento\Framework\Object
+     * @return \Magento\Framework\DataObject
      */
     public function setData($key, $value = null)
     {
@@ -229,6 +231,32 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
         return $this->order;
     }
 
+    /**
+     * Retrieve street field of an address
+     *
+     * @return string[]
+     */
+    public function getStreet()
+    {
+        if (is_array($this->getData(OrderAddressInterface::STREET))) {
+            return $this->getData(OrderAddressInterface::STREET);
+        }
+        return explode(PHP_EOL, $this->getData(OrderAddressInterface::STREET));
+    }
+
+    /**
+     * Get street line by number
+     *
+     * @param int $number
+     * @return string
+     */
+    public function getStreetLine($number)
+    {
+        $lines = $this->getStreet();
+        return isset($lines[$number - 1]) ? $lines[$number - 1] : '';
+    }
+
+    //@codeCoverageIgnoreStart
     /**
      * Returns address_type
      *
@@ -391,16 +419,6 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
     }
 
     /**
-     * Returns quote_address_id
-     *
-     * @return int
-     */
-    public function getQuoteAddressId()
-    {
-        return $this->getData(OrderAddressInterface::QUOTE_ADDRESS_ID);
-    }
-
-    /**
      * Returns region
      *
      * @return string
@@ -418,31 +436,6 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
     public function getRegionId()
     {
         return $this->getData(OrderAddressInterface::REGION_ID);
-    }
-
-    /**
-     * Retrieve street field of an address
-     *
-     * @return string[]
-     */
-    public function getStreet()
-    {
-        if (is_array($this->getData(OrderAddressInterface::STREET))) {
-            return $this->getData(OrderAddressInterface::STREET);
-        }
-        return explode(PHP_EOL, $this->getData(OrderAddressInterface::STREET));
-    }
-
-    /**
-     * Get street line by number
-     *
-     * @param int $number
-     * @return string
-     */
-    public function getStreetLine($number)
-    {
-        $lines = $this->getStreet();
-        return isset($lines[$number - 1]) ? $lines[$number - 1] : '';
     }
 
     /**
@@ -515,7 +508,6 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
         return $this->getData(OrderAddressInterface::VAT_REQUEST_SUCCESS);
     }
 
-    //@codeCoverageIgnoreStart
     /**
      * {@inheritdoc}
      */
@@ -530,14 +522,6 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
     public function setCustomerAddressId($id)
     {
         return $this->setData(OrderAddressInterface::CUSTOMER_ADDRESS_ID, $id);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setQuoteAddressId($id)
-    {
-        return $this->setData(OrderAddressInterface::QUOTE_ADDRESS_ID, $id);
     }
 
     /**
@@ -698,6 +682,14 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
     public function setVatRequestId($id)
     {
         return $this->setData(OrderAddressInterface::VAT_REQUEST_ID, $id);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setRegionCode($regionCode)
+    {
+        return $this->setData(OrderAddressInterface::KEY_REGION_CODE, $regionCode);
     }
 
     /**

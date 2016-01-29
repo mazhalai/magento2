@@ -12,7 +12,7 @@ use Magento\Eav\Model\Entity\Setup\Context;
 use Magento\Eav\Setup\EavSetup;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
-use Magento\Eav\Model\Resource\Entity\Attribute\Group\CollectionFactory;
+use Magento\Eav\Model\ResourceModel\Entity\Attribute\Group\CollectionFactory;
 
 /**
  * @codeCoverageIgnore
@@ -126,12 +126,12 @@ class CustomerSetup extends EavSetup
     {
         $entities = [
             'customer' => [
-                'entity_model' => 'Magento\Customer\Model\Resource\Customer',
+                'entity_model' => 'Magento\Customer\Model\ResourceModel\Customer',
                 'attribute_model' => 'Magento\Customer\Model\Attribute',
                 'table' => 'customer_entity',
-                'increment_model' => 'Magento\Eav\Model\Entity\Increment\Numeric',
+                'increment_model' => 'Magento\Eav\Model\Entity\Increment\NumericValue',
                 'additional_attribute_table' => 'customer_eav_attribute',
-                'entity_attribute_collection' => 'Magento\Customer\Model\Resource\Attribute\Collection',
+                'entity_attribute_collection' => 'Magento\Customer\Model\ResourceModel\Attribute\Collection',
                 'attributes' => [
                     'website_id' => [
                         'type' => 'static',
@@ -154,7 +154,7 @@ class CustomerSetup extends EavSetup
                         'adminhtml_only' => 1,
                     ],
                     'created_in' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Created From',
                         'input' => 'text',
                         'required' => false,
@@ -163,7 +163,7 @@ class CustomerSetup extends EavSetup
                         'adminhtml_only' => 1,
                     ],
                     'prefix' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Prefix',
                         'input' => 'text',
                         'required' => false,
@@ -173,7 +173,7 @@ class CustomerSetup extends EavSetup
                         'position' => 30,
                     ],
                     'firstname' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'First Name',
                         'input' => 'text',
                         'sort_order' => 40,
@@ -181,7 +181,7 @@ class CustomerSetup extends EavSetup
                         'position' => 40,
                     ],
                     'middlename' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Middle Name/Initial',
                         'input' => 'text',
                         'required' => false,
@@ -191,7 +191,7 @@ class CustomerSetup extends EavSetup
                         'position' => 50,
                     ],
                     'lastname' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Last Name',
                         'input' => 'text',
                         'sort_order' => 60,
@@ -199,7 +199,7 @@ class CustomerSetup extends EavSetup
                         'position' => 60,
                     ],
                     'suffix' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Suffix',
                         'input' => 'text',
                         'required' => false,
@@ -228,8 +228,8 @@ class CustomerSetup extends EavSetup
                         'admin_checkout' => 1,
                     ],
                     'dob' => [
-                        'type' => 'datetime',
-                        'label' => 'Date Of Birth',
+                        'type' => 'static',
+                        'label' => 'Date of Birth',
                         'input' => 'date',
                         'frontend' => 'Magento\Eav\Model\Entity\Attribute\Frontend\Datetime',
                         'backend' => 'Magento\Eav\Model\Entity\Attribute\Backend\Datetime',
@@ -243,15 +243,30 @@ class CustomerSetup extends EavSetup
                         'admin_checkout' => 1,
                     ],
                     'password_hash' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'input' => 'hidden',
                         'backend' => 'Magento\Customer\Model\Customer\Attribute\Backend\Password',
                         'required' => false,
                         'sort_order' => 81,
                         'visible' => false,
                     ],
+                    'rp_token' => [
+                        'type' => 'static',
+                        'input' => 'hidden',
+                        'required' => false,
+                        'sort_order' => 115,
+                        'visible' => false,
+                    ],
+                    'rp_token_created_at' => [
+                        'type' => 'static',
+                        'input' => 'date',
+                        'validate_rules' => 'a:1:{s:16:"input_validation";s:4:"date";}',
+                        'required' => false,
+                        'sort_order' => 120,
+                        'visible' => false,
+                    ],
                     'default_billing' => [
-                        'type' => 'int',
+                        'type' => 'static',
                         'label' => 'Default Billing Address',
                         'input' => 'text',
                         'backend' => 'Magento\Customer\Model\Customer\Attribute\Backend\Billing',
@@ -260,7 +275,7 @@ class CustomerSetup extends EavSetup
                         'visible' => false,
                     ],
                     'default_shipping' => [
-                        'type' => 'int',
+                        'type' => 'static',
                         'label' => 'Default Shipping Address',
                         'input' => 'text',
                         'backend' => 'Magento\Customer\Model\Customer\Attribute\Backend\Shipping',
@@ -269,7 +284,7 @@ class CustomerSetup extends EavSetup
                         'visible' => false,
                     ],
                     'taxvat' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Tax/VAT Number',
                         'input' => 'text',
                         'required' => false,
@@ -281,7 +296,7 @@ class CustomerSetup extends EavSetup
                         'admin_checkout' => 1,
                     ],
                     'confirmation' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Is Confirmed',
                         'input' => 'text',
                         'required' => false,
@@ -298,7 +313,7 @@ class CustomerSetup extends EavSetup
                         'system' => false,
                     ],
                     'gender' => [
-                        'type' => 'int',
+                        'type' => 'static',
                         'label' => 'Gender',
                         'input' => 'select',
                         'source' => 'Magento\Eav\Model\Entity\Attribute\Source\Table',
@@ -311,17 +326,26 @@ class CustomerSetup extends EavSetup
                         'admin_checkout' => 1,
                         'option' => ['values' => ['Male', 'Female']],
                     ],
+                    'disable_auto_group_change' => [
+                        'type' => 'static',
+                        'label' => 'Disable Automatic Group Change Based on VAT ID',
+                        'input' => 'boolean',
+                        'backend' => 'Magento\Customer\Model\Attribute\Backend\Data\Boolean',
+                        'position' => 28,
+                        'required' => false,
+                        'adminhtml_only' => true
+                    ]
                 ],
             ],
             'customer_address' => [
-                'entity_model' => 'Magento\Customer\Model\Resource\Address',
+                'entity_model' => 'Magento\Customer\Model\ResourceModel\Address',
                 'attribute_model' => 'Magento\Customer\Model\Attribute',
                 'table' => 'customer_address_entity',
                 'additional_attribute_table' => 'customer_eav_attribute',
-                'entity_attribute_collection' => 'Magento\Customer\Model\Resource\Address\Attribute\Collection',
+                'entity_attribute_collection' => 'Magento\Customer\Model\ResourceModel\Address\Attribute\Collection',
                 'attributes' => [
                     'prefix' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Prefix',
                         'input' => 'text',
                         'required' => false,
@@ -331,7 +355,7 @@ class CustomerSetup extends EavSetup
                         'position' => 10,
                     ],
                     'firstname' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'First Name',
                         'input' => 'text',
                         'sort_order' => 20,
@@ -339,7 +363,7 @@ class CustomerSetup extends EavSetup
                         'position' => 20,
                     ],
                     'middlename' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Middle Name/Initial',
                         'input' => 'text',
                         'required' => false,
@@ -349,7 +373,7 @@ class CustomerSetup extends EavSetup
                         'position' => 30,
                     ],
                     'lastname' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Last Name',
                         'input' => 'text',
                         'sort_order' => 40,
@@ -357,7 +381,7 @@ class CustomerSetup extends EavSetup
                         'position' => 40,
                     ],
                     'suffix' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Suffix',
                         'input' => 'text',
                         'required' => false,
@@ -367,7 +391,7 @@ class CustomerSetup extends EavSetup
                         'position' => 50,
                     ],
                     'company' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Company',
                         'input' => 'text',
                         'required' => false,
@@ -376,7 +400,7 @@ class CustomerSetup extends EavSetup
                         'position' => 60,
                     ],
                     'street' => [
-                        'type' => 'text',
+                        'type' => 'static',
                         'label' => 'Street Address',
                         'input' => 'multiline',
                         'backend' => 'Magento\Eav\Model\Entity\Attribute\Backend\DefaultBackend',
@@ -386,7 +410,7 @@ class CustomerSetup extends EavSetup
                         'position' => 70,
                     ],
                     'city' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'City',
                         'input' => 'text',
                         'sort_order' => 80,
@@ -394,33 +418,33 @@ class CustomerSetup extends EavSetup
                         'position' => 80,
                     ],
                     'country_id' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Country',
                         'input' => 'select',
-                        'source' => 'Magento\Customer\Model\Resource\Address\Attribute\Source\Country',
+                        'source' => 'Magento\Customer\Model\ResourceModel\Address\Attribute\Source\Country',
                         'sort_order' => 90,
                         'position' => 90,
                     ],
                     'region' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'State/Province',
                         'input' => 'text',
-                        'backend' => 'Magento\Customer\Model\Resource\Address\Attribute\Backend\Region',
+                        'backend' => 'Magento\Customer\Model\ResourceModel\Address\Attribute\Backend\Region',
                         'required' => false,
                         'sort_order' => 100,
                         'position' => 100,
                     ],
                     'region_id' => [
-                        'type' => 'int',
+                        'type' => 'static',
                         'label' => 'State/Province',
                         'input' => 'hidden',
-                        'source' => 'Magento\Customer\Model\Resource\Address\Attribute\Source\Region',
+                        'source' => 'Magento\Customer\Model\ResourceModel\Address\Attribute\Source\Region',
                         'required' => false,
                         'sort_order' => 100,
                         'position' => 100,
                     ],
                     'postcode' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Zip/Postal Code',
                         'input' => 'text',
                         'sort_order' => 110,
@@ -430,7 +454,7 @@ class CustomerSetup extends EavSetup
                         'required' => false,
                     ],
                     'telephone' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Phone Number',
                         'input' => 'text',
                         'sort_order' => 120,
@@ -438,7 +462,7 @@ class CustomerSetup extends EavSetup
                         'position' => 120,
                     ],
                     'fax' => [
-                        'type' => 'varchar',
+                        'type' => 'static',
                         'label' => 'Fax',
                         'input' => 'text',
                         'required' => false,

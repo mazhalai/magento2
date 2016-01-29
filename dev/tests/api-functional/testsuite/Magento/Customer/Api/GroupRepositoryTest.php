@@ -8,7 +8,7 @@ namespace Magento\Customer\Api;
 
 use Magento\Customer\Model\Data\Group as CustomerGroup;
 use Magento\Customer\Model\GroupRegistry;
-use Magento\Customer\Model\Resource\GroupRepository;
+use Magento\Customer\Model\ResourceModel\GroupRepository;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\TestCase\WebapiAbstract;
@@ -44,7 +44,7 @@ class GroupRepositoryTest extends WebapiAbstract
     {
         $objectManager = Bootstrap::getObjectManager();
         $this->groupRegistry = $objectManager->get('Magento\Customer\Model\GroupRegistry');
-        $this->groupRepository = $objectManager->get('Magento\Customer\Model\Resource\GroupRepository');
+        $this->groupRepository = $objectManager->get('Magento\Customer\Model\ResourceModel\GroupRepository');
         $this->customerGroupFactory = $objectManager->create('Magento\Customer\Api\Data\GroupInterfaceFactory');
     }
 
@@ -53,6 +53,7 @@ class GroupRepositoryTest extends WebapiAbstract
      */
     public function tearDown()
     {
+        parent::tearDown();
     }
 
     /**
@@ -60,6 +61,7 @@ class GroupRepositoryTest extends WebapiAbstract
      */
     public static function tearDownAfterClass()
     {
+        parent::tearDownAfterClass();
     }
 
     /**
@@ -863,16 +865,16 @@ class GroupRepositoryTest extends WebapiAbstract
     public function testSearchGroupsDataProvider()
     {
         return [
-            ['tax_class_id', '3', []],
-            ['tax_class_id', '0', null],
+            ['tax_class_id', 3, []],
+            ['tax_class_id', 0, null],
             ['code', md5(mt_rand(0, 10000000000) . time()), null],
             [
                 'id',
-                '0',
+                0,
                 [
-                    'id' => '0',
+                    'id' => 0,
                     'code' => 'NOT LOGGED IN',
-                    'tax_class_id' => '3',
+                    'tax_class_id' => 3,
                     'tax_class_name' => 'Retail Customer'
                 ]
             ],
@@ -880,19 +882,19 @@ class GroupRepositoryTest extends WebapiAbstract
                 'code',
                 'General',
                 [
-                    'id' => '1',
+                    'id' => 1,
                     'code' => 'General',
-                    'tax_class_id' => '3',
+                    'tax_class_id' => 3,
                     'tax_class_name' => 'Retail Customer'
                 ]
             ],
             [
                 'id',
-                '2',
+                2,
                 [
-                    'id' => '2',
+                    'id' => 2,
                     'code' => 'Wholesale',
-                    'tax_class_id' => '3',
+                    'tax_class_id' => 3,
                     'tax_class_name' => 'Retail Customer'
                 ]
             ],
@@ -900,9 +902,9 @@ class GroupRepositoryTest extends WebapiAbstract
                 'code',
                 'Retailer',
                 [
-                    'id' => '3',
+                    'id' => 3,
                     'code' => 'Retailer',
-                    'tax_class_id' => '3',
+                    'tax_class_id' => 3,
                     'tax_class_name' => 'Retail Customer'
                 ]
             ]
@@ -921,13 +923,14 @@ class GroupRepositoryTest extends WebapiAbstract
     public function testSearchGroups($filterField, $filterValue, $expectedResult)
     {
         $filterBuilder = Bootstrap::getObjectManager()->create('Magento\Framework\Api\FilterBuilder');
+        /** @var \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder */
         $searchCriteriaBuilder =  Bootstrap::getObjectManager()
             ->create('Magento\Framework\Api\SearchCriteriaBuilder');
         $filter = $filterBuilder
                     ->setField($filterField)
                     ->setValue($filterValue)
                     ->create();
-        $searchCriteriaBuilder->addFilter([$filter]);
+        $searchCriteriaBuilder->addFilters([$filter]);
 
         $searchData = $searchCriteriaBuilder->create()->__toArray();
         $requestData = ['searchCriteria' => $searchData];
@@ -968,13 +971,14 @@ class GroupRepositoryTest extends WebapiAbstract
     {
         $this->_markTestAsRestOnly('SOAP is covered in ');
         $filterBuilder = Bootstrap::getObjectManager()->create('Magento\Framework\Api\FilterBuilder');
+        /** @var \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder */
         $searchCriteriaBuilder =  Bootstrap::getObjectManager()
             ->create('Magento\Framework\Api\SearchCriteriaBuilder');
         $filter = $filterBuilder
             ->setField($filterField)
             ->setValue($filterValue)
             ->create();
-        $searchCriteriaBuilder->addFilter([$filter]);
+        $searchCriteriaBuilder->addFilters([$filter]);
         $searchData = $searchCriteriaBuilder->create()->__toArray();
         $requestData = ['searchCriteria' => $searchData];
         $searchQueryString = http_build_query($requestData);

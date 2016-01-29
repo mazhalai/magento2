@@ -7,6 +7,7 @@ define([
     'jquery',
     'mage/template',
     'jquery/ui',
+    'Magento_Ui/js/modal/modal',
     'mage/translate',
     'mage/adminhtml/grid'
 ], function ($, mageTemplate) {
@@ -94,7 +95,7 @@ define([
         },
 
         /**
-         * Create dialog for show product
+         * Create modal for show product
          *
          * @private
          */
@@ -103,29 +104,13 @@ define([
                 selectedProductList = {},
                 popup = $('[data-role=add-product-dialog]');
 
-            popup.dialog({
+            popup.modal({
+                type: 'slide',
+                innerScroll: true,
                 title: $.mage.__('Add Products to Group'),
-                autoOpen: false,
-                minWidth: 980,
-                width: '75%',
-                modal: true,
-                resizable: true,
-                dialogClass: 'grouped',
-                position: {
-                    my: 'left top',
-                    at: 'center top',
-                    of: 'body'
-                },
+                modalClass: 'grouped',
                 open: function () {
-                    $(this).closest('.ui-dialog').addClass('ui-dialog-active');
-
-                    var topMargin = $(this).closest('.ui-dialog').children('.ui-dialog-titlebar').outerHeight() + 55;
-                    $(this).closest('.ui-dialog').css('margin-top', topMargin);
-
                     $(this).addClass('admin__scope-old'); // ToDo UI: remove with old styles removal
-                },
-                close: function () {
-                    $(this).closest('.ui-dialog').removeClass('ui-dialog-active');
                 },
                 buttons: [{
                     id: 'grouped-product-dialog-apply-button',
@@ -137,14 +122,7 @@ define([
                         });
                         widget._resort();
                         widget._updateGridVisibility();
-                        $(this).dialog('close');
-                    }
-                }, {
-                    id: 'grouped-product-dialog-cancel-button',
-                    text: $.mage.__('Cancel'),
-                    'class': 'action-close',
-                    click: function () {
-                        $(this).dialog('close');
+                        popup.modal('closeModal');
                     }
                 }]
             });
@@ -154,7 +132,7 @@ define([
 
                 if (!target.is('input')) {
                     target.closest('[data-role=row]')
-                        .find('[data-column=entity_id] input')
+                        .find('[data-column=entity_ids] input')
                         .prop('checked', function (element, value) {
                             return !value;
                         })
@@ -164,7 +142,7 @@ define([
 
             popup.on(
                 'change',
-                '[data-role=row] [data-column=entity_id] input',
+                '[data-role=row] [data-column=entity_ids] input',
                 $.proxy(function (event) {
                     var element = $(event.target),
                         product = {};
@@ -186,7 +164,7 @@ define([
 
             $('[data-role=add-product]').on('click', function (event) {
                 event.preventDefault();
-                popup.dialog('open');
+                popup.modal('openModal');
                 gridPopup.reload();
                 selectedProductList = {};
             });
@@ -197,12 +175,12 @@ define([
                         return $(element).val();
                     }).toArray();
                     ajaxSettings.data.filter = $.extend(ajaxSettings.data.filter || {}, {
-                        'entity_id': ids
+                        'entity_ids': ids
                     });
                 })
                 .on('gridajax', function (event, ajaxRequest) {
                     ajaxRequest.done(function () {
-                        popup.find('[data-role=row] [data-column=entity_id] input')
+                        popup.find('[data-role=row] [data-column=entity_ids] input')
                             .each(function (index, element) {
                                 var $element = $(element);
                                 $element.prop('checked', !!selectedProductList[$element.val()]);

@@ -61,7 +61,7 @@ class Address extends \Magento\Sales\Block\Adminhtml\Order\Create\Form\AbstractF
      *
      * @var \Magento\Framework\Api\SearchCriteriaBuilder
      */
-    protected $criteriaBuilder;
+    protected $searchCriteriaBuilder;
 
     /**
      * Filter builder
@@ -121,7 +121,7 @@ class Address extends \Magento\Sales\Block\Adminhtml\Order\Create\Form\AbstractF
         $this->_customerFormFactory = $customerFormFactory;
         $this->_addressHelper = $addressHelper;
         $this->addressService = $addressService;
-        $this->criteriaBuilder = $criteriaBuilder;
+        $this->searchCriteriaBuilder = $criteriaBuilder;
         $this->filterBuilder = $filterBuilder;
         $this->addressMapper = $addressMapper;
         parent::__construct(
@@ -159,9 +159,9 @@ class Address extends \Magento\Sales\Block\Adminhtml\Order\Create\Form\AbstractF
                 ->setValue($this->getCustomerId())
                 ->setConditionType('eq')
                 ->create();
-            $this->criteriaBuilder->addFilter([$filter]);
-            $criteria = $this->criteriaBuilder->create();
-            $result = $this->addressService->getList($criteria);
+            $this->searchCriteriaBuilder->addFilters([$filter]);
+            $searchCriteria = $this->searchCriteriaBuilder->create();
+            $result = $this->addressService->getList($searchCriteria);
             return $result->getItems();
         }
         return [];

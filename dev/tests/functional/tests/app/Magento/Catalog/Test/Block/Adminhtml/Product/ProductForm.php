@@ -18,6 +18,7 @@ use Magento\Mtf\Client\Locator;
 use Magento\Mtf\Fixture\FixtureInterface;
 use Magento\Mtf\Fixture\InjectableFixture;
 use Magento\Catalog\Test\Fixture\Category;
+use Magento\Catalog\Test\Block\Adminhtml\Product\Edit\Tab\Attributes\Search;
 
 /**
  * Product form on backend product page.
@@ -111,12 +112,11 @@ class ProductForm extends FormTabs
             ];
             $this->callRender($typeId, 'fill', $renderArguments);
         } else {
-            $tabs = $this->getFieldsByTabs($product);
+            $tabs = $this->getFixtureFieldsByContainers($product);
 
             if ($category) {
                 $tabs['product-details']['category_ids']['value'] = $category->getName();
             }
-            $this->showAdvancedSettings();
             $this->fillTabs($tabs, $element);
 
             if ($product->hasData('custom_attribute')) {
@@ -168,7 +168,9 @@ class ProductForm extends FormTabs
      */
     public function openTab($tabName)
     {
-        $this->showAdvancedSettings();
+        if (!$this->isTabVisible($tabName)) {
+            $this->showAdvancedSettings();
+        }
         return parent::openTab($tabName);
     }
 
@@ -179,6 +181,7 @@ class ProductForm extends FormTabs
      */
     protected function showAdvancedSettings()
     {
+        $this->browser->find($this->header)->hover();
         if (!$this->_rootElement->find($this->advancedSettingContent)->isVisible()) {
             $this->_rootElement->find($this->advancedSettingTrigger)->click();
             $this->waitForElementVisible($this->advancedSettingContent);
@@ -247,20 +250,31 @@ class ProductForm extends FormTabs
      */
     public function checkAttributeInSearchAttributeForm(CatalogProductAttribute $productAttribute)
     {
+        $this->waitPageToLoad();
+        return $this->getAttributesSearchForm()->isExistAttributeInSearchResult($productAttribute);
+    }
+
+    /**
+     * Get attributes search form.
+     *
+     * @return Search
+     */
+    protected function getAttributesSearchForm()
+    {
         return $this->_rootElement->find(
             $this->attributeSearch,
             Locator::SELECTOR_CSS,
             'Magento\Catalog\Test\Block\Adminhtml\Product\Edit\Tab\Attributes\Search'
-        )->isExistAttributeInSearchResult($productAttribute);
+        );
     }
 
     /**
-     * Check tab visibility on Product form.
+     * Check custom tab visibility on Product form.
      *
      * @param string $tabName
      * @return bool
      */
-    public function isTabVisible($tabName)
+    public function isCustomTabVisible($tabName)
     {
         $tabName = strtolower($tabName);
         $selector = sprintf($this->customTab, $tabName);
@@ -292,9 +306,9 @@ class ProductForm extends FormTabs
     public function getRequireNoticeAttributes(InjectableFixture $product)
     {
         $data = [];
-        $tabs = $this->getFieldsByTabs($product);
+        $tabs = $this->getFixtureFieldsByContainers($product);
         foreach ($tabs as $tabName => $fields) {
-            $tab = $this->getTabElement($tabName);
+            $tab = $this->getTab($tabName);
             $this->openTab($tabName);
             $errors = $tab->getJsErrors();
             if (!empty($errors)) {
@@ -337,7 +351,6 @@ class ProductForm extends FormTabs
      */
     public function getAttributeForm()
     {
-        /** @var AttributeForm $attributeForm */
         return $this->blockFactory->create(
             'Magento\Catalog\Test\Block\Adminhtml\Product\Attribute\AttributeForm',
             ['element' => $this->browser->find('body')]
@@ -367,7 +380,7 @@ class ProductForm extends FormTabs
      */
     public function addNewAttribute($tabName = 'product-details')
     {
-        $tab = $this->getTabElement($tabName);
+        $tab = $this->getTab($tabName);
         if ($tab instanceof ProductTab) {
             $this->openTab($tabName);
             $tab->addNewAttribute($tabName);

@@ -7,15 +7,16 @@ define([
     'mageUtils',
     'uiRegistry',
     'uiComponent',
-    'Magento_Ui/js/core/renderer/layout'
-], function (_, utils, registry, Component, layout) {
+    'uiLayout',
+    'Magento_Ui/js/modal/confirm'
+], function (_, utils, registry, Component, layout, confirm) {
     'use strict';
 
     var childTemplate = {
-        template: '${ $.$data.name }.${ $.$data.itemTemplate }',
         parent: '${ $.$data.name }',
         name: '${ $.$data.childIndex }',
-        dataScope: '${ $.name }'
+        dataScope: '${ $.name }',
+        nodeTemplate: '${ $.$data.name }.${ $.$data.itemTemplate }'
     };
 
     return Component.extend({
@@ -45,7 +46,7 @@ define([
 
             elem.activate();
 
-            this.trigger('update');
+            this.bubble('update');
 
             return this;
         },
@@ -67,6 +68,7 @@ define([
 
             return this;
         },
+
         /**
          * Creates new item of collection, based on incoming 'index'.
          * If not passed creates one with 'new_' prefix.
@@ -93,7 +95,7 @@ define([
         hasChanged: function () {
             var initial = this.initialItems,
                 current = this.elems.pluck('index'),
-                changed = !utils.identical(initial, current);
+                changed = !utils.equalArrays(initial, current);
 
             return changed || this.elems.some(function (elem) {
                 return _.some(elem.delegate('hasChanged'));
@@ -151,12 +153,17 @@ define([
          *      Since this method is used by 'click' binding,
          *      it requires function to invoke.
          */
-        removeChild: function (elem) {
-            var confirmed = confirm(this.removeMessage);
+        removeAddress: function (elem) {
+            var self = this;
 
-            if (confirmed) {
-                this._removeChild(elem);
-            }
+            confirm({
+                content: this.removeMessage,
+                actions: {
+                    confirm: function () {
+                        self._removeAddress(elem)
+                    }
+                }
+            });
         },
 
         /**
@@ -166,7 +173,7 @@ define([
          *
          * @param {Object} elem - Element to remove.
          */
-        _removeChild: function (elem) {
+        _removeAddress: function (elem) {
             var isActive = elem.active(),
                 first;
 
@@ -178,7 +185,7 @@ define([
                 first.activate();
             }
 
-            this.trigger('update');
+            this.bubble('update');
         }
     });
 });

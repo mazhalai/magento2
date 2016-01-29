@@ -10,21 +10,21 @@ use Magento\Cms\Test\Page\Adminhtml\CmsPageIndex;
 use Magento\Mtf\Constraint\AbstractConstraint;
 
 /**
- * Assert that after save a CMS page "The page has been saved." successful message appears.
+ * Assert that after save a CMS page "You saved this page." successful message appears.
  */
 class AssertCmsPageSuccessSaveMessage extends AbstractConstraint
 {
-    const SUCCESS_SAVE_MESSAGE = 'The page has been saved.';
+    const SUCCESS_SAVE_MESSAGE = 'You saved this page.';
 
     /**
-     * Assert that after save a CMS page "The page has been saved." successful message appears.
+     * Assert that after save a CMS page "You saved this page." successful message appears.
      *
      * @param CmsPageIndex $cmsIndex
      * @return void
      */
     public function processAssert(CmsPageIndex $cmsIndex)
     {
-        $actualMessage = $cmsIndex->getMessagesBlock()->getSuccessMessages();
+        $actualMessage = $cmsIndex->getMessagesBlock()->getSuccessMessage();
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_SAVE_MESSAGE,
             $actualMessage,

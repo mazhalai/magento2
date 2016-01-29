@@ -43,7 +43,7 @@ class InvoiceListTest extends WebapiAbstract
             'Magento\Framework\Api\FilterBuilder'
         );
 
-        $searchCriteriaBuilder->addFilter(
+        $searchCriteriaBuilder->addFilters(
             [
                 $filterBuilder
                     ->setField('state')
@@ -53,7 +53,7 @@ class InvoiceListTest extends WebapiAbstract
         );
         $searchData = $searchCriteriaBuilder->create()->__toArray();
 
-        $requestData = ['criteria' => $searchData];
+        $requestData = ['searchCriteria' => $searchData];
         $serviceInfo = [
             'rest' => [
                 'resourcePath' => self::RESOURCE_PATH . '?' . http_build_query($requestData),

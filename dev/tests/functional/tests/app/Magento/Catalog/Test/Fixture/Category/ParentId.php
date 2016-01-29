@@ -6,29 +6,21 @@
 
 namespace Magento\Catalog\Test\Fixture\Category;
 
-use Magento\Catalog\Test\Fixture\Category;
+use Magento\Mtf\Fixture\DataSource;
 use Magento\Mtf\Fixture\FixtureFactory;
-use Magento\Mtf\Fixture\FixtureInterface;
+use Magento\Catalog\Test\Fixture\Category;
 
 /**
- * Class ParentId
- * Prepare parent category
+ * Prepare parent category.
  */
-class ParentId implements FixtureInterface
+class ParentId extends DataSource
 {
     /**
-     * Return category
+     * Return category.
      *
      * @var Category
      */
     protected $parentCategory = null;
-
-    /**
-     * Fixture params
-     *
-     * @var array
-     */
-    protected $params;
 
     /**
      * @constructor
@@ -39,52 +31,22 @@ class ParentId implements FixtureInterface
     public function __construct(FixtureFactory $fixtureFactory, array $params, $data = [])
     {
         $this->params = $params;
-        if (isset($data['dataSet']) && $data['dataSet'] !== '-') {
-            $this->parentCategory = $fixtureFactory->createByCode('category', ['dataSet' => $data['dataSet']]);
+        if (isset($data['dataset']) && $data['dataset'] !== '-') {
+            $this->parentCategory = $fixtureFactory->createByCode('category', ['dataset' => $data['dataset']]);
             if (!$this->parentCategory->hasData('id')) {
                 $this->parentCategory->persist();
             }
             $this->data = $this->parentCategory->getId();
+        } else if (isset($data['source']) && $data['source'] instanceof Category) {
+            $this->parentCategory = $data['source'];
+            $this->data = $data['source']->getId();
         } else {
             $this->data = $data;
         }
     }
 
     /**
-     * Persist attribute options
-     *
-     * @return void
-     */
-    public function persist()
-    {
-        //
-    }
-
-    /**
-     * Return prepared data set
-     *
-     * @param string|null $key
-     * @return mixed
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function getData($key = null)
-    {
-        return $this->data;
-    }
-
-    /**
-     * Return data set configuration settings
-     *
-     * @return array
-     */
-    public function getDataConfig()
-    {
-        return $this->params;
-    }
-
-    /**
-     * Return entity
+     * Return entity.
      *
      * @return Category
      */

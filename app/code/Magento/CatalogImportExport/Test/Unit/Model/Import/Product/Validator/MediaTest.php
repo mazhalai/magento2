@@ -30,7 +30,7 @@ class MediaTest extends \PHPUnit_Framework_TestCase
 
     public function testInit()
     {
-        $result = $this->media->init();
+        $result = $this->media->init(null);
         $this->assertEquals($this->media, $result);
     }
 
@@ -45,6 +45,20 @@ class MediaTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected['result'], $result);
         $messages = $this->media->getMessages();
         $this->assertEquals($expected['messages'], $messages);
+    }
+
+    public function testIsValidClearMessagesCall()
+    {
+        $media = $this->getMock(
+            '\Magento\CatalogImportExport\Model\Import\Product\Validator\Media',
+            ['_clearMessages'],
+            [],
+            '',
+            false
+        );
+        $media->expects($this->once())->method('_clearMessages');
+
+        $media->isValid([]);
     }
 
     /**
@@ -63,7 +77,7 @@ class MediaTest extends \PHPUnit_Framework_TestCase
             ],
             'invalid' => [
                 ['_media_image' => 1],
-                ['result' => false,'messages' => [0 => 'mediaDataIsIncomplete']],
+                ['result' => true,'messages' => []],
             ]
         ];
     }

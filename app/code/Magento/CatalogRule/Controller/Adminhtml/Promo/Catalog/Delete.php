@@ -18,26 +18,28 @@ class Delete extends \Magento\CatalogRule\Controller\Adminhtml\Promo\Catalog
         $id = $this->getRequest()->getParam('id');
         if ($id) {
             try {
-                /** @var \Magento\CatalogRule\Model\Rule $model */
-                $model = $this->_objectManager->create('Magento\CatalogRule\Model\Rule');
-                $model->load($id);
-                $model->delete();
+                /** @var \Magento\CatalogRule\Api\CatalogRuleRepositoryInterface $ruleRepository */
+                $ruleRepository = $this->_objectManager->get(
+                    'Magento\CatalogRule\Api\CatalogRuleRepositoryInterface'
+                );
+                $ruleRepository->deleteById($id);
+
                 $this->_objectManager->create('Magento\CatalogRule\Model\Flag')->loadSelf()->setState(1)->save();
-                $this->messageManager->addSuccess(__('The rule has been deleted.'));
+                $this->messageManager->addSuccess(__('You deleted the rule.'));
                 $this->_redirect('catalog_rule/*/');
                 return;
             } catch (LocalizedException $e) {
                 $this->messageManager->addError($e->getMessage());
             } catch (\Exception $e) {
                 $this->messageManager->addError(
-                    __('An error occurred while deleting the rule. Please review the log and try again.')
+                    __('We can\'t delete this rule right now. Please review the log and try again.')
                 );
                 $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
                 $this->_redirect('catalog_rule/*/edit', ['id' => $this->getRequest()->getParam('id')]);
                 return;
             }
         }
-        $this->messageManager->addError(__('Unable to find a rule to delete.'));
+        $this->messageManager->addError(__('We can\'t find a rule to delete.'));
         $this->_redirect('catalog_rule/*/');
     }
 }

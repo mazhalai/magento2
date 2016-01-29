@@ -37,6 +37,7 @@ class Curl extends AbstractCurl implements CustomerInterface
         'gender' => [
             'Male' => 1,
             'Female' => 2,
+            'Not Specified' => 3
         ],
         'region_id' => [
             'California' => 12,
@@ -94,11 +95,11 @@ class Curl extends AbstractCurl implements CustomerInterface
         }
 
         $curl = new CurlTransport();
-        $curl->write(CurlInterface::POST, $url, '1.0', [], $data);
+        $curl->write($url, $data);
         $response = $curl->read();
         $curl->close();
         // After caching My Account page we cannot check by success message
-        if (!strpos($response, 'customer/account/logout')) {
+        if (!strpos($response, 'block-dashboard-info')) {
             throw new \Exception("Customer entity creating  by curl handler was not successful! Response: $response");
         }
 
@@ -120,14 +121,22 @@ class Curl extends AbstractCurl implements CustomerInterface
      */
     protected function getCustomerId($email)
     {
-        $url = $_ENV['app_backend_url'] . 'customer/index/grid/filter/' . $this->encodeFilter(['email' => $email]);
+        $url = $_ENV['app_backend_url'] . 'mui/index/render/';
+        $data = [
+            'namespace' => 'customer_listing',
+            'filters' => [
+                'placeholder' => true,
+                'email' => $email
+            ],
+            'isAjax' => true
+        ];
         $curl = new BackendDecorator(new CurlTransport(), $this->_configuration);
 
-        $curl->write(CurlInterface::GET, $url, '1.0');
+        $curl->write($url, $data, CurlInterface::POST);
         $response = $curl->read();
         $curl->close();
 
-        preg_match('/data-column="entity_id"[^>]*>\s*([0-9]+)\s*</', $response, $match);
+        preg_match('/customer_listing_data_source.+items.+"entity_id":"(\d+)"/', $response, $match);
         return empty($match[1]) ? null : $match[1];
     }
 
@@ -177,7 +186,7 @@ class Curl extends AbstractCurl implements CustomerInterface
 
         $url = $_ENV['app_backend_url'] . 'customer/index/save/id/' . $curlData['customer']['entity_id'];
         $curl = new BackendDecorator(new CurlTransport(), $this->_configuration);
-        $curl->write(CurlInterface::POST, $url, '1.0', [], $curlData);
+        $curl->write($url, $curlData);
         $response = $curl->read();
         $curl->close();
 
@@ -195,41 +204,28 @@ class Curl extends AbstractCurl implements CustomerInterface
      */
     protected function prepareAddressData(array $curlData)
     {
+        $address = [];
         foreach (array_keys($curlData['address']) as $key) {
-            $curlData['address'][$key]['_deleted'] = '';
-            $curlData['address'][$key]['region'] = '';
-            if (!is_array($curlData['address'][$key]['street'])) {
-                $street = $curlData['address'][$key]['street'];
-                $curlData['address'][$key]['street'] = [];
-                $curlData['address'][$key]['street'][] = $street;
+            $addressKey = 'new_' . $key;
+            $address[$addressKey] = $curlData['address'][$key];
+            $address[$addressKey]['_deleted'] = '';
+            $address[$addressKey]['region'] = '';
+            if (!is_array($address[$addressKey]['street'])) {
+                $street = $address[$addressKey]['street'];
+                $address[$addressKey]['street'] = [];
+                $address[$addressKey]['street'][] = $street;
             }
-            if (isset($curlData['address'][$key]['default_billing'])) {
-                $value = $curlData['address'][$key]['default_billing'] === 'Yes' ? 'true' : 'false';
-                $curlData['address'][$key]['default_billing'] = $value;
+            if (isset($address[$addressKey]['default_billing'])) {
+                $value = $address[$addressKey]['default_billing'] === 'Yes' ? 'true' : 'false';
+                $address[$addressKey]['default_billing'] = $value;
             }
-            if (isset($curlData['address'][$key]['default_shipping'])) {
-                $value = $curlData['address'][$key]['default_shipping'] === 'Yes' ? 'true' : 'false';
-                $curlData['address'][$key]['default_shipping'] = $value;
+            if (isset($address[$addressKey]['default_shipping'])) {
+                $value = $address[$addressKey]['default_shipping'] === 'Yes' ? 'true' : 'false';
+                $address[$addressKey]['default_shipping'] = $value;
             }
         }
+        $curlData['address'] = $address;
 
         return $curlData;
-    }
-
-    /**
-     * Encoded filter parameters
-     *
-     * @param array $filter
-     * @return string
-     */
-    protected function encodeFilter(array $filter)
-    {
-        $result = [];
-        foreach ($filter as $name => $value) {
-            $result[] = "{$name}={$value}";
-        }
-        $result = implode('&', $result);
-
-        return base64_encode($result);
     }
 }

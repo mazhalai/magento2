@@ -10,34 +10,35 @@
 .link-pattern() {
     color: @link__color;
     text-decoration: none;
+
     &:hover {
         color: @link__hover__color;
         text-decoration: underline;
     }
 }
 
-.font-face(
+.lib-font-face(
     @family-name: @font-family-name__base,
     @font-path: '@{baseDir}fonts/opensans/light/opensans-300',
     @font-weight: @font-weight__light,
     @font-style: normal
 );
 
-.font-face(
+.lib-font-face(
     @family-name: @font-family-name__base,
     @font-path: '@{baseDir}fonts/opensans/regular/opensans-400',
     @font-weight: @font-weight__regular,
     @font-style: normal
 );
 
-.font-face(
+.lib-font-face(
     @family-name: @font-family-name__base,
     @font-path: '@{baseDir}fonts/opensans/semibold/opensans-600',
     @font-weight: @font-weight__semibold,
     @font-style: normal
 );
 
-.font-face(
+.lib-font-face(
     @family-name: @font-family-name__base,
     @font-path: '@{baseDir}fonts/opensans/bold/opensans-700',
     @font-weight: @font-weight__bold,
@@ -46,17 +47,12 @@
 
 //
 
-html,
-body {
-    height: 100%;
-}
-
 html {
     font-size: 62.5%;
 }
 
 body {
-    .typography(
+    .lib-typography(
         @_font-size: @font-size__base,
         @_color: @text__color,
         @_font-family: @font-family__base,
@@ -72,7 +68,8 @@ body {
 
 h1 {
     margin: 0 0 2rem;
-    .typography(
+
+    .lib-typography(
         @_font-size: 2.8rem,
         @_color: @color-brown-darkie,
         @_font-weight: @font-weight__regular,
@@ -84,7 +81,8 @@ h1 {
 
 h2 {
     margin: 0 0 2rem;
-    .typography(
+
+    .lib-typography(
         @_font-size: 2rem,
         @_color: @color-brown-darkie,
         @_font-weight: @font-weight__regular,
@@ -96,7 +94,8 @@ h2 {
 
 h3 {
     margin: 0 0 2rem;
-    .typography(
+
+    .lib-typography(
         @_font-size: 1.7rem,
         @_color: @color-brown-darkie,
         @_font-weight: @font-weight__semibold,
@@ -115,7 +114,7 @@ h6 {
 
 //  Text
 p {
-    margin: 0 0 .5em;
+    margin: 0 0 @paragraph__indent-bottom;
 }
 
 small {

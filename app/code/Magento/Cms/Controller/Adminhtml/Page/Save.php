@@ -7,6 +7,7 @@
 namespace Magento\Cms\Controller\Adminhtml\Page;
 
 use Magento\Backend\App\Action;
+use Magento\Cms\Model\Page;
 
 class Save extends \Magento\Backend\App\Action
 {
@@ -36,6 +37,7 @@ class Save extends \Magento\Backend\App\Action
     /**
      * Save action
      *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @return \Magento\Framework\Controller\ResultInterface
      */
     public function execute()
@@ -45,6 +47,13 @@ class Save extends \Magento\Backend\App\Action
         $resultRedirect = $this->resultRedirectFactory->create();
         if ($data) {
             $data = $this->dataProcessor->filter($data);
+            if (isset($data['is_active']) && $data['is_active'] === 'true') {
+                $data['is_active'] = Page::STATUS_ENABLED;
+            }
+            if (empty($data['page_id'])) {
+                $data['page_id'] = null;
+            }
+
             $model = $this->_objectManager->create('Magento\Cms\Model\Page');
 
             $id = $this->getRequest()->getParam('page_id');
@@ -65,7 +74,7 @@ class Save extends \Magento\Backend\App\Action
 
             try {
                 $model->save();
-                $this->messageManager->addSuccess(__('The page has been saved.'));
+                $this->messageManager->addSuccess(__('You saved this page.'));
                 $this->_objectManager->get('Magento\Backend\Model\Session')->setFormData(false);
                 if ($this->getRequest()->getParam('back')) {
                     return $resultRedirect->setPath('*/*/edit', ['page_id' => $model->getId(), '_current' => true]);

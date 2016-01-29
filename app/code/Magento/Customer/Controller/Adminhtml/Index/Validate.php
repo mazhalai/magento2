@@ -13,13 +13,13 @@ class Validate extends \Magento\Customer\Controller\Adminhtml\Index
     /**
      * Customer validation
      *
-     * @param \Magento\Framework\Object $response
+     * @param \Magento\Framework\DataObject $response
      * @return CustomerInterface|null
      */
     protected function _validateCustomer($response)
     {
         $customer = null;
-        $errors = null;
+        $errors = [];
 
         try {
             /** @var CustomerInterface $customer */
@@ -48,7 +48,7 @@ class Validate extends \Magento\Customer\Controller\Adminhtml\Index
                 $data,
                 '\Magento\Customer\Api\Data\CustomerInterface'
             );
-            $errors = $this->customerAccountManagement->validate($customer);
+            $errors = $this->customerAccountManagement->validate($customer)->getMessages();
         } catch (\Magento\Framework\Validator\Exception $exception) {
             /* @var $error Error */
             foreach ($exception->getMessages(\Magento\Framework\Message\MessageInterface::TYPE_ERROR) as $error) {
@@ -56,10 +56,12 @@ class Validate extends \Magento\Customer\Controller\Adminhtml\Index
             }
         }
 
-        if (!$errors->isValid()) {
-            foreach ($errors->getMessages() as $error) {
-                $this->messageManager->addError($error);
+        if ($errors) {
+            $messages = $response->hasMessages() ? $response->getMessages() : [];
+            foreach ($errors as $error) {
+                $messages[] = $error;
             }
+            $response->setMessages($messages);
             $response->setError(1);
         }
 
@@ -69,7 +71,7 @@ class Validate extends \Magento\Customer\Controller\Adminhtml\Index
     /**
      * Customer address validation.
      *
-     * @param \Magento\Framework\Object $response
+     * @param \Magento\Framework\DataObject $response
      * @return void
      */
     protected function _validateCustomerAddress($response)
@@ -90,9 +92,11 @@ class Validate extends \Magento\Customer\Controller\Adminhtml\Index
 
             $errors = $addressForm->validateData($formData);
             if ($errors !== true) {
+                $messages = $response->hasMessages() ? $response->getMessages() : [];
                 foreach ($errors as $error) {
-                    $this->messageManager->addError($error);
+                    $messages[] = $error;
                 }
+                $response->setMessages($messages);
                 $response->setError(1);
             }
         }
@@ -105,7 +109,7 @@ class Validate extends \Magento\Customer\Controller\Adminhtml\Index
      */
     public function execute()
     {
-        $response = new \Magento\Framework\Object();
+        $response = new \Magento\Framework\DataObject();
         $response->setError(0);
 
         $customer = $this->_validateCustomer($response);
@@ -114,9 +118,8 @@ class Validate extends \Magento\Customer\Controller\Adminhtml\Index
         }
         $resultJson = $this->resultJsonFactory->create();
         if ($response->getError()) {
-            $layout = $this->layoutFactory->create();
-            $layout->initMessages();
-            $response->setHtmlMessage($layout->getMessagesBlock()->getGroupedHtml());
+            $response->setError(true);
+            $response->setMessages($response->getMessages());
         }
 
         $resultJson->setData($response);

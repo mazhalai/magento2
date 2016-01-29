@@ -41,6 +41,20 @@ class Editor extends Textarea
     }
 
     /**
+     * @return array
+     */
+    protected function getButtonTranslations()
+    {
+        $buttonTranslations = [
+            'Insert Image...' => $this->translate('Insert Image...'),
+            'Insert Media...' => $this->translate('Insert Media...'),
+            'Insert File...' => $this->translate('Insert File...'),
+        ];
+
+        return $buttonTranslations;
+    }
+
+    /**
      * @return string
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
@@ -71,12 +85,6 @@ class Editor extends Textarea
             </script>';
 
         if ($this->isEnabled()) {
-            $translatedString = [
-                'Insert Image...' => $this->translate('Insert Image...'),
-                'Insert Media...' => $this->translate('Insert Media...'),
-                'Insert File...' => $this->translate('Insert File...'),
-            ];
-
             $jsSetupObject = 'wysiwyg' . $this->getHtmlId();
 
             $forceLoad = '';
@@ -84,7 +92,7 @@ class Editor extends Textarea
                 if ($this->getForceLoad()) {
                     $forceLoad = $jsSetupObject . '.setup("exact");';
                 } else {
-                    $forceLoad = 'Event.observe(window, "load", ' .
+                    $forceLoad = 'jQuery(window).on("load", ' .
                         $jsSetupObject .
                         '.setup.bind(' .
                         $jsSetupObject .
@@ -115,11 +123,11 @@ class Editor extends Textarea
                 '
                 <script type="text/javascript">
                 //<![CDATA[
-                require(["jquery", "mage/translate", "mage/adminhtml/events", "mage/adminhtml/wysiwyg/tiny_mce/setup", "mage/adminhtml/wysiwyg/widget"], function(jQuery){' .
+                window.tinyMCE_GZ = window.tinyMCE_GZ || {}; window.tinyMCE_GZ.loaded = true;require(["jquery", "mage/translate", "mage/adminhtml/events", "mage/adminhtml/wysiwyg/tiny_mce/setup", "mage/adminhtml/wysiwyg/widget"], function(jQuery){' .
                 "\n" .
-                '(function($) {$.mage.translate.add(' .
+                '  (function($) {$.mage.translate.add(' .
                 \Zend_Json::encode(
-                    $translatedString
+                    $this->getButtonTranslations()
                 ) .
                 ')})(jQuery);' .
                 "\n" .
@@ -161,6 +169,17 @@ class Editor extends Textarea
             // Display only buttons to additional features
             if ($this->getConfig('widget_window_url')) {
                 $html = $this->_getButtonsHtml() . $js . parent::getElementHtml();
+                if ($this->getConfig('add_widgets')) {
+                    $html .= '<script type="text/javascript">
+                    //<![CDATA[
+                    require(["jquery", "mage/translate", "mage/adminhtml/wysiwyg/widget"], function(jQuery){
+                        (function($) {
+                            $.mage.translate.add(' . \Zend_Json::encode($this->getButtonTranslations()) . ')
+                        })(jQuery);
+                    });
+                    //]]>
+                    </script>';
+                }
                 $html = $this->_wrapIntoContainer($html);
                 return $html;
             }
@@ -189,7 +208,8 @@ class Editor extends Textarea
     {
         $buttonsHtml = '<div id="buttons' . $this->getHtmlId() . '" class="buttons-set">';
         if ($this->isEnabled()) {
-            $buttonsHtml .= $this->_getToggleButtonHtml() . $this->_getPluginButtonsHtml($this->isHidden());
+            $buttonsHtml .= $this->_getToggleButtonHtml($this->isToggleButtonVisible());
+            $buttonsHtml .= $this->_getPluginButtonsHtml($this->isHidden());
         } else {
             $buttonsHtml .= $this->_getPluginButtonsHtml(true);
         }
@@ -366,14 +386,14 @@ class Editor extends Textarea
     protected function _wrapIntoContainer($html)
     {
         if (!$this->getConfig('use_container')) {
-            return $html;
+            return '<div class="admin__control-wysiwig">' .$html . '</div>';
         }
 
         $html = '<div id="editor' . $this->getHtmlId() . '"' . ($this->getConfig(
             'no_display'
         ) ? ' style="display:none;"' : '') . ($this->getConfig(
             'container_class'
-        ) ? ' class="' . $this->getConfig(
+        ) ? ' class="admin__control-wysiwig ' . $this->getConfig(
             'container_class'
         ) . '"' : '') . '>' . $html . '</div>';
 
@@ -388,8 +408,8 @@ class Editor extends Textarea
      */
     public function getConfig($key = null)
     {
-        if (!$this->_getData('config') instanceof \Magento\Framework\Object) {
-            $config = new \Magento\Framework\Object();
+        if (!$this->_getData('config') instanceof \Magento\Framework\DataObject) {
+            $config = new \Magento\Framework\DataObject();
             $this->setConfig($config);
         }
         if ($key !== null) {
@@ -416,10 +436,11 @@ class Editor extends Textarea
      */
     public function isEnabled()
     {
-        if ($this->hasData('wysiwyg')) {
-            return $this->getWysiwyg();
+        $result = false;
+        if ($this->getConfig('enabled')) {
+            $result = $this->hasData('wysiwyg') ? $result = $this->getWysiwyg() : true;
         }
-        return $this->getConfig('enabled');
+        return $result;
     }
 
     /**
@@ -430,5 +451,13 @@ class Editor extends Textarea
     public function isHidden()
     {
         return $this->getConfig('hidden');
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isToggleButtonVisible()
+    {
+        return !$this->getConfig()->hasData('toggle_button') || $this->getConfig('toggle_button');
     }
 }

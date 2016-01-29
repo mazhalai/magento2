@@ -8,6 +8,9 @@ namespace Magento\Catalog\Controller\Adminhtml\Product;
 
 use Magento\Backend\App\Action;
 use Magento\Catalog\Controller\Adminhtml\Product;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Ui\Component\MassAction\Filter;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 
 class MassStatus extends \Magento\Catalog\Controller\Adminhtml\Product
 {
@@ -17,15 +20,33 @@ class MassStatus extends \Magento\Catalog\Controller\Adminhtml\Product
     protected $_productPriceIndexerProcessor;
 
     /**
+     * MassActions filter
+     *
+     * @var Filter
+     */
+    protected $filter;
+
+    /**
+     * @var CollectionFactory
+     */
+    protected $collectionFactory;
+
+    /**
      * @param Action\Context $context
      * @param Builder $productBuilder
      * @param \Magento\Catalog\Model\Indexer\Product\Price\Processor $productPriceIndexerProcessor
+     * @param Filter $filter
+     * @param CollectionFactory $collectionFactory
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         Product\Builder $productBuilder,
-        \Magento\Catalog\Model\Indexer\Product\Price\Processor $productPriceIndexerProcessor
+        \Magento\Catalog\Model\Indexer\Product\Price\Processor $productPriceIndexerProcessor,
+        Filter $filter,
+        CollectionFactory $collectionFactory
     ) {
+        $this->filter = $filter;
+        $this->collectionFactory = $collectionFactory;
         $this->_productPriceIndexerProcessor = $productPriceIndexerProcessor;
         parent::__construct($context, $productBuilder);
     }
@@ -53,34 +74,28 @@ class MassStatus extends \Magento\Catalog\Controller\Adminhtml\Product
      * Update product(s) status action
      *
      * @return \Magento\Backend\Model\View\Result\Redirect
-     * @throws \Magento\Framework\Exception\LocalizedException|\Exception
      */
     public function execute()
     {
-        $productIds = (array) $this->getRequest()->getParam('product');
+        $collection = $this->filter->getCollection($this->collectionFactory->create());
+        $productIds = $collection->getAllIds();
         $storeId = (int) $this->getRequest()->getParam('store', 0);
         $status = (int) $this->getRequest()->getParam('status');
 
-        $this->_validateMassStatus($productIds, $status);
-        $this->_objectManager->get('Magento\Catalog\Model\Product\Action')
-            ->updateAttributes($productIds, ['status' => $status], $storeId);
-        $this->messageManager->addSuccess(__('A total of %1 record(s) have been updated.', count($productIds)));
-        $this->_productPriceIndexerProcessor->reindexList($productIds);
+        try {
+            $this->_validateMassStatus($productIds, $status);
+            $this->_objectManager->get('Magento\Catalog\Model\Product\Action')
+                ->updateAttributes($productIds, ['status' => $status], $storeId);
+            $this->messageManager->addSuccess(__('A total of %1 record(s) have been updated.', count($productIds)));
+            $this->_productPriceIndexerProcessor->reindexList($productIds);
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            $this->messageManager->addError($e->getMessage());
+        } catch (\Exception $e) {
+            $this->_getSession()->addException($e, __('Something went wrong while updating the product(s) status.'));
+        }
 
-        return $this->getDefaultResult();
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return \Magento\Backend\Model\View\Result\Redirect
-     */
-    public function getDefaultResult()
-    {
-        $resultRedirect = $this->resultRedirectFactory->create();
-        return $resultRedirect->setPath(
-            'catalog/*/',
-            ['store' => $this->getRequest()->getParam('store', 0)]
-        );
+        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+        $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
+        return $resultRedirect->setPath('catalog/*/', ['store' => $storeId]);
     }
 }

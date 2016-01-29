@@ -10,7 +10,7 @@ use Magento\Framework\Exception\LocalizedException as CoreException;
 /**
  * Catalog composite product configuration controller
  */
-class Wishlist extends \Magento\Backend\App\Action
+abstract class Wishlist extends \Magento\Backend\App\Action
 {
     /**
      * Wishlist we're working with.
@@ -36,14 +36,14 @@ class Wishlist extends \Magento\Backend\App\Action
     {
         $wishlistItemId = (int)$this->getRequest()->getParam('id');
         if (!$wishlistItemId) {
-            throw new CoreException(__('No wishlist item ID is defined.'));
+            throw new CoreException(__('Please define Wish List item ID.'));
         }
 
         /* @var $wishlistItem \Magento\Wishlist\Model\Item */
         $wishlistItem = $this->_objectManager->create('Magento\Wishlist\Model\Item')->loadWithOptions($wishlistItemId);
 
         if (!$wishlistItem->getWishlistId()) {
-            throw new CoreException(__('Please load the wish list item.'));
+            throw new CoreException(__('Please load Wish List item.'));
         }
 
         $this->_wishlist = $this->_objectManager->create('Magento\Wishlist\Model\Wishlist')

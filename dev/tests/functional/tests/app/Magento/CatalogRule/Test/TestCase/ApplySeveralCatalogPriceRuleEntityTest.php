@@ -12,7 +12,7 @@ use Magento\Catalog\Test\Fixture\CatalogProductSimple;
  * Preconditions:
  * 1. Execute before each variation:
  *  - Delete all active catalog price rules
- *  - Create catalog price rule from dataSet using Curl
+ *  - Create catalog price rule from dataset using Curl
  *
  * Steps:
  * 1. Apply all created rules.
@@ -27,6 +27,7 @@ class ApplySeveralCatalogPriceRuleEntityTest extends AbstractCatalogRuleEntityTe
     /* tags */
     const MVP = 'yes';
     const DOMAIN = 'MX';
+    const TEST_TYPE = 'extended_acceptance_test';
     /* end tags */
 
     /**
@@ -44,7 +45,7 @@ class ApplySeveralCatalogPriceRuleEntityTest extends AbstractCatalogRuleEntityTe
             }
             $catalogRules[$key] = $this->fixtureFactory->createByCode(
                 'catalogRule',
-                ['dataSet' => $catalogPriceRule]
+                ['dataset' => $catalogPriceRule]
             );
             $catalogRules[$key]->persist();
 

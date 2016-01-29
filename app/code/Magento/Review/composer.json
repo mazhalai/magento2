@@ -2,33 +2,33 @@
     "name": "magento/module-review",
     "description": "N/A",
     "require": {
-        "php": "~5.5.0|~5.6.0",
-        "magento/module-store": "0.74.0-beta11",
-        "magento/module-catalog": "0.74.0-beta11",
-        "magento/module-customer": "0.74.0-beta11",
-        "magento/module-eav": "0.74.0-beta11",
-        "magento/module-theme": "0.74.0-beta11",
-        "magento/module-backend": "0.74.0-beta11",
-        "magento/module-newsletter": "0.74.0-beta11",
-        "magento/framework": "0.74.0-beta11",
-        "magento/module-ui": "0.74.0-beta11",
-        "magento/magento-composer-installer": "*"
+        "php": "~5.5.0|~5.6.0|~7.0.0",
+        "magento/module-store": "100.0.*",
+        "magento/module-catalog": "100.0.*",
+        "magento/module-customer": "100.0.*",
+        "magento/module-eav": "100.0.*",
+        "magento/module-theme": "100.0.*",
+        "magento/module-backend": "100.0.*",
+        "magento/module-newsletter": "100.0.*",
+        "magento/framework": "100.0.*",
+        "magento/module-ui": "100.0.*"
     },
     "suggest": {
-        "magento/module-cookie": "0.74.0-beta11"
+        "magento/module-cookie": "100.0.*",
+        "magento/module-review-sample-data": "Sample Data version:100.0.*"
     },
     "type": "magento2-module",
-    "version": "0.74.0-beta11",
+    "version": "100.0.2",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
-    "extra": {
-        "map": [
-            [
-                "*",
-                "Magento/Review"
-            ]
-        ]
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Magento\\Review\\": ""
+        }
     }
 }

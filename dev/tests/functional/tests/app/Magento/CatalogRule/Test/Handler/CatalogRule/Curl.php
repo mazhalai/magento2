@@ -43,10 +43,10 @@ class Curl extends Conditions implements CatalogRuleInterface
      */
     protected $mappingData = [
         'simple_action' => [
-            'By Percentage of the Original Price' => 'by_percent',
-            'By Fixed Amount' => 'by_fixed',
-            'To Percentage of the Original Price' => 'to_percent',
-            'To Fixed Amount' => 'to_fixed',
+            'Apply as percentage of original' => 'by_percent',
+            'Apply as fixed amount' => 'by_fixed',
+            'Adjust final price to this percentage' => 'to_percent',
+            'Adjust final price to discount value' => 'to_fixed',
         ],
         'is_active' => [
             'Active' => 1,
@@ -92,7 +92,7 @@ class Curl extends Conditions implements CatalogRuleInterface
         $url = $_ENV['app_backend_url'] . 'catalog_rule/promo_catalog/save/';
         $curl = new BackendDecorator(new CurlTransport(), $this->_configuration);
         $curl->addOption(CURLOPT_HEADER, 1);
-        $curl->write(CurlInterface::POST, $url, '1.0', [], $data);
+        $curl->write($url, $data);
         $response = $curl->read();
         $curl->close();
 
@@ -154,7 +154,7 @@ class Curl extends Conditions implements CatalogRuleInterface
         // Sort data in grid to define category price rule id if more than 20 items in grid
         $url = $_ENV['app_backend_url'] . 'catalog_rule/promo_catalog/index/sort/rule_id/dir/desc';
         $curl = new BackendDecorator(new CurlTransport(), $this->_configuration);
-        $curl->write(CurlInterface::POST, $url, '1.0');
+        $curl->write($url, [], CurlInterface::GET);
         $response = $curl->read();
         $curl->close();
 

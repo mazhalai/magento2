@@ -41,7 +41,7 @@ class Option extends \Magento\Framework\Model\AbstractExtensibleModel implements
      */
     protected function _construct()
     {
-        $this->_init('Magento\Bundle\Model\Resource\Option');
+        $this->_init('Magento\Bundle\Model\ResourceModel\Option');
         parent::_construct();
     }
 
@@ -53,7 +53,10 @@ class Option extends \Magento\Framework\Model\AbstractExtensibleModel implements
      */
     public function addSelection(\Magento\Catalog\Model\Product $selection)
     {
-        $selections = $this->getDataSetDefault('selections', []);
+        if (!$this->hasData('selections')) {
+            $this->setData('selections', []);
+        }
+        $selections = $this->getData('selections');
         $selections[] = $selection;
         $this->setSelections($selections);
     }

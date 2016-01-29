@@ -148,7 +148,7 @@ class Wishlist implements DataProviderInterface
                 }
 
                 $description = '<table><tr><td><a href="' . $productUrl . '"><img src="'
-                    . $this->imageHelper->init($product, 'thumbnail')->resize(75, 75)
+                    . $this->imageHelper->init($product, 'rss_thumbnail')->getUrl()
                     . '" border="0" align="left" height="75" width="75"></a></td>'
                     . '<td style="text-decoration:none;">'
                     . $this->outputHelper->productAttribute(
@@ -180,8 +180,8 @@ class Wishlist implements DataProviderInterface
             }
         } else {
             $data = [
-                'title' => __('We cannot retrieve the wish list.'),
-                'description' => __('We cannot retrieve the wish list.'),
+                'title' => __('We cannot retrieve the Wish List.'),
+                'description' => __('We cannot retrieve the Wish List.'),
                 'link' => $this->urlBuilder->getUrl(),
                 'charset' => 'UTF-8',
             ];

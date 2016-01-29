@@ -46,7 +46,7 @@ class Select extends \Magento\Catalog\Block\Product\View\Options\AbstractOptions
             if ($_option->getType() == \Magento\Catalog\Model\Product\Option::OPTION_TYPE_DROP_DOWN) {
                 $select->setName('options[' . $_option->getid() . ']')->addOption('', __('-- Please Select --'));
             } else {
-                $select->setName('options[' . $_option->getid() . ']');
+                $select->setName('options[' . $_option->getid() . '][]');
                 $select->setClass('multiselect admin__control-multiselect' . $require . ' product-custom-option');
             }
             foreach ($_option->getValues() as $_value) {
@@ -59,7 +59,7 @@ class Select extends \Magento\Catalog\Block\Product\View\Options\AbstractOptions
                 );
                 $select->addOption(
                     $_value->getOptionTypeId(),
-                    $_value->getTitle() . ' ' . $priceStr . '',
+                    $_value->getTitle() . ' ' . strip_tags($priceStr) . '',
                     ['price' => $this->pricingHelper->currencyByStore($_value->getPrice(true), $store, false)]
                 );
             }
@@ -69,6 +69,7 @@ class Select extends \Magento\Catalog\Block\Product\View\Options\AbstractOptions
             if (!$this->getSkipJsReloadPrice()) {
                 $extraParams .= ' onchange="opConfig.reloadPrice()"';
             }
+            $extraParams .= ' data-selector="' . $select->getName() . '"';
             $select->setExtraParams($extraParams);
 
             if ($configValue) {
@@ -89,15 +90,17 @@ class Select extends \Magento\Catalog\Block\Product\View\Options\AbstractOptions
                     $type = 'radio';
                     $class = 'radio admin__control-radio';
                     if (!$_option->getIsRequire()) {
-                        $selectHtml .= '<div class="field admin__field choice"><input type="radio" id="options_' .
+                        $selectHtml .= '<div class="field choice admin__field admin__field-option">' .
+                            '<input type="radio" id="options_' .
                             $_option->getId() .
                             '" class="' .
                             $class .
                             ' product-custom-option" name="options[' .
                             $_option->getId() .
                             ']"' .
+                            ' data-selector="options[' . $_option->getId() . ']"' .
                             ($this->getSkipJsReloadPrice() ? '' : ' onclick="opConfig.reloadPrice()"') .
-                            ' value="" checked="checked" /><label class="label" for="options_' .
+                            ' value="" checked="checked" /><label class="label admin__field-label" for="options_' .
                             $_option->getId() .
                             '"><span>' .
                             __('None') . '</span></label></div>';
@@ -127,6 +130,11 @@ class Select extends \Magento\Catalog\Block\Product\View\Options\AbstractOptions
                     $checked = $configValue == $htmlValue ? 'checked' : '';
                 }
 
+                $dataSelector = 'options[' . $_option->getId() . ']';
+                if ($arraySign) {
+                    $dataSelector .= '[' . $htmlValue . ']';
+                }
+
                 $selectHtml .= '<div class="field choice admin__field admin__field-option' .
                     $require .
                     '">' .
@@ -141,7 +149,7 @@ class Select extends \Magento\Catalog\Block\Product\View\Options\AbstractOptions
                     ' name="options[' .
                     $_option->getId() .
                     ']' .
-                    (!empty($arraySign) ? '[' . $htmlValue . ']' : '') .
+                    $arraySign .
                     '" id="options_' .
                     $_option->getId() .
                     '_' .
@@ -150,16 +158,17 @@ class Select extends \Magento\Catalog\Block\Product\View\Options\AbstractOptions
                     $htmlValue .
                     '" ' .
                     $checked .
+                    ' data-selector="' . $dataSelector . '"' .
                     ' price="' .
                     $this->pricingHelper->currencyByStore($_value->getPrice(true), $store, false) .
                     '" />' .
-                    '<label class="label" for="options_' .
+                    '<label class="label admin__field-label" for="options_' .
                     $_option->getId() .
                     '_' .
                     $count .
                     '"><span>' .
                     $_value->getTitle() .
-                    '</span>' .
+                    '</span> ' .
                     $priceStr .
                     '</label>';
                 $selectHtml .= '</div>';

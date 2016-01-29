@@ -5,6 +5,14 @@
  */
 namespace Magento\Catalog\Controller\Adminhtml\Product\Initialization;
 
+use Magento\Catalog\Api\Data\ProductCustomOptionInterfaceFactory as CustomOptionFactory;
+use Magento\Catalog\Api\Data\ProductLinkInterfaceFactory as ProductLinkFactory;
+use Magento\Catalog\Api\ProductRepositoryInterface\Proxy as ProductRepository;
+
+/**
+ * Class Helper
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class Helper
 {
     /**
@@ -33,24 +41,56 @@ class Helper
     protected $jsHelper;
 
     /**
+     * @var \Magento\Framework\Stdlib\DateTime\Filter\Date
+     */
+    protected $dateFilter;
+
+    /**
+     * @var CustomOptionFactory
+     */
+    protected $customOptionFactory;
+
+    /**
+     * @var ProductLinkFactory
+     */
+    protected $productLinkFactory;
+
+    /**
+     * @var ProductRepository
+     */
+    protected $productRepository;
+
+    /**
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param StockDataFilter $stockFilter
      * @param \Magento\Catalog\Model\Product\Initialization\Helper\ProductLinks $productLinks
      * @param \Magento\Backend\Helper\Js $jsHelper
+     * @param \Magento\Framework\Stdlib\DateTime\Filter\Date $dateFilter
+     * @param CustomOptionFactory $customOptionFactory
+     * @param ProductLinkFactory $productLinkFactory
+     * @param ProductRepository $productRepository
      */
     public function __construct(
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         StockDataFilter $stockFilter,
         \Magento\Catalog\Model\Product\Initialization\Helper\ProductLinks $productLinks,
-        \Magento\Backend\Helper\Js $jsHelper
+        \Magento\Backend\Helper\Js $jsHelper,
+        \Magento\Framework\Stdlib\DateTime\Filter\Date $dateFilter,
+        CustomOptionFactory $customOptionFactory,
+        ProductLinkFactory $productLinkFactory,
+        ProductRepository $productRepository
     ) {
         $this->request = $request;
         $this->storeManager = $storeManager;
         $this->stockFilter = $stockFilter;
         $this->productLinks = $productLinks;
         $this->jsHelper = $jsHelper;
+        $this->dateFilter = $dateFilter;
+        $this->customOptionFactory = $customOptionFactory;
+        $this->productLinkFactory = $productLinkFactory;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -60,6 +100,7 @@ class Helper
      * @return \Magento\Catalog\Model\Product
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function initialize(\Magento\Catalog\Model\Product $product)
     {
@@ -83,6 +124,19 @@ class Helper
             $product->unlockAttribute('media');
             $wasLockedMedia = true;
         }
+
+        $dateFieldFilters = [];
+        $attributes = $product->getAttributes();
+        foreach ($attributes as $attrKey => $attribute) {
+            if ($attribute->getBackend()->getType() == 'datetime') {
+                if (array_key_exists($attrKey, $productData) && $productData[$attrKey] != '') {
+                    $dateFieldFilters[$attrKey] = $this->dateFilter;
+                }
+            }
+        }
+
+        $inputFilter = new \Zend_Filter_Input($dateFieldFilters, [], $productData);
+        $productData = $inputFilter->getUnescaped();
 
         $product->addData($productData);
 
@@ -113,6 +167,43 @@ class Helper
             }
         }
         $product = $this->productLinks->initializeLinks($product, $links);
+        $productLinks = [];
+        $savedLinksByType = [];
+        foreach ($product->getProductLinks() as $link) {
+            $savedLinksByType[$link->getLinkType()][] = $link;
+        }
+        $this->dropRelationProductsCache($product);
+
+        $linkTypes = [
+            'related' => $product->getRelatedReadonly(),
+            'upsell' => $product->getUpsellReadonly(),
+            'crosssell' => $product->getCrosssellReadonly()
+        ];
+        foreach ($linkTypes as $linkType => $readonly) {
+            if (isset($links[$linkType]) && !$readonly) {
+                foreach ($links[$linkType] as $linkId => $linkData) {
+                    $linkProduct = $this->productRepository->getById($linkId);
+                    $link = $this->productLinkFactory->create();
+                    $link->setSku($product->getSku())
+                        ->setLinkedProductSku($linkProduct->getSku())
+                        ->setLinkType($linkType)
+                        ->setPosition(isset($linkData['position']) ? (int)$linkData['position'] : 0);
+                    $productLinks[] = $link;
+                }
+            } else {
+                if (array_key_exists($linkType, $savedLinksByType)) {
+                    $productLinks = array_merge($productLinks, $savedLinksByType[$linkType]);
+                }
+            }
+            if (isset($savedLinksByType[$linkType])) {
+                unset($savedLinksByType[$linkType]);
+            }
+        }
+
+        foreach ($savedLinksByType as $links) {
+            $productLinks = array_merge($productLinks, $links);
+        }
+        $product->setProductLinks($productLinks);
 
         /**
          * Initialize product options
@@ -123,7 +214,16 @@ class Helper
                 $productData['options'],
                 $this->request->getPost('options_use_default')
             );
-            $product->setProductOptions($options);
+            $customOptions = [];
+            foreach ($options as $customOptionData) {
+                if (!(bool)$customOptionData['is_delete']) {
+                    $customOption = $this->customOptionFactory->create(['data' => $customOptionData]);
+                    $customOption->setProductSku($product->getSku());
+                    $customOption->setOptionId(null);
+                    $customOptions[] = $customOption;
+                }
+            }
+            $product->setOptions($customOptions);
         }
 
         $product->setCanSaveCustomOptions(
@@ -157,5 +257,19 @@ class Helper
         }
 
         return $options;
+    }
+
+    /**
+     * @param \Magento\Catalog\Model\Product $product
+     * @return void
+     */
+    private function dropRelationProductsCache(\Magento\Catalog\Model\Product $product)
+    {
+        $product->unsetData('up_sell_products');
+        $product->unsetData('up_sell_products_ids');
+        $product->unsetData('related_products');
+        $product->unsetData('related_products_ids');
+        $product->unsetData('cross_sell_products');
+        $product->unsetData('cross_sell_products_ids');
     }
 }

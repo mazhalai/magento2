@@ -18,7 +18,7 @@ class AssertTermSuccessSaveMessage extends AbstractConstraint
     /**
      * Success terms and conditions save message
      */
-    const SUCCESS_SAVE_MESSAGE = 'The condition has been saved.';
+    const SUCCESS_SAVE_MESSAGE = 'You saved the condition.';
 
     /**
      * Assert that after save block successful message appears.
@@ -30,7 +30,7 @@ class AssertTermSuccessSaveMessage extends AbstractConstraint
     {
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_SAVE_MESSAGE,
-            $agreementIndex->getMessagesBlock()->getSuccessMessages(),
+            $agreementIndex->getMessagesBlock()->getSuccessMessage(),
             'Wrong success message is displayed.'
         );
     }

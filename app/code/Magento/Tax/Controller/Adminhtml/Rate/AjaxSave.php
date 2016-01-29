@@ -26,7 +26,7 @@ class AjaxSave extends \Magento\Tax\Controller\Adminhtml\Rate
                 'success' => true,
                 'error_message' => '',
                 'tax_calculation_rate_id' => $taxRate->getId(),
-                'code' => $taxRate->getCode(),
+                'code' =>  htmlspecialchars($taxRate->getCode()),
             ];
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
             $responseContent = [
@@ -38,7 +38,7 @@ class AjaxSave extends \Magento\Tax\Controller\Adminhtml\Rate
         } catch (\Exception $e) {
             $responseContent = [
                 'success' => false,
-                'error_message' => __('Something went wrong saving this rate.'),
+                'error_message' => __('We can\'t save this rate right now.'),
                 'tax_calculation_rate_id' => '',
                 'code' => '',
             ];

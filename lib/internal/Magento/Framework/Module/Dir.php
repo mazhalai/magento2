@@ -7,32 +7,34 @@
  */
 namespace Magento\Framework\Module;
 
-use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Component\ComponentRegistrar;
+use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\Filesystem;
-use Magento\Framework\Filesystem\Directory\ReadInterface;
 
 class Dir
 {
+    /**#@+
+     * Directories within modules
+     */
+    const MODULE_ETC_DIR = 'etc';
+    const MODULE_I18N_DIR = 'i18n';
+    const MODULE_VIEW_DIR = 'view';
+    const MODULE_CONTROLLER_DIR = 'Controller';
+    /**#@-*/
+
     /**
-     * Modules root directory
+     * Module registry
      *
-     * @var ReadInterface
+     * @var ComponentRegistrarInterface
      */
-    protected $_modulesDirectory;
+    private $componentRegistrar;
 
     /**
-     * @var \Magento\Framework\Stdlib\String
+     * @param ComponentRegistrarInterface $componentRegistrar
      */
-    protected $_string;
-
-    /**
-     * @param Filesystem $filesystem
-     * @param \Magento\Framework\Stdlib\String $string
-     */
-    public function __construct(Filesystem $filesystem, \Magento\Framework\Stdlib\String $string)
+    public function __construct(ComponentRegistrarInterface $componentRegistrar)
     {
-        $this->_modulesDirectory = $filesystem->getDirectoryRead(DirectoryList::MODULES);
-        $this->_string = $string;
+        $this->componentRegistrar = $componentRegistrar;
     }
 
     /**
@@ -45,16 +47,20 @@ class Dir
      */
     public function getDir($moduleName, $type = '')
     {
-        $path = $this->_string->upperCaseWords($moduleName, '_', '/');
+        $path = $this->componentRegistrar->getPath(ComponentRegistrar::MODULE, $moduleName);
+
         if ($type) {
-            if (!in_array($type, ['etc', 'i18n', 'view', 'Controller'])) {
+            if (!in_array($type, [
+                self::MODULE_ETC_DIR,
+                self::MODULE_I18N_DIR,
+                self::MODULE_VIEW_DIR,
+                self::MODULE_CONTROLLER_DIR
+            ])) {
                 throw new \InvalidArgumentException("Directory type '{$type}' is not recognized.");
             }
             $path .= '/' . $type;
         }
 
-        $result = $this->_modulesDirectory->getAbsolutePath($path);
-
-        return $result;
+        return $path;
     }
 }

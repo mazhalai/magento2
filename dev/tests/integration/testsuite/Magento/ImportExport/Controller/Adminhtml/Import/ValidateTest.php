@@ -4,12 +4,13 @@
  * See COPYING.txt for license details.
  */
 namespace Magento\ImportExport\Controller\Adminhtml\Import;
+
 use Magento\Framework\Filesystem\DirectoryList;
 
 /**
  * @magentoAppArea adminhtml
  */
-class ValidateTest extends \Magento\Backend\Utility\Controller
+class ValidateTest extends \Magento\TestFramework\TestCase\AbstractBackendController
 {
     /**
      * @backupGlobals enabled
@@ -25,7 +26,8 @@ class ValidateTest extends \Magento\Backend\Utility\Controller
         $formKey = $this->_objectManager->get('Magento\Framework\Data\Form\FormKey');
         $this->getRequest()->setPostValue('form_key', $formKey->getFormKey());
         $this->getRequest()->setPostValue('entity', 'catalog_product');
-        $this->getRequest()->setPostValue('behavior', 'replace');
+        $this->getRequest()->setPostValue('behavior', 'append');
+        $this->getRequest()->setPostValue('_import_field_separator', ',');
 
 
         $name = 'catalog_product.csv';
@@ -60,7 +62,7 @@ class ValidateTest extends \Magento\Backend\Utility\Controller
         $this->dispatch('backend/admin/import/validate');
 
         $this->assertContains('File is valid', $this->getResponse()->getBody());
-        $this->assertNotContains('File was not uploaded', $this->getResponse()->getBody());
+        $this->assertNotContains('The file was not uploaded.', $this->getResponse()->getBody());
         $this->assertNotRegExp(
             '/clear[^\[]*\[[^\]]*(import_file|import_image_archive)[^\]]*\]/m',
             $this->getResponse()->getBody()

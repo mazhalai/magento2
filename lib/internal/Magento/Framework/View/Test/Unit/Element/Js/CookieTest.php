@@ -13,17 +13,17 @@ class CookieTest extends \PHPUnit_Framework_TestCase
     protected $model;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\View\Element\Template\Context
      */
     protected $contextMock;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\Session\Config\ConfigInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $sessionConfigMock;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\Validator\Ip|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $ipValidatorMock;
 
@@ -38,6 +38,21 @@ class CookieTest extends \PHPUnit_Framework_TestCase
         $this->ipValidatorMock = $this->getMockBuilder('Magento\Framework\Validator\Ip')
             ->disableOriginalConstructor()
             ->getMock();
+
+        $validtorMock = $this->getMockBuilder('Magento\Framework\View\Element\Template\File\Validator')
+            ->setMethods(['isValid'])->disableOriginalConstructor()->getMock();
+
+        $scopeConfigMock = $this->getMockBuilder('Magento\Framework\App\Config')
+            ->setMethods(['isSetFlag'])->disableOriginalConstructor()->getMock();
+
+        $this->contextMock->expects($this->any())
+            ->method('getScopeConfig')
+            ->will($this->returnValue($scopeConfigMock));
+
+        $this->contextMock->expects($this->any())
+            ->method('getValidator')
+            ->will($this->returnValue($validtorMock));
+
         $this->model = new \Magento\Framework\View\Element\Js\Cookie(
             $this->contextMock,
             $this->sessionConfigMock,
@@ -87,5 +102,15 @@ class CookieTest extends \PHPUnit_Framework_TestCase
 
         $result = $this->model->getPath();
         $this->assertEquals($path, $result);
+    }
+
+    public function testGetLifetime()
+    {
+        $lifetime = 3600;
+        $this->sessionConfigMock->expects(static::once())
+            ->method('getCookieLifetime')
+            ->willReturn($lifetime);
+
+        $this->assertEquals($lifetime, $this->model->getLifetime());
     }
 }

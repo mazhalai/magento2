@@ -6,7 +6,6 @@
 
 namespace Magento\Payment\Test\Unit\Model\Method;
 
-use Magento\Payment\Model\Method\ConfigInterface;
 use Magento\Payment\Model\Method\Logger;
 use Psr\Log\LoggerInterface;
 
@@ -18,39 +17,62 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     /** @var LoggerInterface | \PHPUnit_Framework_MockObject_MockObject */
     private $loggerMock;
 
-    /** @var ConfigInterface | \PHPUnit_Framework_MockObject_MockObject */
-    private $configMock;
-
     protected function setUp()
     {
         $this->loggerMock = $this->getMockForAbstractClass('Psr\Log\LoggerInterface');
-        $this->configMock = $this->getMockForAbstractClass('Magento\Payment\Model\Method\ConfigInterface');
-
         $this->logger = new Logger($this->loggerMock);
     }
 
     public function testDebugOn()
     {
-        $this->configMock->expects($this->once())
-            ->method('getConfigValue')
-            ->with('debug')
-            ->willReturn(true);
+        $debugData =
+            [
+                'request' => ['masked' => '123', 'unmasked' => '123']
+            ];
+        $expectedDebugData =
+            [
+                'request' => ['masked' => Logger::DEBUG_KEYS_MASK, 'unmasked' => '123']
+            ];
+        $debugReplaceKeys =
+            [
+                'masked'
+            ];
+
         $this->loggerMock->expects($this->once())
             ->method('debug')
-            ->with("'test_value'");
+            ->with(var_export($expectedDebugData, true));
 
-        $this->logger->debug('test_value', $this->configMock);
+        $this->logger->debug($debugData, $debugReplaceKeys, true);
+    }
+
+    public function testDebugOnNoReplaceKeys()
+    {
+        $debugData =
+            [
+                'request' => ['data1' => '123', 'data2' => '123']
+            ];
+
+        $this->loggerMock->expects(static::once())
+            ->method('debug')
+            ->with(var_export($debugData, true));
+
+        $this->logger->debug($debugData, [], true);
     }
 
     public function testDebugOff()
     {
-        $this->configMock->expects($this->once())
-            ->method('getConfigValue')
-            ->with('debug')
-            ->willReturn(false);
+        $debugData =
+            [
+                'request' => ['masked' => '123', 'unmasked' => '123']
+            ];
+        $debugReplaceKeys =
+            [
+                'masked'
+            ];
+
         $this->loggerMock->expects($this->never())
             ->method('debug');
 
-        $this->logger->debug('', $this->configMock);
+        $this->logger->debug($debugData, $debugReplaceKeys, false);
     }
 }

@@ -18,7 +18,7 @@ class AssertWebsiteSuccessDeleteMessage extends AbstractConstraint
     /**
      * Success website delete message
      */
-    const SUCCESS_DELETE_MESSAGE = 'The website has been deleted.';
+    const SUCCESS_DELETE_MESSAGE = 'You deleted the website.';
 
     /**
      * Assert that success message is displayed after deleting website
@@ -30,7 +30,7 @@ class AssertWebsiteSuccessDeleteMessage extends AbstractConstraint
     {
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_DELETE_MESSAGE,
-            $storeIndex->getMessagesBlock()->getSuccessMessages(),
+            $storeIndex->getMessagesBlock()->getSuccessMessage(),
             'Wrong success delete message is displayed.'
         );
     }

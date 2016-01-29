@@ -24,7 +24,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
     protected $formFactory;
 
     /**
-     * @var \Magento\Sales\Model\Resource\Order\Status\CollectionFactory | \PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory | \PHPUnit_Framework_MockObject_MockObject
      */
     protected $collectionFactory;
 
@@ -39,7 +39,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
 
         $this->formFactory = $this->getMock('Magento\Framework\Data\FormFactory', ['create'], [], '', false);
         $this->collectionFactory = $this->getMock(
-            'Magento\Sales\Model\Resource\Order\Status\CollectionFactory',
+            'Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory',
             ['create'],
             [],
             '',
@@ -69,7 +69,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
 
         $form = $this->getMock('Magento\Framework\Data\Form', [], [], '', false);
         $fieldset = $this->getMock('Magento\Framework\Data\Form\Element\Fieldset', [], [], '', false);
-        $collection = $this->getMock('Magento\Sales\Model\Resource\Order\Status\Collection', [], [], '', false);
+        $collection = $this->getMock('Magento\Sales\Model\ResourceModel\Order\Status\Collection', [], [], '', false);
 
         $form->expects($this->once())
             ->method('addFieldset')
@@ -127,7 +127,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
             ->with(
                 'visible_on_front',
                 'checkbox',
-                ['name' => 'visible_on_front', 'label' => __('Visible On Frontend'), 'value' => 1]
+                ['name' => 'visible_on_front', 'label' => __('Visible On Storefront'), 'value' => 1]
             );
 
         $this->block->toHtml();

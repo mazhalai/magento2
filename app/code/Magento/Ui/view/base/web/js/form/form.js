@@ -4,10 +4,11 @@
  */
 define([
     'underscore',
-    'uiComponent',
     'Magento_Ui/js/lib/spinner',
-    './adapter'
-], function (_, Component, loader, adapter) {
+    'rjsResolver',
+    './adapter',
+    'uiCollection'
+], function (_, loader, resolver, adapter, Collection) {
     'use strict';
 
     function collectData(selector) {
@@ -17,17 +18,31 @@ define([
         items = Array.prototype.slice.call(items);
 
         items.forEach(function (item) {
-            result[item.name] = item.value;
+            switch (item.type) {
+                case 'checkbox':
+                    result[item.name] = +!!item.checked;
+                    break;
+
+                case 'radio':
+                    if (item.checked) {
+                        result[item.name] = item.value;
+                    }
+                    break;
+
+                default:
+                    result[item.name] = item.value;
+            }
         });
 
         return result;
     }
 
-    return Component.extend({
+    return Collection.extend({
         initialize: function () {
             this._super()
-                .initAdapter()
-                .hideLoader();
+                .initAdapter();
+
+            resolver(this.hideLoader, this);
 
             return this;
         },
@@ -36,13 +51,14 @@ define([
             adapter.on({
                 'reset': this.reset.bind(this),
                 'save': this.save.bind(this, true),
-                'saveAndContinue': this.save.bind(this, false)
+                'saveAndContinue': this.save.bind(this, false),
+                'saveAndApply': this.saveAndApply.bind(this, true)
             });
 
             return this;
         },
 
-        initProperties: function () {
+        initConfig: function () {
             this._super();
 
             this.selector = '[data-form-part=' + this.namespace + ']';
@@ -76,7 +92,10 @@ define([
             });
 
             source.save({
-                redirect: redirect
+                redirect: redirect,
+                attributes: {
+                    id: this.namespace
+                }
             });
         },
 
@@ -90,6 +109,15 @@ define([
 
         reset: function () {
             this.source.trigger('data.reset');
+        },
+
+        saveAndApply: function (redirect) {
+            this.validate();
+
+            if (!this.source.get('params.invalid')) {
+                this.source.set('data.auto_apply', 1);
+                this.submit(redirect);
+            }
         }
     });
 });

@@ -16,13 +16,18 @@ class ScoreBuilder
     private $scoreCondition = '';
 
     /**
+     * @var string
+     */
+    const WEIGHT_FIELD = 'search_weight';
+
+    /**
      * Get column alias for global score query in sql
      *
      * @return string
      */
     public function getScoreAlias()
     {
-        return 'global_score';
+        return 'score';
     }
 
     /**
@@ -58,7 +63,7 @@ class ScoreBuilder
      */
     public function endQuery($boost)
     {
-        if (!empty($this->scoreCondition) && substr($this->scoreCondition, -1) != '(') {
+        if (!empty($this->scoreCondition) && substr($this->scoreCondition, -1) !== '(') {
             $this->scoreCondition .= ") * {$boost}";
         } else {
             $this->scoreCondition .= '0)';
@@ -69,13 +74,17 @@ class ScoreBuilder
      * Add Condition for score calculation
      *
      * @param string $score
-     * @param float $boost
+     * @param bool $useWeights
      * @return void
      */
-    public function addCondition($score, $boost)
+    public function addCondition($score, $useWeights = true)
     {
         $this->addPlus();
-        $this->scoreCondition .= "{$score} * {$boost}";
+        $condition = "{$score}";
+        if ($useWeights) {
+            $condition = "LEAST(($condition), 1000000) * POW(2, " . self::WEIGHT_FIELD . ')';
+        }
+        $this->scoreCondition .= $condition;
     }
 
     /**
@@ -85,7 +94,7 @@ class ScoreBuilder
      */
     private function addPlus()
     {
-        if (!empty($this->scoreCondition) && substr($this->scoreCondition, -1) != '(') {
+        if (!empty($this->scoreCondition) && substr($this->scoreCondition, -1) !== '(') {
             $this->scoreCondition .= ' + ';
         }
     }

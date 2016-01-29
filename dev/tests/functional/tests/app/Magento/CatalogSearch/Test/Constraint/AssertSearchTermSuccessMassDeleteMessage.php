@@ -10,18 +10,17 @@ use Magento\CatalogSearch\Test\Page\Adminhtml\CatalogSearchIndex;
 use Magento\Mtf\Constraint\AbstractConstraint;
 
 /**
- * Class AssertSearchTermSuccessMassDeleteMessage
- * Assert that success message is displayed after search terms were mass deleted
+ * Assert that success message is displayed after search terms were mass deleted.
  */
 class AssertSearchTermSuccessMassDeleteMessage extends AbstractConstraint
 {
     /**
      * Text value to be checked
      */
-    const SUCCESS_MESSAGE = 'Total of %d record(s) were deleted';
+    const SUCCESS_MESSAGE = 'Total of %d record(s) were deleted.';
 
     /**
-     * Assert that success message is displayed after search terms were mass deleted
+     * Assert that success message is displayed after search terms were mass deleted.
      *
      * @param array $searchTerms
      * @param CatalogSearchIndex $indexPage
@@ -29,17 +28,19 @@ class AssertSearchTermSuccessMassDeleteMessage extends AbstractConstraint
      */
     public function processAssert(array $searchTerms, CatalogSearchIndex $indexPage)
     {
-        $actualMessage = $indexPage->getMessagesBlock()->getSuccessMessages();
-        $successMessages = sprintf(self::SUCCESS_MESSAGE, count($searchTerms));
+        $actualMessage = $indexPage->getMessagesBlock()->getSuccessMessage();
+        $expectedMessage = sprintf(self::SUCCESS_MESSAGE, count($searchTerms));
         \PHPUnit_Framework_Assert::assertEquals(
-            $successMessages,
+            $expectedMessage,
             $actualMessage,
             'Wrong success message is displayed.'
+            . "\nExpected: " . $expectedMessage
+            . "\nActual: " . $actualMessage
         );
     }
 
     /**
-     * Returns a string representation of the object
+     * Returns a string representation of the object.
      *
      * @return string
      */

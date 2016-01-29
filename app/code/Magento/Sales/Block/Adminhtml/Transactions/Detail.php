@@ -3,7 +3,10 @@
  * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Magento\Sales\Block\Adminhtml\Transactions;
+
+use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 
 /**
  * Adminhtml transaction detail
@@ -27,16 +30,32 @@ class Detail extends \Magento\Backend\Block\Widget\Container
     protected $_coreRegistry = null;
 
     /**
+     * @var \Magento\Sales\Helper\Admin
+     */
+    private $adminHelper;
+
+    /**
+     * @var OrderPaymentRepositoryInterface
+     */
+    protected $orderPaymentRepository;
+
+    /**
      * @param \Magento\Backend\Block\Widget\Context $context
      * @param \Magento\Framework\Registry $registry
+     * @param \Magento\Sales\Helper\Admin $adminHelper
+     * @param \Magento\Sales\Api\OrderPaymentRepositoryInterface $orderPaymentRepository
      * @param array $data
      */
     public function __construct(
         \Magento\Backend\Block\Widget\Context $context,
         \Magento\Framework\Registry $registry,
+        \Magento\Sales\Helper\Admin $adminHelper,
+        OrderPaymentRepositoryInterface $orderPaymentRepository,
         array $data = []
     ) {
         $this->_coreRegistry = $registry;
+        $this->adminHelper = $adminHelper;
+        $this->orderPaymentRepository = $orderPaymentRepository;
         parent::__construct($context, $data);
     }
 
@@ -60,10 +79,12 @@ class Detail extends \Magento\Backend\Block\Widget\Container
             ['label' => __('Back'), 'onclick' => "setLocation('{$backUrl}')", 'class' => 'back']
         );
 
-        if ($this->_authorization->isAllowed(
-            'Magento_Sales::transactions_fetch'
-        ) && $this->_txn->getOrderPaymentObject()->getMethodInstance()->canFetchTransactionInfo()
-        ) {
+        $fetchTransactionAllowed = $this->_authorization->isAllowed('Magento_Sales::transactions_fetch');
+        $canFetchTransaction = $this->orderPaymentRepository->get($this->_txn->getPaymentId())
+            ->getMethodInstance()
+            ->canFetchTransactionInfo();
+
+        if ($fetchTransactionAllowed && $canFetchTransaction) {
             $fetchUrl = $this->getUrl('sales/*/fetch', ['_current' => true]);
             $this->buttonList->add(
                 'fetch',
@@ -97,7 +118,10 @@ class Detail extends \Magento\Backend\Block\Widget\Container
      */
     protected function _toHtml()
     {
-        $this->setTxnIdHtml($this->escapeHtml($this->_txn->getTxnId()));
+        $this->setTxnIdHtml($this->adminHelper->escapeHtmlWithLinks(
+            $this->_txn->getHtmlTxnId(),
+            ['a']
+        ));
 
         $this->setParentTxnIdUrlHtml(
             $this->escapeHtml($this->getUrl('sales/transactions/view', ['txn_id' => $this->_txn->getParentId()]))

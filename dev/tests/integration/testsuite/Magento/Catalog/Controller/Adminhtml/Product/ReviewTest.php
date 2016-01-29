@@ -8,17 +8,21 @@ namespace Magento\Catalog\Controller\Adminhtml\Product;
 /**
  * @magentoAppArea adminhtml
  */
-class ReviewTest extends \Magento\Backend\Utility\Controller
+class ReviewTest extends \Magento\TestFramework\TestCase\AbstractBackendController
 {
     /**
      * @magentoDataFixture Magento/Review/_files/review_xss.php
      */
     public function testEditActionProductNameXss()
     {
+        $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
+        $productRepository = $objectManager->create('Magento\Catalog\Api\ProductRepositoryInterface');
+        $product = $productRepository->get('product-with-xss');
+
         $reviewId = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(
             'Magento\Review\Model\Review'
         )->load(
-            1,
+            $product->getId(),
             'entity_pk_value'
         )->getId();
         $this->dispatch('backend/review/product/edit/id/' . $reviewId);

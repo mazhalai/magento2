@@ -113,7 +113,7 @@ class Http implements \Magento\Framework\AppInterface
         /** @var \Magento\Framework\App\FrontControllerInterface $frontController */
         $frontController = $this->_objectManager->get('Magento\Framework\App\FrontControllerInterface');
         $result = $frontController->dispatch($this->_request);
-        // TODO: Temporary solution till all controllers are returned not ResultInterface (MAGETWO-28359)
+        // TODO: Temporary solution until all controllers return ResultInterface (MAGETWO-28359)
         if ($result instanceof ResultInterface) {
             $this->registry->register('use_page_cache_plugin', true, true);
             $result->renderResult($this->_response);
@@ -184,9 +184,12 @@ class Http implements \Magento\Framework\AppInterface
             $this->_response->setRedirect($setupInfo->getUrl());
             $this->_response->sendHeaders();
         } else {
-            $newMessage = $exception->getMessage() . "\nNOTE: web setup wizard is not accessible.\n"
-                . 'In order to install, use Magento Setup CLI or configure web access to the following directory: '
-                . $setupInfo->getDir($projectRoot);
+            $newMessage = $exception->getMessage() . "\nNOTE: You cannot install Magento using the Setup Wizard "
+                . "because the Magento setup directory cannot be accessed. \n"
+                . 'You can install Magento using either the command line or you must restore access '
+                . 'to the following directory: ' . $setupInfo->getDir($projectRoot) . "\n";
+            $newMessage .= 'If you are using the sample nginx configuration, please go to '
+                . $this->_request->getScheme(). '://' . $this->_request->getHttpHost() . $setupInfo->getUrl();
             throw new \Exception($newMessage, 0, $exception);
         }
     }

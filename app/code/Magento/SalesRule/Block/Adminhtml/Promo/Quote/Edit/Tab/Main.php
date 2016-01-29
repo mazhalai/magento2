@@ -13,14 +13,15 @@ use Magento\Backend\Block\Widget\Form\Generic;
 use Magento\Backend\Block\Widget\Tab\TabInterface;
 use Magento\Customer\Api\GroupRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Convert\Object as ObjectConverter;
+use Magento\Framework\Convert\DataObject as ObjectConverter;
 use Magento\Framework\Data\FormFactory;
 use Magento\Framework\Registry;
 use Magento\SalesRule\Model\RuleFactory;
 use Magento\Store\Model\System\Store;
 
 /**
- * Shopping Cart Price Rule General Information Tab
+ * Cart Price Rule General Information Tab
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  *
  * @author Magento Core Team <core@magentocommerce.com>
  */
@@ -32,7 +33,7 @@ class Main extends Generic implements TabInterface
     protected $_systemStore;
 
     /**
-     * @var \Magento\Framework\Convert\Object
+     * @var \Magento\Framework\Convert\DataObject
      */
     protected $_objectConverter;
 
@@ -263,8 +264,8 @@ class Main extends Generic implements TabInterface
             'date',
             [
                 'name' => 'from_date',
-                'label' => __('From Date'),
-                'title' => __('From Date'),
+                'label' => __('From'),
+                'title' => __('From'),
                 'input_format' => \Magento\Framework\Stdlib\DateTime::DATE_INTERNAL_FORMAT,
                 'date_format' => $dateFormat
             ]
@@ -274,8 +275,8 @@ class Main extends Generic implements TabInterface
             'date',
             [
                 'name' => 'to_date',
-                'label' => __('To Date'),
-                'title' => __('To Date'),
+                'label' => __('To'),
+                'title' => __('To'),
                 'input_format' => \Magento\Framework\Stdlib\DateTime::DATE_INTERNAL_FORMAT,
                 'date_format' => $dateFormat
             ]
@@ -317,7 +318,7 @@ class Main extends Generic implements TabInterface
         $this->setChild(
             'form_after',
             $this->getLayout()->createBlock(
-                'Magento\Backend\Block\Widget\Form\Element\Dependence'
+                'Magento\SalesRule\Block\Widget\Form\Element\Dependence'
             )->addFieldMap(
                 $couponTypeFiled->getHtmlId(),
                 $couponTypeFiled->getName()

@@ -61,7 +61,7 @@ class CreateSalesRuleStep implements TestStepInterface
         if ($this->salesRule !== null) {
             $salesRule = $this->fixtureFactory->createByCode(
                 'salesRule',
-                ['dataSet' => $this->salesRule]
+                ['dataset' => $this->salesRule]
             );
             $salesRule->persist();
             $result['salesRule'] = $salesRule;
@@ -77,6 +77,8 @@ class CreateSalesRuleStep implements TestStepInterface
      */
     public function cleanup()
     {
-        $this->deleteAllSalesRule->run();
+        if ($this->salesRule !== null) {
+            $this->deleteAllSalesRule->run();
+        }
     }
 }

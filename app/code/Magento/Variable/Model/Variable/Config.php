@@ -38,7 +38,7 @@ class Config
     /**
      * Prepare variable wysiwyg config
      *
-     * @param \Magento\Framework\Object $config
+     * @param \Magento\Framework\DataObject $config
      * @return array
      */
     public function getWysiwygPluginSettings($config)
@@ -71,6 +71,7 @@ class Config
      * Return url to wysiwyg plugin
      *
      * @return string
+     * @codeCoverageIgnore
      */
     public function getWysiwygJsPluginSrc()
     {
@@ -82,6 +83,7 @@ class Config
      * Return url of action to get variables
      *
      * @return string
+     * @codeCoverageIgnore
      */
     public function getVariablesWysiwygActionUrl()
     {

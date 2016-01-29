@@ -13,7 +13,7 @@ use Magento\Framework\App\RequestInterface;
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class Onepage extends Action
+abstract class Onepage extends Action
 {
     /**
      * @var array
@@ -57,7 +57,7 @@ class Onepage extends Action
     protected $layoutFactory;
 
     /**
-     * @var \Magento\Quote\Model\QuoteRepository
+     * @var \Magento\Quote\Api\CartRepositoryInterface
      */
     protected $quoteRepository;
 
@@ -91,12 +91,13 @@ class Onepage extends Action
      * @param \Magento\Framework\Data\Form\FormKey\Validator $formKeyValidator
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Framework\View\LayoutFactory $layoutFactory
-     * @param \Magento\Quote\Model\QuoteRepository $quoteRepository
+     * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
      * @param \Magento\Framework\View\Result\LayoutFactory $resultLayoutFactory
      * @param \Magento\Framework\Controller\Result\RawFactory $resultRawFactory
      * @param \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
      *
+     * @codeCoverageIgnore
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -109,7 +110,7 @@ class Onepage extends Action
         \Magento\Framework\Data\Form\FormKey\Validator $formKeyValidator,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\View\LayoutFactory $layoutFactory,
-        \Magento\Quote\Model\QuoteRepository $quoteRepository,
+        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
         \Magento\Framework\View\Result\LayoutFactory $resultLayoutFactory,
         \Magento\Framework\Controller\Result\RawFactory $resultRawFactory,
@@ -180,14 +181,14 @@ class Onepage extends Action
     {
         $quote = $this->getOnepage()->getQuote();
         if (!$quote->hasItems() || $quote->getHasError() || !$quote->validateMinimumAmount()) {
-            return false;
+            return true;
         }
         $action = $this->getRequest()->getActionName();
         if ($this->_objectManager->get('Magento\Checkout\Model\Session')->getCartWasUpdated(true)
             &&
             !in_array($action, ['index', 'progress'])
         ) {
-            return false;
+            return true;
         }
 
         return false;
@@ -214,6 +215,7 @@ class Onepage extends Action
      * Get shipping method step html
      *
      * @return string
+     * @codeCoverageIgnore
      */
     protected function _getShippingMethodsHtml()
     {
@@ -224,6 +226,7 @@ class Onepage extends Action
      * Get payment method step html
      *
      * @return string
+     * @codeCoverageIgnore
      */
     protected function _getPaymentMethodsHtml()
     {
@@ -251,6 +254,7 @@ class Onepage extends Action
      * Get one page checkout model
      *
      * @return \Magento\Checkout\Model\Type\Onepage
+     * @codeCoverageIgnore
      */
     public function getOnepage()
     {

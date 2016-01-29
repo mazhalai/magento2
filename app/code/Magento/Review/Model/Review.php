@@ -6,8 +6,9 @@
 namespace Magento\Review\Model;
 
 use Magento\Catalog\Model\Product;
-use Magento\Review\Model\Resource\Review\Product\Collection as ProductCollection;
-use Magento\Review\Model\Resource\Review\Status\Collection as StatusCollection;
+use Magento\Framework\DataObject\IdentityInterface;
+use Magento\Review\Model\ResourceModel\Review\Product\Collection as ProductCollection;
+use Magento\Review\Model\ResourceModel\Review\Status\Collection as StatusCollection;
 
 /**
  * Review model
@@ -21,7 +22,7 @@ use Magento\Review\Model\Resource\Review\Status\Collection as StatusCollection;
  * @method \Magento\Review\Model\Review setStatusId(int $value)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class Review extends \Magento\Framework\Model\AbstractModel
+class Review extends \Magento\Framework\Model\AbstractModel implements IdentityInterface
 {
     /**
      * Event prefix for observer
@@ -29,6 +30,11 @@ class Review extends \Magento\Framework\Model\AbstractModel
      * @var string
      */
     protected $_eventPrefix = 'review';
+
+    /**
+     * Cache tag
+     */
+    const CACHE_TAG = 'review_block';
 
     /**
      * Product entity review code
@@ -63,14 +69,14 @@ class Review extends \Magento\Framework\Model\AbstractModel
     /**
      * Review product collection factory
      *
-     * @var \Magento\Review\Model\Resource\Review\Product\CollectionFactory
+     * @var \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory
      */
     protected $productCollectionFactory;
 
     /**
      * Review status collection factory
      *
-     * @var \Magento\Review\Model\Resource\Review\Status\CollectionFactory
+     * @var \Magento\Review\Model\ResourceModel\Review\Status\CollectionFactory
      */
     protected $_statusFactory;
 
@@ -112,30 +118,30 @@ class Review extends \Magento\Framework\Model\AbstractModel
     /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
-     * @param \Magento\Review\Model\Resource\Review\Product\CollectionFactory $productFactory
-     * @param \Magento\Review\Model\Resource\Review\Status\CollectionFactory $statusFactory
-     * @param \Magento\Review\Model\Resource\Review\Summary\CollectionFactory $summaryFactory
+     * @param \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory $productFactory
+     * @param \Magento\Review\Model\ResourceModel\Review\Status\CollectionFactory $statusFactory
+     * @param \Magento\Review\Model\ResourceModel\Review\Summary\CollectionFactory $summaryFactory
      * @param \Magento\Review\Model\Review\SummaryFactory $summaryModFactory
      * @param \Magento\Review\Model\Review\Summary $reviewSummary
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\UrlInterface $urlModel
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\Db $resourceCollection
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
-        \Magento\Review\Model\Resource\Review\Product\CollectionFactory $productFactory,
-        \Magento\Review\Model\Resource\Review\Status\CollectionFactory $statusFactory,
-        \Magento\Review\Model\Resource\Review\Summary\CollectionFactory $summaryFactory,
+        \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory $productFactory,
+        \Magento\Review\Model\ResourceModel\Review\Status\CollectionFactory $statusFactory,
+        \Magento\Review\Model\ResourceModel\Review\Summary\CollectionFactory $summaryFactory,
         \Magento\Review\Model\Review\SummaryFactory $summaryModFactory,
         \Magento\Review\Model\Review\Summary $reviewSummary,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\UrlInterface $urlModel,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\Db $resourceCollection = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->productCollectionFactory = $productFactory;
@@ -155,7 +161,7 @@ class Review extends \Magento\Framework\Model\AbstractModel
      */
     protected function _construct()
     {
-        $this->_init('Magento\Review\Model\Resource\Review');
+        $this->_init('Magento\Review\Model\ResourceModel\Review');
     }
 
     /**
@@ -212,7 +218,7 @@ class Review extends \Magento\Framework\Model\AbstractModel
     public function getEntitySummary($product, $storeId = 0)
     {
         $summaryData = $this->_summaryModFactory->create()->setStoreId($storeId)->load($product->getId());
-        $summary = new \Magento\Framework\Object();
+        $summary = new \Magento\Framework\DataObject();
         $summary->setData($summaryData->getData());
         $product->setRatingSummary($summary);
     }
@@ -263,15 +269,15 @@ class Review extends \Magento\Framework\Model\AbstractModel
         $errors = [];
 
         if (!\Zend_Validate::is($this->getTitle(), 'NotEmpty')) {
-            $errors[] = __('The review summary field can\'t be empty.');
+            $errors[] = __('Please enter a review summary.');
         }
 
         if (!\Zend_Validate::is($this->getNickname(), 'NotEmpty')) {
-            $errors[] = __('The nickname field can\'t be empty.');
+            $errors[] = __('Please enter a nickname.');
         }
 
         if (!\Zend_Validate::is($this->getDetail(), 'NotEmpty')) {
-            $errors[] = __('The review field can\'t be empty.');
+            $errors[] = __('Please enter a review.');
         }
 
         if (empty($errors)) {
@@ -358,5 +364,19 @@ class Review extends \Magento\Framework\Model\AbstractModel
     public function getEntityIdByCode($entityCode)
     {
         return $this->getResource()->getEntityIdByCode($entityCode);
+    }
+
+    /**
+     * Return unique ID(s) for each object in system
+     *
+     * @return array
+     */
+    public function getIdentities()
+    {
+        $tags = [];
+        if ($this->isApproved() && $this->getEntityPkValue()) {
+            $tags[] = Product::CACHE_TAG . '_' . $this->getEntityPkValue();
+        }
+        return $tags;
     }
 }

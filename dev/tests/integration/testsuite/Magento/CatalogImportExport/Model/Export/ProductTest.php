@@ -5,6 +5,9 @@
  */
 namespace Magento\CatalogImportExport\Model\Export;
 
+/**
+ * @magentoDataFixtureBeforeTransaction Magento/Catalog/_files/enable_reindex_schedule.php
+ */
 class ProductTest extends \PHPUnit_Framework_TestCase
 {
     /**
@@ -152,7 +155,7 @@ class ProductTest extends \PHPUnit_Framework_TestCase
         $loggerMock->expects($this->once())->method('critical')->with($exception);
 
         $collection = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(
-            '\Magento\Catalog\Model\Resource\Product\Collection'
+            '\Magento\Catalog\Model\ResourceModel\Product\Collection'
         );
 
         /** @var \Magento\CatalogImportExport\Model\Export\Product $model */
@@ -164,7 +167,6 @@ class ProductTest extends \PHPUnit_Framework_TestCase
                 'collection' => $collection
             ]
         );
-
 
         $data = $model->setWriter($exportAdapter)->export();
         $this->assertEmpty($data);

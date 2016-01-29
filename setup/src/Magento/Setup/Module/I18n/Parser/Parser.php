@@ -36,12 +36,19 @@ class Parser extends AbstractParser
      */
     protected function _addPhrase($phraseData)
     {
-        $phraseKey = $phraseData['phrase'];
-
-        $this->_phrases[$phraseKey] = $this->_factory->createPhrase([
-            'phrase'      => $phraseData['phrase'],
-            'translation' => $phraseData['phrase'],
-            'quote'       => $phraseData['quote'],
-        ]);
+        try {
+            $phrase = $this->_factory->createPhrase([
+                'phrase' => $phraseData['phrase'],
+                'translation' => $phraseData['phrase'],
+                'quote' => $phraseData['quote'],
+            ]);
+            $this->_phrases[$phrase->getCompiledPhrase()] = $phrase;
+        } catch (\DomainException $e) {
+            throw new \DomainException(
+                "{$e->getMessage()} in {$phraseData['file']}:{$phraseData['line']}",
+                $e->getCode(),
+                $e
+            );
+        }
     }
 }

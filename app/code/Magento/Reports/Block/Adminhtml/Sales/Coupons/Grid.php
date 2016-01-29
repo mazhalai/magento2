@@ -14,12 +14,15 @@ namespace Magento\Reports\Block\Adminhtml\Sales\Coupons;
 class Grid extends \Magento\Reports\Block\Adminhtml\Grid\AbstractGrid
 {
     /**
+     * GROUP BY criteria
+     *
      * @var string
      */
     protected $_columnGroupBy = 'period';
 
     /**
-     * @return void
+     * {@inheritdoc}
+     * @codeCoverageIgnore
      */
     protected function _construct()
     {
@@ -29,19 +32,19 @@ class Grid extends \Magento\Reports\Block\Adminhtml\Grid\AbstractGrid
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getResourceCollectionName()
     {
         if ($this->getFilterData()->getData('report_type') == 'updated_at_order') {
-            return 'Magento\SalesRule\Model\Resource\Report\Updatedat\Collection';
+            return 'Magento\SalesRule\Model\ResourceModel\Report\Updatedat\Collection';
         } else {
-            return 'Magento\SalesRule\Model\Resource\Report\Collection';
+            return 'Magento\SalesRule\Model\ResourceModel\Report\Collection';
         }
     }
 
     /**
-     * @return \Magento\Backend\Block\Widget\Grid\Extended
+     * {@inheritdoc}
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     protected function _prepareColumns()
@@ -202,8 +205,8 @@ class Grid extends \Magento\Reports\Block\Adminhtml\Grid\AbstractGrid
     /**
      * Add price rule filter
      *
-     * @param \Magento\Reports\Model\Resource\Report\Collection\AbstractCollection $collection
-     * @param \Magento\Framework\Object $filterData
+     * @param \Magento\Reports\Model\ResourceModel\Report\Collection\AbstractCollection $collection
+     * @param \Magento\Framework\DataObject $filterData
      * @return \Magento\Reports\Block\Adminhtml\Grid\AbstractGrid
      */
     protected function _addCustomFilter($collection, $filterData)

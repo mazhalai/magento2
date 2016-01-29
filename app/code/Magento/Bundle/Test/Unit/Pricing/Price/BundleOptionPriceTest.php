@@ -26,7 +26,7 @@ class BundleOptionPriceTest extends \PHPUnit_Framework_TestCase
     protected $objectManagerHelper;
 
     /**
-     * @var \Magento\Framework\Pricing\Object\SaleableInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\Pricing\SaleableInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $saleableItemMock;
 
@@ -143,7 +143,7 @@ class BundleOptionPriceTest extends \PHPUnit_Framework_TestCase
             ->with($this->equalTo($optionIds), $this->equalTo($this->saleableItemMock))
             ->will($this->returnValue($selectionCollection));
 
-        $collection = $this->getMock('Magento\Bundle\Model\Resource\Option\Collection', [], [], '', false);
+        $collection = $this->getMock('Magento\Bundle\Model\ResourceModel\Option\Collection', [], [], '', false);
         $collection->expects($this->atLeastOnce())
             ->method('appendSelections')
             ->with($this->equalTo($selectionCollection), $this->equalTo(true), $this->equalTo(false))
@@ -242,7 +242,9 @@ class BundleOptionPriceTest extends \PHPUnit_Framework_TestCase
         foreach ($optionData['selections'] as $selectionData) {
             $selections[] = $this->createSelectionMock($selectionData);
         }
-        $option->setData($optionData['data']);
+        foreach ($optionData['data'] as $key => $value) {
+            $option->setData($key, $value);
+        }
         $option->setData('selections', $selections);
         return $option;
     }
@@ -262,7 +264,9 @@ class BundleOptionPriceTest extends \PHPUnit_Framework_TestCase
 
         // All items are saleable
         $selection->expects($this->any())->method('isSalable')->will($this->returnValue(true));
-        $selection->setData($selectionData['data']);
+        foreach ($selectionData['data'] as $key => $value) {
+            $selection->setData($key, $value);
+        }
         $amountMock = $this->createAmountMock($selectionData['amount']);
         $selection->expects($this->any())->method('getAmount')->will($this->returnValue($amountMock));
         $selection->expects($this->any())->method('getQuantity')->will($this->returnValue(1));
@@ -294,7 +298,7 @@ class BundleOptionPriceTest extends \PHPUnit_Framework_TestCase
             $options[] = $this->createOptionMock($optionData);
         }
         /** @var \PHPUnit_Framework_MockObject_MockObject $optionsCollection */
-        $optionsCollection = $this->getMock('Magento\Bundle\Model\Resource\Option\Collection', [], [], '', false);
+        $optionsCollection = $this->getMock('Magento\Bundle\Model\ResourceModel\Option\Collection', [], [], '', false);
         $optionsCollection->expects($this->atLeastOnce())->method('appendSelections')->will($this->returnSelf());
         $optionsCollection->expects($this->atLeastOnce())->method('getIterator')
             ->will($this->returnValue(new \ArrayIterator($options)));

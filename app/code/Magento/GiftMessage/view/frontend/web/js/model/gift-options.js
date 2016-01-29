@@ -3,59 +3,32 @@
  * See COPYING.txt for license details.
  */
 /*global define*/
-define(['underscore'],
-    function(_) {
-        "use strict";
-        var isOrderLevelGiftOptionsEnabled = window.checkoutConfig.isOrderLevelGiftOptionsEnabled || false,
-            isItemLevelGiftOptionsEnabled = window.checkoutConfig.isItemLevelGiftOptionsEnabled || false;
-        return {
-            orderLevelGiftOptions: [],
-            itemLevelGiftOptions: [],
-            extraGiftOptions: [],
-            isGiftOptionsAvailable: function() {
-                var isAvailable = isOrderLevelGiftOptionsEnabled || isItemLevelGiftOptionsEnabled;
+define(['underscore', 'ko'],
+    function (_, ko) {
 
-                _.each(this.getExtraGiftOptions(), function(option){
-                    if (typeof option.isAvailable() === 'function') {
-                        isAvailable = isAvailable || option.isAvailable();
+        'use strict';
+
+        return {
+            options: ko.observableArray([]),
+            addOption: function (option) {
+                if (!this.options().hasOwnProperty(option.itemId)) {
+                    this.options.push({
+                            id: option.itemId, value: option
+                        }
+                    );
+                }
+            },
+            getOptionByItemId: function (itemId) {
+                var option = null;
+                _.each(this.options(), function (data) {
+                    if (data.id === itemId) {
+                        option = data.value;
+
+                        return false;
                     }
                 });
 
-                return isAvailable;
-            },
-            isOrderLevelGiftOptionsEnabled: function() {
-                return isOrderLevelGiftOptionsEnabled;
-            },
-            isItemLevelGiftOptionsEnabled: function() {
-                return isItemLevelGiftOptionsEnabled;
-            },
-            getExtraGiftOptions: function() {
-                return this.getGiftOptions(this.extraGiftOptions);
-            },
-            getOrderLevelGiftOptions: function() {
-                return this.getGiftOptions(this.orderLevelGiftOptions);
-            },
-            getItemLevelGiftOptions: function() {
-                return this.getGiftOptions(this.itemLevelGiftOptions);
-            },
-            getGiftOptions: function(options) {
-                return _.map(
-                    _.sortBy(options, function(giftOption){
-                        return giftOption.sortOrder
-                    }),
-                    function(giftOption) {
-                        return giftOption.option
-                    }
-                )
-            },
-            setExtraGiftOptions: function (giftOption, sortOrder) {
-                this.extraGiftOptions.push({'option': giftOption, 'sortOrder': sortOrder});
-            },
-            addOrderLevelGiftOptions: function(giftOption, sortOrder) {
-                this.orderLevelGiftOptions.push({'option': giftOption, 'sortOrder': sortOrder});
-            },
-            addItemLevelGiftOptions: function(giftOption, sortOrder) {
-                this.itemLevelGiftOptions.push({'option': giftOption, 'sortOrder': sortOrder});
+                return option;
             }
         };
     }

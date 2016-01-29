@@ -15,7 +15,7 @@ use Magento\Mtf\Constraint\AbstractConstraint;
  */
 class AssertCurrencySymbolSuccessSaveMessage extends AbstractConstraint
 {
-    const SUCCESS_SAVE_MESSAGE = 'The custom currency symbols were applied.';
+    const SUCCESS_SAVE_MESSAGE = 'You applied the custom currency symbols.';
 
     /**
      * Assert that after clicking on 'Save Currency Symbols' button success message appears.
@@ -25,7 +25,7 @@ class AssertCurrencySymbolSuccessSaveMessage extends AbstractConstraint
      */
     public function processAssert(SystemCurrencySymbolIndex $currencySymbolIndex)
     {
-        $actualMessage = $currencySymbolIndex->getMessagesBlock()->getSuccessMessages();
+        $actualMessage = $currencySymbolIndex->getMessagesBlock()->getSuccessMessage();
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_SAVE_MESSAGE,
             $actualMessage,

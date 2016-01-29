@@ -5,9 +5,9 @@
  */
 namespace Magento\Ui\TemplateEngine\Xhtml\Compiler\Element;
 
-use Magento\Framework\Object;
-use Magento\Ui\TemplateEngine\Xhtml\Compiler;
-use Magento\Framework\View\Element\UiComponentInterface;
+use Magento\Framework\DataObject;
+use Magento\Framework\View\TemplateEngine\Xhtml\CompilerInterface;
+use Magento\Framework\View\TemplateEngine\Xhtml\Compiler\Element\ElementInterface;
 
 /**
  * Class Form
@@ -17,20 +17,20 @@ class Form implements ElementInterface
     /**
      * Compiles the Element node
      *
-     * @param Compiler $compiler
+     * @param CompilerInterface $compiler
      * @param \DOMElement $node
-     * @param UiComponentInterface $component
-     * @param Object $context
+     * @param DataObject $processedObject
+     * @param DataObject $context
      * @return void
      */
     public function compile(
-        Compiler $compiler,
+        CompilerInterface $compiler,
         \DOMElement $node,
-        UiComponentInterface $component,
-        Object $context
+        DataObject $processedObject,
+        DataObject $context
     ) {
         foreach ($this->getChildNodes($node) as $child) {
-            $compiler->compile($child, $component, $context);
+            $compiler->compile($child, $processedObject, $context);
         }
     }
 

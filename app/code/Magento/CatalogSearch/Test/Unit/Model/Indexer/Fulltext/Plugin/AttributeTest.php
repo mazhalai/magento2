@@ -10,17 +10,17 @@ use \Magento\CatalogSearch\Model\Indexer\Fulltext\Plugin\Attribute;
 class AttributeTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Indexer\Model\IndexerInterface
+     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\Indexer\IndexerInterface
      */
     protected $indexerMock;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Catalog\Model\Resource\Attribute
+     * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Catalog\Model\ResourceModel\Attribute
      */
     protected $subjectMock;
 
     /**
-     * @var \Magento\Indexer\Model\IndexerRegistry|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\Indexer\IndexerRegistry|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $indexerRegistryMock;
 
@@ -31,9 +31,9 @@ class AttributeTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->subjectMock = $this->getMock('Magento\Catalog\Model\Resource\Attribute', [], [], '', false);
+        $this->subjectMock = $this->getMock('Magento\Catalog\Model\ResourceModel\Attribute', [], [], '', false);
         $this->indexerMock = $this->getMockForAbstractClass(
-            'Magento\Indexer\Model\IndexerInterface',
+            'Magento\Framework\Indexer\IndexerInterface',
             [],
             '',
             false,
@@ -41,8 +41,17 @@ class AttributeTest extends \PHPUnit_Framework_TestCase
             true,
             ['getId', 'getState', '__wakeup']
         );
-        $this->indexerRegistryMock = $this->getMock('Magento\Indexer\Model\IndexerRegistry', ['get'], [], '', false);
-        $this->model = new Attribute($this->indexerRegistryMock);
+        $this->indexerRegistryMock = $this->getMock(
+            'Magento\Framework\Indexer\IndexerRegistry',
+            ['get'],
+            [],
+            '',
+            false
+        );
+        $this->config =  $this->getMockBuilder(\Magento\Framework\Search\Request\Config::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->model = new Attribute($this->indexerRegistryMock, $this->config);
     }
 
     /**
@@ -55,7 +64,7 @@ class AttributeTest extends \PHPUnit_Framework_TestCase
     public function testAroundSave($isObjectNew, $isSearchableChanged, $invalidateCounter)
     {
         $attributeMock = $this->getMock(
-            '\Magento\Catalog\Model\Resource\Eav\Attribute',
+            '\Magento\Catalog\Model\ResourceModel\Eav\Attribute',
             ['dataHasChangedFor', 'isObjectNew', '__wakeup'],
             [],
             '',
@@ -67,7 +76,7 @@ class AttributeTest extends \PHPUnit_Framework_TestCase
 
         $attributeMock->expects($this->any())->method('isObjectNew')->will($this->returnValue($isObjectNew));
 
-        $closureMock = function (\Magento\Catalog\Model\Resource\Eav\Attribute $object) use ($attributeMock) {
+        $closureMock = function (\Magento\Catalog\Model\ResourceModel\Eav\Attribute $object) use ($attributeMock) {
             $this->assertEquals($object, $attributeMock);
             return $this->subjectMock;
         };
@@ -104,7 +113,7 @@ class AttributeTest extends \PHPUnit_Framework_TestCase
     public function testAroundDelete($isObjectNew, $isSearchable, $invalidateCounter)
     {
         $attributeMock = $this->getMock(
-            '\Magento\Catalog\Model\Resource\Eav\Attribute',
+            '\Magento\Catalog\Model\ResourceModel\Eav\Attribute',
             ['getIsSearchable', 'isObjectNew', '__wakeup'],
             [],
             '',
@@ -113,7 +122,7 @@ class AttributeTest extends \PHPUnit_Framework_TestCase
         $attributeMock->expects($this->any())->method('getIsSearchable')->will($this->returnValue($isSearchable));
         $attributeMock->expects($this->once())->method('isObjectNew')->will($this->returnValue($isObjectNew));
 
-        $closureMock = function (\Magento\Catalog\Model\Resource\Eav\Attribute $object) use ($attributeMock) {
+        $closureMock = function (\Magento\Catalog\Model\ResourceModel\Eav\Attribute $object) use ($attributeMock) {
             $this->assertEquals($object, $attributeMock);
             return $this->subjectMock;
         };

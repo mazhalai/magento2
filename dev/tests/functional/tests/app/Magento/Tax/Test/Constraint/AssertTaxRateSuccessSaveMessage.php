@@ -14,7 +14,7 @@ use Magento\Mtf\Constraint\AbstractConstraint;
  */
 class AssertTaxRateSuccessSaveMessage extends AbstractConstraint
 {
-    const SUCCESS_MESSAGE = 'The tax rate has been saved.';
+    const SUCCESS_MESSAGE = 'You saved the tax rate.';
 
     /**
      * Assert that success message is displayed after tax rate saved
@@ -24,7 +24,7 @@ class AssertTaxRateSuccessSaveMessage extends AbstractConstraint
      */
     public function processAssert(TaxRateIndex $taxRateIndexPage)
     {
-        $actualMessage = $taxRateIndexPage->getMessagesBlock()->getSuccessMessages();
+        $actualMessage = $taxRateIndexPage->getMessagesBlock()->getSuccessMessage();
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_MESSAGE,
             $actualMessage,

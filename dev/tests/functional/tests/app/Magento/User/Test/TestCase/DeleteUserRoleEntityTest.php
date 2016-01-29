@@ -68,7 +68,7 @@ class DeleteUserRoleEntityTest extends Injectable
     {
         $adminUser = $fixtureFactory->createByCode(
             'user',
-            ['dataSet' => 'custom_admin_with_default_role']
+            ['dataset' => 'custom_admin_with_default_role']
         );
         $adminUser->persist();
 
@@ -122,6 +122,7 @@ class DeleteUserRoleEntityTest extends Injectable
         $this->userRoleIndex->open();
         $this->userRoleIndex->getRoleGrid()->searchAndOpen($filter);
         $this->userRoleEditRole->getPageActions()->delete();
+        $this->userRoleEditRole->getModalBlock()->acceptAlert();
     }
 
     /**

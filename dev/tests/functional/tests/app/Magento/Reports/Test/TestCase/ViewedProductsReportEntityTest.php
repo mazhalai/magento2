@@ -13,7 +13,6 @@ use Magento\Reports\Test\Page\Adminhtml\ProductReportView;
 use Magento\Catalog\Test\Page\Adminhtml\CatalogProductIndex;
 
 /**
- * Test Flow:
  * Preconditions:
  * 1. Create products
  * 2. Open product page on frontend
@@ -101,7 +100,7 @@ class ViewedProductsReportEntityTest extends Injectable
         $productsList = $this->prepareProducts($products);
         $this->openProducts($productsList, $total);
         $this->productReportView->open();
-        $this->productReportView->getMessagesBlock()->clickLinkInMessages('notice', 'here');
+        $this->productReportView->getMessagesBlock()->clickLinkInMessage('notice', 'here');
 
         // Steps
         $this->productReportView->getFilterBlock()->viewsReport($viewsReport);
@@ -121,7 +120,7 @@ class ViewedProductsReportEntityTest extends Injectable
         $products = [];
         foreach ($productsData as $productConfig) {
             $product = explode('::', $productConfig);
-            $productFixture = $this->fixtureFactory->createByCode($product[0], ['dataSet' => $product[1]]);
+            $productFixture = $this->fixtureFactory->createByCode($product[0], ['dataset' => $product[1]]);
             $productFixture->persist();
             $products[] = $productFixture;
         }

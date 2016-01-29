@@ -7,6 +7,8 @@ namespace Magento\Integration\Model\Config\Integration;
 
 /**
  * Service config data reader.
+ *
+ * @codeCoverageIgnore
  */
 class Reader extends \Magento\Framework\Config\Reader\Filesystem
 {
@@ -35,7 +37,7 @@ class Reader extends \Magento\Framework\Config\Reader\Filesystem
         Converter $converter,
         SchemaLocator $schemaLocator,
         \Magento\Framework\Config\ValidationStateInterface $validationState,
-        $fileName = 'integration\api.xml',
+        $fileName = 'integration/api.xml',
         $idAttributes = [],
         $domDocumentClass = 'Magento\Framework\Config\Dom',
         $defaultScope = 'global'

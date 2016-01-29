@@ -8,10 +8,14 @@ namespace Magento\Cms\Model;
 use Magento\Cms\Api\Data;
 use Magento\Cms\Api\PageRepositoryInterface;
 use Magento\Framework\Api\DataObjectHelper;
-use Magento\Framework\Api\SearchCriteriaInterface;
+use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Reflection\DataObjectProcessor;
+use Magento\Cms\Model\ResourceModel\Page as ResourcePage;
+use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Class PageRepository
@@ -20,7 +24,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 class PageRepository implements PageRepositoryInterface
 {
     /**
-     * @var Resource\Page
+     * @var ResourcePage
      */
     protected $resource;
 
@@ -30,7 +34,7 @@ class PageRepository implements PageRepositoryInterface
     protected $pageFactory;
 
     /**
-     * @var Resource\Page\CollectionFactory
+     * @var PageCollectionFactory
      */
     protected $pageCollectionFactory;
 
@@ -45,25 +49,39 @@ class PageRepository implements PageRepositoryInterface
     protected $dataObjectHelper;
 
     /**
-     * @var Data\PageInterfaceFactory
+     * @var DataObjectProcessor
+     */
+    protected $dataObjectProcessor;
+
+    /**
+     * @var \Magento\Cms\Api\Data\PageInterfaceFactory
      */
     protected $dataPageFactory;
 
     /**
-     * @param Resource\Page $resource
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
+     * @param ResourcePage $resource
      * @param PageFactory $pageFactory
      * @param Data\PageInterfaceFactory $dataPageFactory
-     * @param Resource\Page\CollectionFactory $pageCollectionFactory
+     * @param PageCollectionFactory $pageCollectionFactory
      * @param Data\PageSearchResultsInterfaceFactory $searchResultsFactory
      * @param DataObjectHelper $dataObjectHelper
+     * @param DataObjectProcessor $dataObjectProcessor
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
-        Resource\Page $resource,
+        ResourcePage $resource,
         PageFactory $pageFactory,
         Data\PageInterfaceFactory $dataPageFactory,
-        Resource\Page\CollectionFactory $pageCollectionFactory,
+        PageCollectionFactory $pageCollectionFactory,
         Data\PageSearchResultsInterfaceFactory $searchResultsFactory,
-        DataObjectHelper $dataObjectHelper
+        DataObjectHelper $dataObjectHelper,
+        DataObjectProcessor $dataObjectProcessor,
+        StoreManagerInterface $storeManager
     ) {
         $this->resource = $resource;
         $this->pageFactory = $pageFactory;
@@ -71,17 +89,21 @@ class PageRepository implements PageRepositoryInterface
         $this->searchResultsFactory = $searchResultsFactory;
         $this->dataObjectHelper = $dataObjectHelper;
         $this->dataPageFactory = $dataPageFactory;
+        $this->dataObjectProcessor = $dataObjectProcessor;
+        $this->storeManager = $storeManager;
     }
 
     /**
      * Save Page data
      *
-     * @param Data\PageInterface $page
+     * @param \Magento\Cms\Api\Data\PageInterface $page
      * @return Page
      * @throws CouldNotSaveException
      */
-    public function save(Data\PageInterface $page)
+    public function save(\Magento\Cms\Api\Data\PageInterface $page)
     {
+        $storeId = $this->storeManager->getStore()->getId();
+        $page->setStoreId($storeId);
         try {
             $this->resource->save($page);
         } catch (\Exception $exception) {
@@ -100,7 +122,7 @@ class PageRepository implements PageRepositoryInterface
     public function getById($pageId)
     {
         $page = $this->pageFactory->create();
-        $this->resource->load($page, $pageId);
+        $page->load($pageId);
         if (!$page->getId()) {
             throw new NoSuchEntityException(__('CMS Page with id "%1" does not exist.', $pageId));
         }
@@ -112,37 +134,33 @@ class PageRepository implements PageRepositoryInterface
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
-     * @param SearchCriteriaInterface $criteria
-     * @return Resource\Page\Collection
+     * @param \Magento\Framework\Api\SearchCriteriaInterface $criteria
+     * @return \Magento\Cms\Model\ResourceModel\Page\Collection
      */
-    public function getList(SearchCriteriaInterface $criteria)
+    public function getList(\Magento\Framework\Api\SearchCriteriaInterface $criteria)
     {
         $searchResults = $this->searchResultsFactory->create();
         $searchResults->setSearchCriteria($criteria);
 
         $collection = $this->pageCollectionFactory->create();
         foreach ($criteria->getFilterGroups() as $filterGroup) {
-            $fields = [];
-            $conditions = [];
             foreach ($filterGroup->getFilters() as $filter) {
                 if ($filter->getField() === 'store_id') {
                     $collection->addStoreFilter($filter->getValue(), false);
                     continue;
                 }
                 $condition = $filter->getConditionType() ?: 'eq';
-                $fields[] = ['attribute' => $filter->getField(), $condition => $filter->getValue()];
-            }
-            if ($fields) {
-                $collection->addFieldToFilter($fields, $conditions);
+                $collection->addFieldToFilter($filter->getField(), [$condition => $filter->getValue()]);
             }
         }
         $searchResults->setTotalCount($collection->getSize());
         $sortOrders = $criteria->getSortOrders();
         if ($sortOrders) {
+            /** @var SortOrder $sortOrder */
             foreach ($sortOrders as $sortOrder) {
                 $collection->addOrder(
                     $sortOrder->getField(),
-                    ($sortOrder->getDirection() == SearchCriteriaInterface::SORT_ASC) ? 'ASC' : 'DESC'
+                    ($sortOrder->getDirection() == SortOrder::SORT_ASC) ? 'ASC' : 'DESC'
                 );
             }
         }
@@ -151,9 +169,14 @@ class PageRepository implements PageRepositoryInterface
         $pages = [];
         /** @var Page $pageModel */
         foreach ($collection as $pageModel) {
-            $pages[] = $this->dataObjectHelper->populateWithArray(
-                $this->dataPageFactory->create(),
+            $pageData = $this->dataPageFactory->create();
+            $this->dataObjectHelper->populateWithArray(
+                $pageData,
                 $pageModel->getData(),
+                'Magento\Cms\Api\Data\PageInterface'
+            );
+            $pages[] = $this->dataObjectProcessor->buildOutputDataArray(
+                $pageData,
                 'Magento\Cms\Api\Data\PageInterface'
             );
         }
@@ -164,11 +187,11 @@ class PageRepository implements PageRepositoryInterface
     /**
      * Delete Page
      *
-     * @param Data\PageInterface $page
+     * @param \Magento\Cms\Api\Data\PageInterface $page
      * @return bool
      * @throws CouldNotDeleteException
      */
-    public function delete(Data\PageInterface $page)
+    public function delete(\Magento\Cms\Api\Data\PageInterface $page)
     {
         try {
             $this->resource->delete($page);

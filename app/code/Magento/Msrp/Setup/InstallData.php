@@ -60,7 +60,7 @@ class InstallData implements InstallDataInterface
                 'label' => 'Manufacturer\'s Suggested Retail Price',
                 'type' => 'decimal',
                 'input' => 'price',
-                'global' => \Magento\Catalog\Model\Resource\Eav\Attribute::SCOPE_WEBSITE,
+                'global' => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_WEBSITE,
                 'visible' => true,
                 'required' => false,
                 'user_defined' => false,
@@ -68,7 +68,10 @@ class InstallData implements InstallDataInterface
                 'input_renderer' => 'Magento\Msrp\Block\Adminhtml\Product\Helper\Form\Type',
                 'frontend_input_renderer' => 'Magento\Msrp\Block\Adminhtml\Product\Helper\Form\Type',
                 'visible_on_front' => false,
-                'used_in_product_listing' => true
+                'used_in_product_listing' => true,
+                'is_used_in_grid' => true,
+                'is_visible_in_grid' => false,
+                'is_filterable_in_grid' => true,
             ]
         );
 
@@ -83,7 +86,7 @@ class InstallData implements InstallDataInterface
                 'input' => 'select',
                 'source' => 'Magento\Msrp\Model\Product\Attribute\Source\Type\Price',
                 'source_model' => 'Magento\Msrp\Model\Product\Attribute\Source\Type\Price',
-                'global' => \Magento\Catalog\Model\Resource\Eav\Attribute::SCOPE_WEBSITE,
+                'global' => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_WEBSITE,
                 'visible' => true,
                 'required' => false,
                 'user_defined' => false,

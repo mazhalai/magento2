@@ -6,8 +6,12 @@
 namespace Magento\Catalog\Pricing\Price;
 
 use Magento\Catalog\Model\Product\Option\Value;
+use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Pricing\Price;
 use Magento\Framework\Pricing\Price\AbstractPrice;
+use Magento\Framework\Pricing\SaleableInterface;
+use Magento\Framework\Pricing\Adjustment\CalculatorInterface;
+use Magento\Framework\Pricing\Amount\AmountInterface;
 
 /**
  * Class OptionPrice
@@ -26,39 +30,122 @@ class CustomOptionPrice extends AbstractPrice implements CustomOptionPriceInterf
     protected $priceOptions;
 
     /**
-     * Get minimal optoin item values
+     * Code of parent adjustment to be skipped from calculation
      *
-     * @return bool|float
+     * @var string
+     */
+    protected $excludeAdjustment = null;
+
+    /**
+     * @param SaleableInterface $saleableItem
+     * @param float $quantity
+     * @param CalculatorInterface $calculator
+     * @param \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
+     * @param array $excludeAdjustment
+     */
+    public function __construct(
+        SaleableInterface $saleableItem,
+        $quantity,
+        CalculatorInterface $calculator,
+        \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency,
+        $excludeAdjustment = null
+    ) {
+        parent::__construct($saleableItem, $quantity, $calculator, $priceCurrency);
+        $this->excludeAdjustment = $excludeAdjustment;
+    }
+
+    /**
+     * Get minimal and maximal option values
+     *
+     * @return array
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function getValue()
     {
-        $requiredMinimalOptions = [];
+        $optionValues = [];
         $options = $this->product->getOptions();
         if ($options) {
             /** @var $optionItem \Magento\Catalog\Model\Product\Option */
             foreach ($options as $optionItem) {
+                $min = null;
                 if (!$optionItem->getIsRequire()) {
-                    continue;
+                    $min = 0.;
                 }
-                $min = 0.;
-                /** @var $optionValue \Magento\Catalog\Model\Product\Option\Value */
-                foreach ($optionItem->getValues() as $optionValue) {
-                    $price = $optionValue->getPrice($optionValue->getPriceType() == Value::TYPE_PERCENT);
-                    if (!$min) {
+                $max = 0.;
+                if ($optionItem->getValues() === null && $optionItem->getPrice() !== null) {
+                    $price = $optionItem->getPrice($optionItem->getPriceType() == Value::TYPE_PERCENT);
+                    if ($min === null) {
+                        $min = $price;
+                    } elseif ($price < $min) {
                         $min = $price;
                     }
-                    if ($price < $min) {
-                        $min = $price;
+                    if ($price > $max) {
+                        $max = $price;
+                    }
+                } else {
+                    /** @var $optionValue \Magento\Catalog\Model\Product\Option\Value */
+                    foreach ($optionItem->getValues() as $optionValue) {
+                        $price = $optionValue->getPrice($optionValue->getPriceType() == Value::TYPE_PERCENT);
+                        if ($min === null) {
+                            $min = $price;
+                        } elseif ($price < $min) {
+                            $min = $price;
+                        }
+                        $type = $optionItem->getType();
+                        if ($type == Option::OPTION_TYPE_CHECKBOX || $type == Option::OPTION_TYPE_MULTIPLE) {
+                            $max += $price;
+                        } elseif ($price > $max) {
+                            $max = $price;
+                        }
                     }
                 }
-                $requiredMinimalOptions[] = [
+                $optionValues[] = [
                     'option_id' => $optionItem->getId(),
                     'type' => $optionItem->getType(),
-                    'min' => $min,
+                    'min' => ($min === null) ? 0. : $min,
+                    'max' => $max,
                 ];
             }
         }
-        return $requiredMinimalOptions;
+        return $optionValues;
+    }
+
+    /**
+     * @param float $amount
+     * @param null|bool|string|array $exclude
+     * @param null|array $context
+     * @return AmountInterface|bool|float
+     */
+    public function getCustomAmount($amount = null, $exclude = null, $context = [])
+    {
+        if (null !== $amount) {
+            $amount = $this->priceCurrency->convertAndRound($amount);
+        } else {
+            $amount = $this->getValue();
+        }
+        $exclude = $this->excludeAdjustment;
+        return $this->calculator->getAmount($amount, $this->getProduct(), $exclude, $context);
+    }
+
+    /**
+     * Return the minimal or maximal price for custom options
+     *
+     * @param bool $getMin
+     * @return float
+     */
+    public function getCustomOptionRange($getMin)
+    {
+        $optionValue = 0.;
+        $options = $this->getValue();
+        foreach ($options as $option) {
+            if ($getMin) {
+                $optionValue += $option['min'];
+            } else {
+                $optionValue += $option['max'];
+            }
+        }
+        return $this->priceCurrency->convertAndRound($optionValue);
     }
 
     /**

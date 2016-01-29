@@ -42,16 +42,16 @@ class Selection extends \Magento\Framework\Model\AbstractModel
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Catalog\Helper\Data $catalogData
-     * @param \Magento\Bundle\Model\Resource\Selection $resource
-     * @param \Magento\Framework\Data\Collection\Db $resourceCollection
+     * @param \Magento\Bundle\Model\ResourceModel\Selection $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Catalog\Helper\Data $catalogData,
-        \Magento\Bundle\Model\Resource\Selection $resource,
-        \Magento\Framework\Data\Collection\Db $resourceCollection = null,
+        \Magento\Bundle\Model\ResourceModel\Selection $resource,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->_catalogData = $catalogData;
@@ -65,7 +65,7 @@ class Selection extends \Magento\Framework\Model\AbstractModel
      */
     protected function _construct()
     {
-        $this->_init('Magento\Bundle\Model\Resource\Selection');
+        $this->_init('Magento\Bundle\Model\ResourceModel\Selection');
         parent::_construct();
     }
 

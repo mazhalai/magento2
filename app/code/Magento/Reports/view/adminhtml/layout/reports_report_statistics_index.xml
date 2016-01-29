@@ -5,7 +5,7 @@
  * See COPYING.txt for license details.
  */
 -->
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd">
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
             <block class="Magento\Reports\Block\Adminhtml\Refresh\Statistics" name="adminhtml.block.report.refresh.statistics">
@@ -15,7 +15,7 @@
                         <argument name="use_ajax" xsi:type="string">0</argument>
                         <argument name="sortable" xsi:type="string">0</argument>
                         <argument name="pager_visibility" xsi:type="string">0</argument>
-                        <argument name="dataSource" xsi:type="object">Magento\Reports\Model\Resource\Refresh\Collection</argument>
+                        <argument name="dataSource" xsi:type="object">Magento\Reports\Model\ResourceModel\Refresh\Collection</argument>
                     </arguments>
                     <block class="Magento\Backend\Block\Widget\Grid\Massaction" name="adminhtml.block.refresh.statistics.massactions" as="grid.massaction">
                         <arguments>
@@ -26,12 +26,12 @@
                                 <item name="refresh_lifetime" xsi:type="array">
                                     <item name="label" xsi:type="string" translate="true">Refresh Lifetime Statistics</item>
                                     <item name="url" xsi:type="string">*/*/refreshLifetime</item>
-                                    <item name="confirm" xsi:type="string" translate="true">Are you sure you want to refresh lifetime statistics? There can be performance impact during this operation.</item>
+                                    <item name="confirm" xsi:type="string" translate="true">Are you sure you want to refresh lifetime statistics right now? This operation may slow down your customers' shopping experience.</item>
                                 </item>
                                 <item name="refresh_recent" xsi:type="array">
                                     <item name="label" xsi:type="string" translate="true">Refresh Statistics for the Last Day</item>
                                     <item name="url" xsi:type="string">*/*/refreshRecent</item>
-                                    <item name="confirm" xsi:type="string" translate="true">Are you sure you want to refresh statistics for last day?</item>
+                                    <item name="confirm" xsi:type="string" translate="true">Are you sure you want to refresh statistics for the last day?</item>
                                     <item name="selected" xsi:type="string">1</item>
                                 </item>
                             </argument>

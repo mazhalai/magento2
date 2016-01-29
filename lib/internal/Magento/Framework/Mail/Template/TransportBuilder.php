@@ -6,9 +6,13 @@
  * See COPYING.txt for license details.
  */
 
-// @codingStandardsIgnoreFile
-
 namespace Magento\Framework\Mail\Template;
+
+use Magento\Framework\App\TemplateTypesInterface;
+use Magento\Framework\Mail\Message;
+use Magento\Framework\Mail\MessageInterface;
+use Magento\Framework\Mail\TransportInterfaceFactory;
+use Magento\Framework\ObjectManagerInterface;
 
 class TransportBuilder
 {
@@ -18,6 +22,13 @@ class TransportBuilder
      * @var string
      */
     protected $templateIdentifier;
+
+    /**
+     * Template Model
+     *
+     * @var string
+     */
+    protected $templateModel;
 
     /**
      * Template Variables
@@ -71,27 +82,27 @@ class TransportBuilder
     /**
      * @var \Magento\Framework\Mail\TransportInterfaceFactory
      */
-    protected $_mailTransportFactory;
+    protected $mailTransportFactory;
 
     /**
      * @param FactoryInterface $templateFactory
-     * @param \Magento\Framework\Mail\Message $message
-     * @param \Magento\Framework\Mail\Template\SenderResolverInterface $senderResolver
-     * @param \Magento\Framework\ObjectManagerInterface $objectManager
-     * @param \Magento\Framework\Mail\TransportInterfaceFactory $mailTransportFactory
+     * @param MessageInterface $message
+     * @param SenderResolverInterface $senderResolver
+     * @param ObjectManagerInterface $objectManager
+     * @param TransportInterfaceFactory $mailTransportFactory
      */
     public function __construct(
-        \Magento\Framework\Mail\Template\FactoryInterface $templateFactory,
-        \Magento\Framework\Mail\Message $message,
-        \Magento\Framework\Mail\Template\SenderResolverInterface $senderResolver,
-        \Magento\Framework\ObjectManagerInterface $objectManager,
-        \Magento\Framework\Mail\TransportInterfaceFactory $mailTransportFactory
+        FactoryInterface $templateFactory,
+        MessageInterface $message,
+        SenderResolverInterface $senderResolver,
+        ObjectManagerInterface $objectManager,
+        TransportInterfaceFactory $mailTransportFactory
     ) {
         $this->templateFactory = $templateFactory;
         $this->message = $message;
         $this->objectManager = $objectManager;
         $this->_senderResolver = $senderResolver;
-        $this->_mailTransportFactory = $mailTransportFactory;
+        $this->mailTransportFactory = $mailTransportFactory;
     }
 
     /**
@@ -171,6 +182,18 @@ class TransportBuilder
     }
 
     /**
+     * Set template model
+     *
+     * @param string $templateModel
+     * @return $this
+     */
+    public function setTemplateModel($templateModel)
+    {
+        $this->templateModel = $templateModel;
+        return $this;
+    }
+
+    /**
      * Set template vars
      *
      * @param array $templateVars
@@ -202,7 +225,7 @@ class TransportBuilder
     public function getTransport()
     {
         $this->prepareMessage();
-        $mailTransport = $this->_mailTransportFactory->create(['message' => clone $this->message]);
+        $mailTransport = $this->mailTransportFactory->create(['message' => clone $this->message]);
         $this->reset();
 
         return $mailTransport;
@@ -229,13 +252,9 @@ class TransportBuilder
      */
     protected function getTemplate()
     {
-        return $this->templateFactory->get(
-            $this->templateIdentifier
-        )->setVars(
-            $this->templateVars
-        )->setOptions(
-            $this->templateOptions
-        );
+        return $this->templateFactory->get($this->templateIdentifier, $this->templateModel)
+            ->setVars($this->templateVars)
+            ->setOptions($this->templateOptions);
     }
 
     /**
@@ -247,18 +266,14 @@ class TransportBuilder
     {
         $template = $this->getTemplate();
         $types = [
-            \Magento\Framework\App\TemplateTypesInterface::TYPE_TEXT => \Magento\Framework\Mail\MessageInterface::TYPE_TEXT,
-            \Magento\Framework\App\TemplateTypesInterface::TYPE_HTML => \Magento\Framework\Mail\MessageInterface::TYPE_HTML,
+            TemplateTypesInterface::TYPE_TEXT => MessageInterface::TYPE_TEXT,
+            TemplateTypesInterface::TYPE_HTML => MessageInterface::TYPE_HTML,
         ];
 
         $body = $template->processTemplate();
-        $this->message->setMessageType(
-            $types[$template->getType()]
-        )->setBody(
-            $body
-        )->setSubject(
-            $template->getSubject()
-        );
+        $this->message->setMessageType($types[$template->getType()])
+            ->setBody($body)
+            ->setSubject($template->getSubject());
 
         return $this;
     }

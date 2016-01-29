@@ -6,23 +6,19 @@
 
 namespace Magento\Framework\Module\ModuleList;
 
-use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\Filesystem;
 use Magento\Framework\Module\Declaration\Converter\Dom;
 use Magento\Framework\Xml\Parser;
+use Magento\Framework\Component\ComponentRegistrarInterface;
+use Magento\Framework\Component\ComponentRegistrar;
+use Magento\Framework\Filesystem\DriverInterface;
 
 /**
  * Loader of module list information from the filesystem
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Loader
 {
-    /**
-     * Application filesystem
-     *
-     * @var Filesystem
-     */
-    private $filesystem;
-
     /**
      * Converter of XML-files to associative arrays (specific to module.xml file format)
      *
@@ -38,33 +34,51 @@ class Loader
     private $parser;
 
     /**
+     * Module registry
+     *
+     * @var ComponentRegistrarInterface
+     */
+    private $moduleRegistry;
+
+    /**
+     * Filesystem driver to allow reading of module.xml files which live outside of app/code
+     *
+     * @var DriverInterface
+     */
+    private $filesystemDriver;
+
+    /**
      * Constructor
      *
-     * @param Filesystem $filesystem
      * @param Dom $converter
      * @param Parser $parser
+     * @param ComponentRegistrarInterface $moduleRegistry
+     * @param DriverInterface $filesystemDriver
      */
-    public function __construct(Filesystem $filesystem, Dom $converter, Parser $parser)
-    {
-        $this->filesystem = $filesystem;
+    public function __construct(
+        Dom $converter,
+        Parser $parser,
+        ComponentRegistrarInterface $moduleRegistry,
+        DriverInterface $filesystemDriver
+    ) {
         $this->converter = $converter;
         $this->parser = $parser;
         $this->parser->initErrorHandler();
+        $this->moduleRegistry = $moduleRegistry;
+        $this->filesystemDriver = $filesystemDriver;
     }
 
     /**
-     * Loads the full module list information
+     * Loads the full module list information. Excludes modules specified in $exclude.
      *
+     * @param array $exclude
      * @throws \Magento\Framework\Exception\LocalizedException
      * @return array
      */
-    public function load()
+    public function load(array $exclude = [])
     {
         $result = [];
-        $dir = $this->filesystem->getDirectoryRead(DirectoryList::MODULES);
-        foreach ($dir->search('*/*/etc/module.xml') as $file) {
-            $contents = $dir->readFile($file);
-
+        foreach ($this->getModuleConfigs() as list($file, $contents)) {
             try {
                 $this->parser->loadXML($contents);
             } catch (\Magento\Framework\Exception\LocalizedException $e) {
@@ -79,9 +93,32 @@ class Loader
 
             $data = $this->converter->convert($this->parser->getDom());
             $name = key($data);
-            $result[$name] = $data[$name];
+            if (!in_array($name, $exclude)) {
+                $result[$name] = $data[$name];
+            }
         }
         return $this->sortBySequence($result);
+    }
+
+    /**
+     * Returns module config data and a path to the module.xml file.
+     *
+     * Example of data returned by generator:
+     * <code>
+     *     [ 'vendor/module/etc/module.xml', '<xml>contents</xml>' ]
+     * </code>
+     *
+     * @return \Traversable
+     *
+     * @author Josh Di Fabio <joshdifabio@gmail.com>
+     */
+    private function getModuleConfigs()
+    {
+        $modulePaths = $this->moduleRegistry->getPaths(ComponentRegistrar::MODULE);
+        foreach ($modulePaths as $modulePath) {
+            $filePath = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, "$modulePath/etc/module.xml");
+            yield [$filePath, $this->filesystemDriver->fileGetContents($filePath)];
+        }
     }
 
     /**
@@ -93,6 +130,7 @@ class Loader
      */
     private function sortBySequence($origList)
     {
+        ksort($origList);
         $expanded = [];
         foreach ($origList as $moduleName => $value) {
             $expanded[] = [

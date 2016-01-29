@@ -5,49 +5,60 @@
 define([
     'underscore',
     'mageUtils',
-    'uiRegistry',
-    './storage',
-    'Magento_Ui/js/lib/collapsible',
-    'Magento_Ui/js/core/renderer/layout'
-], function (_, utils, registry, Storage, Collapsible, layout) {
+    'mage/translate',
+    'rjsResolver',
+    'uiLayout',
+    'uiCollection'
+], function (_, utils, $t, resolver, layout, Collection) {
     'use strict';
 
-    return Collapsible.extend({
+    /**
+     * Removes 'current' namespace from a 'path' string.
+     *
+     * @param {String} path
+     * @returns {String} Path without namespace.
+     */
+    function removeStateNs(path) {
+        path = typeof path == 'string' ? path.split('.') : [];
+
+        if (path[0] === 'current') {
+            path.shift();
+        }
+
+        return path.join('.');
+    }
+
+    return Collection.extend({
         defaults: {
             template: 'ui/grid/controls/bookmarks/bookmarks',
+            viewTmpl: 'ui/grid/controls/bookmarks/view',
+            newViewLabel: $t('New View'),
             defaultIndex: 'default',
             activeIndex: 'default',
-            hasChanges: false,
-            initialSet: true,
-            templates: {
-                view: {
-                    parent: '${ $.$data.name }',
-                    name: '${ $.$data.index }',
-                    label: '${ $.$data.label }',
-                    provider: '${ $.$data.provider }',
-                    component: 'Magento_Ui/js/grid/controls/bookmarks/view'
-                },
-                newView: {
-                    label: 'New View',
-                    index: '${ Date.now() }',
-                    editing: true,
-                    isNew: true
-                }
-            },
+            viewsArray: [],
             storageConfig: {
-                provider: '${ $.storageConfig.namespace }.bookmarks.storage',
-                name: '${ $.storageConfig.provider }'
+                provider: '${ $.storageConfig.name }',
+                name: '${ $.name }_storage',
+                component: 'Magento_Ui/js/grid/controls/bookmarks/storage'
             },
             views: {
                 default: {
-                    label: 'Default View',
+                    label: $t('Default View'),
                     index: 'default',
                     editable: false
                 }
             },
+            tracks: {
+                editing: true,
+                viewsArray: true,
+                activeView: true,
+                hasChanges: true,
+                customLabel: true,
+                customVisible: true
+            },
             listens: {
                 activeIndex: 'onActiveIndexChange',
-                activeView: 'checkChanges',
+                activeView: 'checkState',
                 current: 'onStateChange'
             }
         },
@@ -58,24 +69,13 @@ define([
          * @returns {Bookmarks} Chainable.
          */
         initialize: function () {
-            utils.limit(this, 'saveSate', 2000);
-            utils.limit(this, 'checkChanges', 200);
-            utils.limit(this, '_defaultPolyfill', 1000);
+            utils.limit(this, 'checkState', 5);
+            utils.limit(this, 'saveState', 2000);
 
             this._super()
+                .restore()
+                .initStorage()
                 .initViews();
-
-            return this;
-        },
-
-        /**
-         * Initializes observable properties.
-         *
-         * @returns {Bookmarks} Chainable.
-         */
-        initObservable: function () {
-            this._super()
-                .observe('activeView hasChanges');
 
             return this;
         },
@@ -86,35 +86,28 @@ define([
          * @returns {Bookmarks} Chainable.
          */
         initStorage: function () {
-            var storage = new Storage(this.storageConfig);
+            layout([this.storageConfig]);
 
-            registry.set(this.storageConfig.name, storage);
-
-            return this._super();
+            return this;
         },
 
         /**
-         * Called when another element was added to the current component.
+         * Defines default data if it wasn't gathered previously.
          *
-         * @param {Object} elem - Instance of an element that was added.
-         * @returns {Bookmarks} Chainable.
+         * @private
+         * @returns {Bookmarks} Chainbale.
          */
-        initElement: function (elem) {
-            var index = elem.index;
+        initDefaultView: function () {
+            var data = this.getViewData(this.defaultIndex);
 
-            if (index === this.defaultIndex) {
-                this.defaultView = elem;
+            if (!_.size(data)) {
+                this.setViewData(this.defaultIndex, this.current)
+                    .saveView(this.defaultIndex);
             }
 
-            if (index === this.activeIndex) {
-                this.activeView(elem);
-            }
+            this.defaultDefined = true;
 
-            elem.on({
-                editing: this.onEditingChange.bind(this, elem)
-            });
-
-            return this._super();
+            return this;
         },
 
         /**
@@ -123,70 +116,82 @@ define([
          * @returns {Bookmarks} Chainable.
          */
         initViews: function () {
-            var views = this.views,
-                active = _.findWhere(views, {index: this.activeIndex});
+            _.each(this.views, function (config) {
+                this.addView(config);
+            }, this);
 
-            if (!active) {
-                this.activeIndex = this.defaultIndex;
-            }
-
-            _.each(views, this.createView, this);
+            this.activeView = this.getActiveView();
 
             return this;
         },
 
         /**
-         * Creates view with a provided data.
+         * Creates complete configuration for a view.
          *
-         * @param {Object} item - Data object that will be passed to a view instance.
-         * @returns {Bookmarks} Chainable.
+         * @param {Object} [config] - Additional configuration object.
+         * @returns {Object}
          */
-        createView: function (item) {
-            var data = _.extend({}, this, item),
-                child = utils.template(this.templates.view, data);
+        buildView: function (config) {
+            var view = {
+                label: this.newViewLabel,
+                index: '_' + Date.now(),
+                editable: true
+            };
 
-            _.extend(child, item);
+            utils.extend(view, config || {});
 
-            if (this.activeIndex === item.index) {
-                child.active = true;
-            }
+            view.data   = view.data || utils.copy(this.current);
+            view.value  = view.label;
 
-            layout([child]);
+            this.observe.call(view, true, 'label value');
 
-            return this;
+            return view;
         },
 
         /**
-         * Creates new view instance.
+         * Creates instance of a view with a provided configuration.
          *
-         * @returns {Bookmarks} Chainable.
+         * @param {Object} [config] - View configuration.
+         * @param {Boolean} [saveView=false] - Whether to save created view automatically or not.
+         * @param {Boolean} [applyView=false] - Whether to apply created view automatically or not.
+         * @returns {View} Created view.
          */
-        createNewView: function () {
-            var view = this.templates.newView;
+        addView: function (config, saveView, applyView) {
+            var view    = this.buildView(config),
+                index   = view.index;
 
-            view.data = this.current;
+            this.views[index] = view;
 
-            this.createView(view);
+            if (saveView) {
+                this.saveView(index);
+            }
 
-            return this;
+            if (applyView) {
+                this.applyView(index);
+            }
+
+            this.updateArray();
+
+            return view;
         },
 
         /**
-         * Deletes specfied view.
+         * Removes specified view.
          *
-         * @param {View} view - View to be deleted.
+         * @param {String} index - Index of a view to be removed.
          * @returns {Bookmarks} Chainable.
          */
-        removeView: function (view) {
-            if (view.active()) {
-                this.defaultView.active(true);
+        removeView: function (index) {
+            var viewPath = this.getViewPath(index);
+
+            if (this.isViewActive(index)) {
+                this.applyView(this.defaultIndex);
             }
 
-            if (!view.isNew) {
-                this.removeStored('views.' + view.index);
-            }
-
-            view.destroy();
+            this.endEdit(index)
+                .remove(viewPath)
+                .removeStored(viewPath)
+                .updateArray();
 
             return this;
         },
@@ -194,146 +199,370 @@ define([
         /**
          * Saves data of a specified view.
          *
-         * @param {View} view - View to be saved.
+         * @param {String} index - Index of a view to be saved.
          * @returns {Bookmarks} Chainable.
          */
-        saveView: function (view) {
-            if (view.isNew || view.active()) {
-                view.setData(this.current);
+        saveView: function (index) {
+            var viewPath = this.getViewPath(index);
 
-                this.hasChanges(false);
-            }
-
-            this.store('views.' + view.index, view.exportView());
-
-            if (view.isNew) {
-                view.isNew = false;
-
-                view.active(true);
-            }
+            this.updateViewLabel(index)
+                .endEdit(index)
+                .store(viewPath)
+                .checkState();
 
             return this;
         },
 
         /**
-         * Activates specified view and applies its' data.
+         * Sets specified view as active
+         * and applies its' state.
          *
-         * @param {View|String} view - View to be applied.
+         * @param {String} index - Index of a view to be applied.
          * @returns {Bookmarks} Chainable.
          */
-        applyView: function (view) {
-            if (typeof view === 'string') {
-                view = this.elems.findWhere({index: view});
-            }
-
-            view.active(true);
-
-            this.activeView(view);
-            this.set('current', view.getData());
+        applyView: function (index) {
+            this.applyStateOf(index)
+                .set('activeIndex', index);
 
             return this;
         },
 
         /**
-         * Saves current data state.
+         * Updates data of a specified view if it's
+         * currently active and saves its' data.
+         *
+         * @param {String} index - Index of a view.
+         * @returns {Bookmarks} Chainable.
+         */
+        updateAndSave: function (index) {
+            if (this.isViewActive(index)) {
+                this.updateActiveView(index);
+            }
+
+            this.saveView(index);
+
+            return this;
+        },
+
+        /**
+         * Returns instance of a specified view.
+         *
+         * @param {String} index - Index of a view to be retrieved.
+         * @returns {View}
+         */
+        getView: function (index) {
+            return this.views[index];
+        },
+
+        /**
+         * Returns instance of an active view.
+         *
+         * @returns {View}
+         */
+        getActiveView: function () {
+            return this.views[this.activeIndex];
+        },
+
+        /**
+         * Checks if specified view is active.
+         *
+         * @param {String} index - Index of a view to be checked.
+         * @returns {Boolean}
+         */
+        isViewActive: function (index) {
+            return this.activeView === this.getView(index);
+        },
+
+        /**
+         * Sets current state as a data of an active view.
          *
          * @returns {Bookmarks} Chainable.
          */
-        saveSate: function () {
+        updateActiveView: function () {
+            this.setViewData(this.activeIndex, this.current);
+
+            return this;
+        },
+
+        /**
+         * Replaces label a view with a provided one.
+         * If new label is not specified, then views'
+         * 'value' property will be taken.
+         *
+         * @param {String} index - Index of a view.
+         * @param {String} [label=view.value] - New labels' value.
+         * @returns {Bookmarks} Chainable.
+         */
+        updateViewLabel: function (index, label) {
+            var view    = this.getView(index),
+                current = view.label;
+
+            label = (label || view.value).trim() || current;
+            label = this.uniqueLabel(label, current);
+
+            view.label = view.value = label;
+
+            return this;
+        },
+
+        /**
+         * Retrieves data of a specified view.
+         *
+         * @param {String} index - Index of a view whose data should be retrieved.
+         * @param {String} [property] - If not specified then whole views' data will be retrieved.
+         * @returns {Object} Views' data.
+         */
+        getViewData: function (index, property) {
+            var view = this.getView(index),
+                data = view.data;
+
+            if (property) {
+                data = utils.nested(data, property);
+            }
+
+            return utils.copy(data);
+        },
+
+        /**
+         * Sets data to the specified view.
+         *
+         * @param {String} index - Index of a view whose data will be replaced.
+         * @param {Object} data - New view data.
+         * @returns {Bookmarks} Chainable.
+         */
+        setViewData: function (index, data) {
+            var path = this.getViewPath(index) + '.data';
+
+            this.set(path, utils.copy(data));
+
+            return this;
+        },
+
+        /**
+         * Starts editing of a specified view.
+         *
+         * @param {String} index - Index of a view.
+         * @returns {Bookmarks} Chainable.
+         */
+        editView: function (index) {
+            this.editing = index;
+
+            return this;
+        },
+
+        /**
+         * Ends editing of specified view
+         * and restores its' label.
+         *
+         * @param {String} index - Index of a view.
+         * @returns {Bookmarks} Chainable.
+         */
+        endEdit: function (index) {
+            var view;
+
+            if (!this.isEditing(index)) {
+                return this;
+            }
+
+            index   = index || this.editing;
+            view    = this.getView(index);
+
+            view.value = view.label;
+
+            this.editing = false;
+
+            return this;
+        },
+
+        /**
+         * Checks if specified view is in editing state.
+         *
+         * @param {String} index - Index of a view to be checked.
+         * @returns {Bollean}
+         */
+        isEditing: function (index) {
+            return this.editing === index;
+        },
+
+        /**
+         * Generates label unique among present views, based
+         * on the incoming label pattern.
+         *
+         * @param {String} [label=this.newViewLabel] - Label pattern.
+         * @param {String} [exclude]
+         * @returns {String}
+         */
+        uniqueLabel: function (label, exclude) {
+            var labels      = _.pluck(this.views, 'label'),
+                hasParenth  = _.last(label) === ')',
+                index       = 2,
+                result,
+                suffix;
+
+            labels = _.without(labels, exclude);
+            result = label = label || this.newViewLabel;
+
+            for (index = 2; _.contains(labels, result); index++) {
+                suffix = '(' + index + ')';
+
+                if (!hasParenth) {
+                    suffix = ' ' + suffix;
+                }
+
+                result = label + suffix;
+            }
+
+            return result;
+        },
+
+        /**
+         * Applies state of a specified view, without
+         * making it active.
+         *
+         * @param {String} [state=this.activeIndex]
+         * @param {String} [property]
+         * @returns {Bookmarks} Chainable.
+         */
+        applyStateOf: function (state, property) {
+            var index    = state || this.activeIndex,
+                dataPath = removeStateNs(property),
+                viewData = this.getViewData(index, dataPath);
+
+            dataPath = dataPath ?
+                'current.' + dataPath :
+                'current';
+
+            this.set(dataPath, viewData);
+
+            return this;
+        },
+
+        /**
+         * Saves current state.
+         *
+         * @returns {Bookmarks} Chainable.
+         */
+        saveState: function () {
             this.store('current');
 
             return this;
         },
 
         /**
-         * Defines whether current state is different
-         * from a saved state of an active view.
+         * Applies state of an active view.
          *
          * @returns {Bookmarks} Chainable.
          */
-        checkChanges: function () {
-            var view = this.activeView(),
-                diff = utils.compare(view.getData(), this.current);
-
-            this.hasChanges(!diff.equal);
+        resetState: function () {
+            this.applyStateOf(this.activeIndex);
 
             return this;
         },
 
         /**
-         * Retrieves last saved data of a current view.
+         * Checks if current state is different
+         * from the state of an active view.
          *
-         * @returns {Object}
+         * @returns {Bookmarks} Chainable.
          */
-        getSaved: function () {
-            return this.activeView().getData();
+        checkState: function () {
+            var viewData = this.getViewData(this.activeIndex),
+                diff     = utils.compare(viewData, this.current);
+
+            this.hasChanges = !diff.equal;
+
+            return this;
         },
 
         /**
-         * Retrieves default data.
+         * Returns path to the view instance,
+         * based on a provided index.
          *
-         * @returns {Object}
+         * @param {String} index - Index of a view.
+         * @returns {String}
          */
-        getDefault: function () {
-            return this.defaultView.getData();
+        getViewPath: function (index) {
+            return 'views.' + index;
         },
 
         /**
-         * Defines default data if it wasn't gathered previously.
-         * Assumes that if theres is no views available,
-         * then current data object is the default configuration.
+         * Updates the array of views.
          *
-         * @private
-         * @returns {Bookmarks} Chainbale.
+         * @returns {Bookmarks} Chainable
          */
-        _defaultPolyfill: function () {
-            var view = this.defaultView,
-                data = view.data;
+        updateArray: function () {
+            this.viewsArray = _.values(this.views);
 
-            if (!_.size(data.items)) {
-                data.items = utils.copy(this.current);
+            return this;
+        },
 
-                this.store('views.' + view.index, view.exportView());
-            }
+        /**
+         * Shows custom view field and creates unique label for it.
+         *
+         * @returns {Bookmarks} Chainable.
+         */
+        showCustom: function () {
+            this.customLabel    = this.uniqueLabel();
+            this.customVisible  = true;
 
-            this.defaultDefined = true;
+            return this;
+        },
 
-            this.checkChanges();
+        /**
+         * Hides custom view field.
+         *
+         * @returns {Bookmarks} Chainable.
+         */
+        hideCustom: function () {
+            this.customVisible = false;
+
+            return this;
+        },
+
+        /**
+         * Checks if custom view field is visible.
+         *
+         * @returns {Boolean}
+         */
+        isCustomVisible: function () {
+            return this.customVisible;
+        },
+
+        /**
+         * Creates new view instance with a label specified
+         * in a custom view field.
+         *
+         * @returns {Bookmarks} Chainable.
+         */
+        applyCustom: function () {
+            var label = this.customLabel.trim();
+
+            this.hideCustom()
+                .addView({
+                    label: this.uniqueLabel(label)
+                }, true, true);
 
             return this;
         },
 
         /**
          * Listener of the activeIndex property.
-         *
-         * @param {String} index - Index of the active view.
          */
-        onActiveIndexChange: function (index) {
-            this.store('activeIndex')
-                .applyView(index);
+        onActiveIndexChange: function () {
+            this.activeView = this.getActiveView();
+
+            this.store('activeIndex');
         },
 
         /**
-         * Listens changes of a current data object.
+         * Listener of the activeIndex property.
          */
         onStateChange: function () {
-            this.saveSate();
-
-            if (this.activeView()) {
-                this.checkChanges();
-            }
+            this.checkState();
+            this.saveState();
 
             if (!this.defaultDefined) {
-                this._defaultPolyfill();
-            }
-        },
-
-        /**
-         * Lsitens changes of the views' 'editing' property.
-         */
-        onEditingChange: function (view, isEditing) {
-            if (!isEditing && view.isNew) {
-                this.removeView(view);
+                resolver(this.initDefaultView, this);
             }
         }
     });

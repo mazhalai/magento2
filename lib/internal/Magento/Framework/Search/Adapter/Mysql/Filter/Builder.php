@@ -12,8 +12,11 @@ use Magento\Framework\Search\Adapter\Mysql\Filter\Builder\Range;
 use Magento\Framework\Search\Adapter\Mysql\Filter\Builder\Term;
 use Magento\Framework\Search\Adapter\Mysql\Filter\Builder\Wildcard;
 use Magento\Framework\Search\Request\FilterInterface as RequestFilterInterface;
-use Magento\Framework\Search\Request\Query\Bool;
+use Magento\Framework\Search\Request\Query\BoolExpression;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class Builder implements BuilderInterface
 {
     /**
@@ -69,7 +72,7 @@ class Builder implements BuilderInterface
      */
     private function processFilter(RequestFilterInterface $filter, $isNegation)
     {
-        if ($filter->getType() == RequestFilterInterface::TYPE_BOOL) {
+        if ($filter->getType() === RequestFilterInterface::TYPE_BOOL) {
             $query = $this->processBoolFilter($filter, $isNegation);
             $query = $this->conditionManager->wrapBrackets($query);
         } else {
@@ -117,7 +120,8 @@ class Builder implements BuilderInterface
     {
         $queries = [];
         foreach ($filters as $filter) {
-            $queries[] = $this->processFilter($filter, $isNegation);
+            $filterQuery = $this->processFilter($filter, $isNegation);
+            $queries[] = $this->conditionManager->wrapBrackets($filterQuery);
         }
         return $this->conditionManager->combineQueries($queries, $unionOperator);
     }
@@ -128,6 +132,6 @@ class Builder implements BuilderInterface
      */
     private function isNegation($conditionType)
     {
-        return Bool::QUERY_CONDITION_NOT === $conditionType;
+        return BoolExpression::QUERY_CONDITION_NOT === $conditionType;
     }
 }

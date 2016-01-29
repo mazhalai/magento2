@@ -5,11 +5,13 @@
  */
 namespace Magento\Newsletter\Model;
 
+use Magento\Framework\App\TemplateTypesInterface;
+
 /**
  * Newsletter queue model.
  *
- * @method \Magento\Newsletter\Model\Resource\Queue _getResource()
- * @method \Magento\Newsletter\Model\Resource\Queue getResource()
+ * @method \Magento\Newsletter\Model\ResourceModel\Queue _getResource()
+ * @method \Magento\Newsletter\Model\ResourceModel\Queue getResource()
  * @method int getTemplateId()
  * @method \Magento\Newsletter\Model\Queue setTemplateId(int $value)
  * @method int getNewsletterType()
@@ -33,7 +35,7 @@ namespace Magento\Newsletter\Model;
  * @SuppressWarnings(PHPMD.LongVariable)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class Queue extends \Magento\Email\Model\AbstractTemplate
+class Queue extends \Magento\Framework\Model\AbstractModel implements TemplateTypesInterface
 {
     /**
      * Newsletter Template object
@@ -45,7 +47,7 @@ class Queue extends \Magento\Email\Model\AbstractTemplate
     /**
      * Subscribers collection
      *
-     * @var \Magento\Newsletter\Model\Resource\Subscriber\Collection
+     * @var \Magento\Newsletter\Model\ResourceModel\Subscriber\Collection
      */
     protected $_subscribersCollection;
 
@@ -108,35 +110,38 @@ class Queue extends \Magento\Email\Model\AbstractTemplate
 
     /**
      * @param \Magento\Framework\Model\Context $context
-     * @param \Magento\Framework\View\DesignInterface $design
      * @param \Magento\Framework\Registry $registry
-     * @param \Magento\Store\Model\App\Emulation $appEmulation
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Newsletter\Model\Template\Filter $templateFilter
-     * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
      * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
      * @param \Magento\Newsletter\Model\TemplateFactory $templateFactory
      * @param \Magento\Newsletter\Model\ProblemFactory $problemFactory
-     * @param \Magento\Newsletter\Model\Resource\Subscriber\CollectionFactory $subscriberCollectionFactory
+     * @param \Magento\Newsletter\Model\ResourceModel\Subscriber\CollectionFactory $subscriberCollectionFactory
      * @param \Magento\Newsletter\Model\Queue\TransportBuilder $transportBuilder
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
-        \Magento\Framework\View\DesignInterface $design,
         \Magento\Framework\Registry $registry,
-        \Magento\Store\Model\App\Emulation $appEmulation,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Newsletter\Model\Template\Filter $templateFilter,
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
         \Magento\Newsletter\Model\TemplateFactory $templateFactory,
         \Magento\Newsletter\Model\ProblemFactory $problemFactory,
-        \Magento\Newsletter\Model\Resource\Subscriber\CollectionFactory $subscriberCollectionFactory,
+        \Magento\Newsletter\Model\ResourceModel\Subscriber\CollectionFactory $subscriberCollectionFactory,
         \Magento\Newsletter\Model\Queue\TransportBuilder $transportBuilder,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
-        parent::__construct($context, $design, $registry, $appEmulation, $storeManager, $data);
+        parent::__construct(
+            $context,
+            $registry,
+            $resource,
+            $resourceCollection,
+            $data
+        );
         $this->_templateFilter = $templateFilter;
         $this->_date = $date;
         $this->_templateFactory = $templateFactory;
@@ -153,7 +158,7 @@ class Queue extends \Magento\Email\Model\AbstractTemplate
     protected function _construct()
     {
         parent::_construct();
-        $this->_init('Magento\Newsletter\Model\Resource\Queue');
+        $this->_init('Magento\Newsletter\Model\ResourceModel\Queue');
     }
 
     /**
@@ -358,6 +363,16 @@ class Queue extends \Magento\Email\Model\AbstractTemplate
             $this->_template = $this->_templateFactory->create()->load($this->getTemplateId());
         }
         return $this->_template;
+    }
+
+    /**
+     * Return true if template type eq text
+     *
+     * @return boolean
+     */
+    public function isPlain()
+    {
+        return $this->getType() == self::TYPE_TEXT;
     }
 
     /**

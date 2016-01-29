@@ -6,8 +6,9 @@
 define([
     "jquery",
     "mage/template",
+    'Magento_Ui/js/modal/alert',
     "jquery/ui"
-], function($, mageTemplate){
+], function($, mageTemplate, alert){
     "use strict";
 
     $.widget('mage.transparent', {
@@ -23,7 +24,8 @@ define([
             controller: null,
             gateway: null,
             dateDelim: null,
-            cardFieldsMap: null
+            cardFieldsMap: null,
+            expireYearLength: 2
         },
 
         _create: function() {
@@ -52,6 +54,9 @@ define([
          */
         _orderSave: function() {
             var postData = "form_key="+FORM_KEY;
+            postData += '&cc_type=' + this.element.find(
+                '[data-container="' + this.options.gateway + '-cc-type"]'
+            ).val();
             $.ajax({
                 url: this.options.orderSaveUrl,
                 type: 'post',
@@ -135,8 +140,8 @@ define([
                     this.element.find('[data-container="' + this.options.gateway + '-cc-month"]').val()
                     , 10
                 );
-            if (year.length > 2) {
-                year = year.substring(2);
+            if (year.length > this.options.expireYearLength) {
+                year = year.substring(year.length - this.options.expireYearLength);
             }
             if (month < 10) {
                 month = '0' + month;
@@ -153,10 +158,14 @@ define([
         _processErrors: function (response) {
             var msg = response.error_messages;
             if (typeof (msg) === 'object') {
-                alert(msg.join("\n"));
+                alert({
+                    content: msg.join("\n")
+                });
             }
             if (msg) {
-                alert(msg);
+                alert({
+                    content: msg
+                });
             }
         }
     });

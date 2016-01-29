@@ -6,7 +6,7 @@
  */
  -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../vendor/magento/mtf/etc/variations.xsd">
-    <testCase name="Magento\Wishlist\Test\TestCase\AddProductsToCartFromCustomerWishlistOnFrontendTest">
+    <testCase name="Magento\Wishlist\Test\TestCase\AddProductsToCartFromCustomerWishlistOnFrontendTest" summary="Add Products from Wishlist to Cart" ticketId="MAGETWO-25268">
         <variation name="AddProductsToCartFromCustomerWishlistOnFrontendTestVariation1">
             <data name="products" xsi:type="string">catalogProductSimple::product_100_dollar</data>
             <data name="qty" xsi:type="string">2</data>
@@ -20,7 +20,6 @@
             <constraint name="Magento\Wishlist\Test\Constraint\AssertProductsIsAbsentInWishlist" />
         </variation>
         <variation name="AddProductsToCartFromCustomerWishlistOnFrontendTestVariation3">
-            <data name="issue" xsi:type="string">Bug: MAGETWO-36215</data>
             <data name="products" xsi:type="string">catalogProductSimple::default,catalogProductVirtual::product_50_dollar,catalogProductSimple::default,catalogProductVirtual::product_50_dollar</data>
             <data name="qty" xsi:type="string">-</data>
             <constraint name="Magento\Checkout\Test\Constraint\AssertProductQtyInShoppingCart" />

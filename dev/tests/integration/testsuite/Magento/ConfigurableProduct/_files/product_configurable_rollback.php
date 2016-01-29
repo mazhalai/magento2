@@ -4,31 +4,31 @@
  * See COPYING.txt for license details.
  */
 
+$objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
+
 /** @var \Magento\Framework\Registry $registry */
-$registry = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get('Magento\Framework\Registry');
+$registry = $objectManager->get('Magento\Framework\Registry');
 
 $registry->unregister('isSecureArea');
 $registry->register('isSecureArea', true);
 
-/** @var $product \Magento\Catalog\Model\Product */
-$product = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create('Magento\Catalog\Model\Product');
-$product->load(10);
-if ($product->getId()) {
-    $product->delete();
+/** @var \Magento\Catalog\Api\ProductRepositoryInterface $productRepository */
+$productRepository = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
+    ->get('Magento\Catalog\Api\ProductRepositoryInterface');
+
+foreach (['simple_10', 'simple_20', 'configurable'] as $sku) {
+    try {
+        $product = $productRepository->get($sku);
+
+        $stockStatus = $objectManager->create('Magento\CatalogInventory\Model\Stock\Status');
+        $stockStatus->load($product->getEntityId(), 'product_id');
+        $stockStatus->delete();
+
+        $productRepository->delete($product);
+    } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+        //Product already removed
+    }
 }
-$product = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create('Magento\Catalog\Model\Product');
-$product->load(20);
-if ($product->getId()) {
-    $product->delete();
-}
-$product = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create('Magento\Catalog\Model\Product');
-$product->load(1);
-if ($product->getId()) {
-    $product->delete();
-}
-\Magento\TestFramework\Helper\Bootstrap::getObjectManager()
-    ->get('Magento\ConfigurableProduct\Model\Resource\Product\Type\Configurable\Attribute\Price\Data')
-    ->setProductPrice(1, null);
 
 require __DIR__ . '/configurable_attribute_rollback.php';
 

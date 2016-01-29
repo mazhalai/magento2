@@ -4,6 +4,7 @@
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\Error;
+use Magento\Framework\Filesystem\DriverInterface;
 
 /**
  * Error processor
@@ -225,7 +226,13 @@ class Processor
      */
     public function getViewFileUrl()
     {
-        return $this->getBaseUrl() . self::ERROR_DIR . '/' . $this->_config->skin . '/';
+        //The url needs to be updated base on Document root path.
+        return $this->getBaseUrl() .
+        str_replace(
+            str_replace('\\', '/', $this->_indexDir),
+            '',
+            str_replace('\\', '/', $this->_errorDir)
+        ) . $this->_config->skin . '/';
     }
 
     /**
@@ -385,11 +392,6 @@ class Processor
     protected function _getFilePath($file, $directories = null)
     {
         if (is_null($directories)) {
-            $directories = [];
-
-            if (!$this->_root) {
-                $directories[] = $this->_indexDir . self::ERROR_DIR . '/';
-            }
             $directories[] = $this->_errorDir;
         }
 
@@ -408,16 +410,6 @@ class Processor
      */
     protected function _getTemplatePath($template)
     {
-        $directories = [];
-
-        if (!$this->_root) {
-            $directories[] = $this->_indexDir . self::ERROR_DIR . '/' . $this->_config->skin . '/';
-
-            if ($this->_config->skin != self::DEFAULT_SKIN) {
-                $directories[] = $this->_indexDir . self::ERROR_DIR . '/' . self::DEFAULT_SKIN . '/';
-            }
-        }
-
         $directories[] = $this->_errorDir . $this->_config->skin . '/';
 
         if ($this->_config->skin != self::DEFAULT_SKIN) {
@@ -462,11 +454,11 @@ class Processor
         $this->_setReportData($reportData);
 
         if (!file_exists($this->_reportDir)) {
-            @mkdir($this->_reportDir, 0777, true);
+            @mkdir($this->_reportDir, DriverInterface::WRITEABLE_DIRECTORY_MODE, true);
         }
 
         @file_put_contents($this->_reportFile, serialize($reportData));
-        @chmod($this->_reportFile, 0777);
+        @chmod($this->_reportFile, DriverInterface::WRITEABLE_FILE_MODE);
 
         if (isset($reportData['skin']) && self::DEFAULT_SKIN != $reportData['skin']) {
             $this->_setSkin($reportData['skin']);
@@ -520,7 +512,7 @@ class Processor
                     . "IP Address: {$this->_getClientIp()}\n"
                     . "First Name: {$this->postData['firstName']}\n"
                     . "Last Name: {$this->postData['lastName']}\n"
-                    . "E-mail Address: {$this->postData['email']}\n";
+                    . "Email Address: {$this->postData['email']}\n";
                 if ($this->postData['telephone']) {
                     $msg .= "Telephone: {$this->postData['telephone']}\n";
                 }

@@ -9,8 +9,8 @@
 /**
  * Catalog Product Website Model
  *
- * @method \Magento\Catalog\Model\Resource\Product\Website _getResource()
- * @method \Magento\Catalog\Model\Resource\Product\Website getResource()
+ * @method \Magento\Catalog\Model\ResourceModel\Product\Website _getResource()
+ * @method \Magento\Catalog\Model\ResourceModel\Product\Website getResource()
  * @method int getWebsiteId()
  * @method \Magento\Catalog\Model\Product\Website setWebsiteId(int $value)
  *
@@ -27,13 +27,13 @@ class Website extends \Magento\Framework\Model\AbstractModel
      */
     protected function _construct()
     {
-        $this->_init('Magento\Catalog\Model\Resource\Product\Website');
+        $this->_init('Magento\Catalog\Model\ResourceModel\Product\Website');
     }
 
     /**
      * Retrieve Resource instance wrapper
      *
-     * @return \Magento\Catalog\Model\Resource\Product\Website
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Website
      */
     protected function _getResource()
     {
@@ -54,7 +54,7 @@ class Website extends \Magento\Framework\Model\AbstractModel
             $this->_getResource()->removeProducts($websiteIds, $productIds);
         } catch (\Exception $e) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __('Something went wrong removing products from the websites.')
+                __('Something went wrong while removing products from the websites.')
             );
         }
         return $this;
@@ -74,7 +74,7 @@ class Website extends \Magento\Framework\Model\AbstractModel
             $this->_getResource()->addProducts($websiteIds, $productIds);
         } catch (\Exception $e) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __('Something went wrong adding products to websites.')
+                __('Something went wrong while adding products to websites.')
             );
         }
         return $this;

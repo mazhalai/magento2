@@ -13,7 +13,7 @@ use Magento\Mtf\TestCase\Injectable;
 
 /**
  * Precondition:
- * 1. Several Shopping Cart Price Rules are created.
+ * 1. Several Cart Price Rules are created.
  *
  * Steps:
  * 1. Login to backend.
@@ -75,5 +75,6 @@ class DeleteSalesRuleEntityTest extends Injectable
         $this->promoQuoteIndex->open();
         $this->promoQuoteIndex->getPromoQuoteGrid()->searchAndOpen(['name' => $salesRule->getName()]);
         $this->promoQuoteEdit->getFormPageActions()->delete();
+        $this->promoQuoteEdit->getModalBlock()->acceptAlert();
     }
 }

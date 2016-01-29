@@ -29,8 +29,8 @@ class EavVariationsFixture extends Fixture
         }
         $this->fixtureModel->resetObjectManager();
 
-        /* @var $model \Magento\Catalog\Model\Resource\Eav\Attribute */
-        $model = $this->fixtureModel->getObjectManager()->create('Magento\Catalog\Model\Resource\Eav\Attribute');
+        /* @var $model \Magento\Catalog\Model\ResourceModel\Eav\Attribute */
+        $model = $this->fixtureModel->getObjectManager()->create('Magento\Catalog\Model\ResourceModel\Eav\Attribute');
         /** @var \Magento\Store\Model\StoreManager $storeManager */
         $storeManager = $this->fixtureModel->getObjectManager()->create('Magento\Store\Model\StoreManager');
         $stores = $storeManager->getStores();
@@ -58,7 +58,7 @@ class EavVariationsFixture extends Fixture
                 ],
             ],
             'default'                       => ['option_0'],
-            'attribute_code'                => 'configurable_variations',
+            'attribute_code'                => 'configurable_variation',
             'is_global'                     => '1',
             'default_value_text'            => '',
             'default_value_yesno'           => '0',

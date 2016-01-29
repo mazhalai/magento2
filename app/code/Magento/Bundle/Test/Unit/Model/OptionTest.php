@@ -20,7 +20,7 @@ class OptionTest extends \PHPUnit_Framework_TestCase
     protected $selectionSecond;
 
     /**
-     * @var \Magento\Framework\Model\Resource\AbstractResource|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\Model\ResourceModel\AbstractResource|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $resource;
 
@@ -46,8 +46,13 @@ class OptionTest extends \PHPUnit_Framework_TestCase
             false
         );
         $this->resource = $this->getMock(
-            'Magento\Framework\Model\Resource\AbstractResource',
-            ['_construct', '_getReadAdapter', '_getWriteAdapter', 'getIdFieldName', 'getSearchableData'],
+            'Magento\Framework\Model\ResourceModel\AbstractResource',
+            [
+                '_construct',
+                'getConnection',
+                'getIdFieldName',
+                'getSearchableData',
+            ],
             [],
             '',
             false

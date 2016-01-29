@@ -6,7 +6,7 @@
 namespace Magento\ImportExport\Model\Export\Adapter;
 
 use Magento\Framework\Filesystem;
-use Magento\Framework\Filesystem\DirectoryList;
+use Magento\Framework\App\Filesystem\DirectoryList;
 
 /**
  * Abstract adapter model
@@ -37,23 +37,29 @@ abstract class AbstractAdapter
     /**
      * Constructor
      *
-     * @param \Magento\Framework\Filesystem $filesystem
+     * @param Filesystem $filesystem
      * @param string|null $destination
+     * @param string $destinationDirectoryCode
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function __construct(\Magento\Framework\Filesystem $filesystem, $destination = null)
-    {
-        $this->_directoryHandle = $filesystem->getDirectoryWrite(DirectoryList::SYS_TMP);
+    public function __construct(
+        \Magento\Framework\Filesystem $filesystem,
+        $destination = null,
+        $destinationDirectoryCode = DirectoryList::VAR_DIR
+    ) {
+        $this->_directoryHandle = $filesystem->getDirectoryWrite($destinationDirectoryCode);
         if (!$destination) {
             $destination = uniqid('importexport_');
             $this->_directoryHandle->touch($destination);
         }
         if (!is_string($destination)) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Destination file path must be a string'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('The destination file path must be a string.')
+            );
         }
 
         if (!$this->_directoryHandle->isWritable()) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Destination directory is not writable'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('The destination directory is not writable.'));
         }
         if ($this->_directoryHandle->isFile($destination) && !$this->_directoryHandle->isWritable($destination)) {
             throw new \Magento\Framework\Exception\LocalizedException(__('Destination file is not writable'));

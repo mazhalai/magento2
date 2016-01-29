@@ -7,7 +7,7 @@ namespace Magento\CatalogRule\Block\Adminhtml\Promo\Catalog\Edit\Tab;
 
 use Magento\Backend\Block\Widget\Form;
 use Magento\Backend\Block\Widget\Form\Generic;
-use Magento\Backend\Block\Widget\Tab\TabInterface;
+use Magento\Ui\Component\Layout\Tabs\TabInterface;
 
 class Conditions extends Generic implements TabInterface
 {
@@ -46,6 +46,7 @@ class Conditions extends Generic implements TabInterface
      * Prepare content for tab
      *
      * @return \Magento\Framework\Phrase
+     * @codeCoverageIgnore
      */
     public function getTabLabel()
     {
@@ -56,6 +57,7 @@ class Conditions extends Generic implements TabInterface
      * Prepare title for tab
      *
      * @return \Magento\Framework\Phrase
+     * @codeCoverageIgnore
      */
     public function getTabTitle()
     {
@@ -66,6 +68,7 @@ class Conditions extends Generic implements TabInterface
      * Returns status flag about this tab can be showen or not
      *
      * @return bool
+     * @codeCoverageIgnore
      */
     public function canShowTab()
     {
@@ -76,8 +79,42 @@ class Conditions extends Generic implements TabInterface
      * Returns status flag about this tab hidden or not
      *
      * @return bool
+     * @codeCoverageIgnore
      */
     public function isHidden()
+    {
+        return false;
+    }
+
+    /**
+     * Tab class getter
+     *
+     * @return string
+     * @codeCoverageIgnore
+     */
+    public function getTabClass()
+    {
+        return null;
+    }
+
+    /**
+     * Return URL link to Tab content
+     *
+     * @return string
+     * @codeCoverageIgnore
+     */
+    public function getTabUrl()
+    {
+        return null;
+    }
+
+    /**
+     * Tab should be loaded trough Ajax call
+     *
+     * @return bool
+     * @codeCoverageIgnore
+     */
+    public function isAjaxLoaded()
     {
         return false;
     }
@@ -101,7 +138,7 @@ class Conditions extends Generic implements TabInterface
 
         $fieldset = $form->addFieldset(
             'conditions_fieldset',
-            ['legend' => __('Conditions (leave blank for all products)')]
+            ['legend' => __('Conditions (don\'t add conditions if rule is applied to all products)')]
         )->setRenderer(
             $renderer
         );
@@ -109,7 +146,13 @@ class Conditions extends Generic implements TabInterface
         $fieldset->addField(
             'conditions',
             'text',
-            ['name' => 'conditions', 'label' => __('Conditions'), 'title' => __('Conditions'), 'required' => true]
+            [
+                'name' => 'conditions',
+                'label' => __('Conditions'),
+                'title' => __('Conditions'),
+                'required' => true,
+                'data-form-part' => 'catalog_rule_form'
+            ]
         )->setRule(
             $model
         )->setRenderer(

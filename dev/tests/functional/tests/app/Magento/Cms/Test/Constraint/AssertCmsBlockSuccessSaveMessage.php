@@ -14,7 +14,7 @@ use Magento\Mtf\Constraint\AbstractConstraint;
  */
 class AssertCmsBlockSuccessSaveMessage extends AbstractConstraint
 {
-    const SUCCESS_SAVE_MESSAGE = 'The block has been saved.';
+    const SUCCESS_SAVE_MESSAGE = 'You saved the block.';
 
     /**
      * Assert that after save block successful message appears.
@@ -24,7 +24,7 @@ class AssertCmsBlockSuccessSaveMessage extends AbstractConstraint
      */
     public function processAssert(CmsBlockIndex $cmsBlockIndex)
     {
-        $actualMessage = $cmsBlockIndex->getMessagesBlock()->getSuccessMessages();
+        $actualMessage = $cmsBlockIndex->getMessagesBlock()->getSuccessMessage();
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_SAVE_MESSAGE,
             $actualMessage,

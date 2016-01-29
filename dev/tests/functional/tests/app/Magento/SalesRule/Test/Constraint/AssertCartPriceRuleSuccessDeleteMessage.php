@@ -18,7 +18,7 @@ class AssertCartPriceRuleSuccessDeleteMessage extends AbstractConstraint
     const SEVERITY = 'low';
     /* end tags */
 
-    const SUCCESS_DELETE_MESSAGE = 'The rule has been deleted.';
+    const SUCCESS_DELETE_MESSAGE = 'You deleted the rule.';
 
     /**
      * Assert that success message is displayed after sales rule delete.
@@ -28,7 +28,7 @@ class AssertCartPriceRuleSuccessDeleteMessage extends AbstractConstraint
      */
     public function processAssert(PromoQuoteIndex $promoQuoteIndex)
     {
-        $actualMessage = $promoQuoteIndex->getMessagesBlock()->getSuccessMessages();
+        $actualMessage = $promoQuoteIndex->getMessagesBlock()->getSuccessMessage();
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_DELETE_MESSAGE,
             $actualMessage,

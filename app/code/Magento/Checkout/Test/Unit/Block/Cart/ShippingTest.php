@@ -7,61 +7,101 @@ namespace Magento\Checkout\Test\Unit\Block\Cart;
 
 class ShippingTest extends \PHPUnit_Framework_TestCase
 {
-    /** @var \Magento\Framework\TestFramework\Unit\Helper\ObjectManager  */
-    protected $objectManager;
+    /**
+     * @var \Magento\Checkout\Block\Cart\Shipping
+     */
+    protected $model;
 
-    protected $shippingBlock;
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $context;
+
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $customerSession;
+
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $checkoutSession;
+
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $configProvider;
+
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $layoutProcessor;
+
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $storeManager;
+
+    /**
+     * @var array
+     */
+    protected $layout;
 
     protected function setUp()
     {
-        $this->objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
+        $this->context = $this->getMock('\Magento\Framework\View\Element\Template\Context', [], [], '', false);
+        $this->customerSession = $this->getMock('\Magento\Customer\Model\Session', [], [], '', false);
+        $this->checkoutSession = $this->getMock('\Magento\Checkout\Model\Session', [], [], '', false);
+        $this->configProvider = $this->getMock('\Magento\Checkout\Model\CompositeConfigProvider', [], [], '', false);
+        $this->layoutProcessor = $this->getMock('\Magento\Checkout\Block\Checkout\LayoutProcessorInterface');
+        $this->layout = [
+            'components' => [
+                'firstComponent' => ['param' => 'value'],
+                'secondComponent' => ['param' => 'value'],
+            ]
+        ];
+
+        $this->storeManager = $this->getMock('\Magento\Store\Model\StoreManagerInterface');
+        $this->context->expects($this->once())->method('getStoreManager')->willReturn($this->storeManager);
+
+        $this->model = new \Magento\Checkout\Block\Cart\Shipping(
+            $this->context,
+            $this->customerSession,
+            $this->checkoutSession,
+            $this->configProvider,
+            [$this->layoutProcessor],
+            ['jsLayout' => $this->layout]
+        );
     }
 
-    public function testGetShippingPriceHtml()
+    public function testGetCheckoutConfig()
     {
-        $shippingRateMock = $this->getMockBuilder('\Magento\Quote\Model\Quote\Address\Rate')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $config = ['param' => 'value'];
+        $this->configProvider->expects($this->once())->method('getConfig')->willReturn($config);
+        $this->assertEquals($config, $this->model->getCheckoutConfig());
+    }
 
-        $shippingPriceHtml = "$3.25 ($3.56 Incl Tax)";
+    public function testGetJsLayout()
+    {
+        $layoutProcessed = $this->layout;
+        $layoutProcessed['components']['thirdComponent'] = ['param' => 'value'];
 
-        $priceBlockMock = $this->getMockBuilder('\Magento\Checkout\Block\Shipping\Price')
-            ->disableOriginalConstructor()
-            ->setMethods(['setShippingRate', 'toHtml'])
-            ->getMock();
-
-        $priceBlockMock->expects($this->once())
-            ->method('setShippingRate')
-            ->with($shippingRateMock);
-
-        $priceBlockMock->expects($this->once())
-            ->method('toHtml')
-            ->will($this->returnValue($shippingPriceHtml));
-
-        $layoutMock = $this->getMockBuilder('\Magento\Framework\View\Layout')
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $layoutMock->expects($this->once())
-            ->method('getBlock')
-            ->with('checkout.shipping.price')
-            ->will($this->returnValue($priceBlockMock));
-
-        $contextMock = $this->getMockBuilder('\Magento\Framework\View\Element\Template\Context')
-            ->disableOriginalConstructor()
-            ->setMethods(['getLayout'])
-            ->getMock();
-
-        $contextMock->expects($this->once())
-            ->method('getLayout')
-            ->will($this->returnValue($layoutMock));
-
-        /** @var \Magento\Checkout\Block\Cart\Shipping $shippingBlock */
-        $shippingBlock = $this->objectManager->getObject(
-            'Magento\Checkout\Block\Cart\Shipping',
-            ['context' => $contextMock]
+        $this->layoutProcessor->expects($this->once())
+            ->method('process')
+            ->with($this->layout)
+            ->willReturn($layoutProcessed);
+        $this->assertEquals(
+            \Zend_Json::encode($layoutProcessed),
+            $this->model->getJsLayout()
         );
+    }
 
-        $this->assertEquals($shippingPriceHtml, $shippingBlock->getShippingPriceHtml($shippingRateMock));
+    public function testGetBaseUrl()
+    {
+        $baseUrl = 'baseUrl';
+        $storeMock = $this->getMock('\Magento\Store\Model\Store', ['getBaseUrl'], [], '', false);
+        $storeMock->expects($this->once())->method('getBaseUrl')->willReturn($baseUrl);
+        $this->storeManager->expects($this->once())->method('getStore')->willReturn($storeMock);
+        $this->assertEquals($baseUrl, $this->model->getBaseUrl());
     }
 }

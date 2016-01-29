@@ -8,8 +8,8 @@ namespace Magento\Variable\Model;
 /**
  * Custom variable model
  *
- * @method \Magento\Variable\Model\Resource\Variable _getResource()
- * @method \Magento\Variable\Model\Resource\Variable getResource()
+ * @method \Magento\Variable\Model\ResourceModel\Variable _getResource()
+ * @method \Magento\Variable\Model\ResourceModel\Variable getResource()
  * @method string getCode()
  * @method \Magento\Variable\Model\Variable setCode(string $value)
  * @method string getName()
@@ -37,16 +37,16 @@ class Variable extends \Magento\Framework\Model\AbstractModel
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Escaper $escaper
-     * @param \Magento\Variable\Model\Resource\Variable $resource
-     * @param \Magento\Framework\Data\Collection\Db $resourceCollection
+     * @param \Magento\Variable\Model\ResourceModel\Variable $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Escaper $escaper,
-        \Magento\Variable\Model\Resource\Variable $resource,
-        \Magento\Framework\Data\Collection\Db $resourceCollection = null,
+        \Magento\Variable\Model\ResourceModel\Variable $resource,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->_escaper = $escaper;
@@ -61,7 +61,7 @@ class Variable extends \Magento\Framework\Model\AbstractModel
     protected function _construct()
     {
         parent::_construct();
-        $this->_init('Magento\Variable\Model\Resource\Variable');
+        $this->_init('Magento\Variable\Model\ResourceModel\Variable');
     }
 
     /**
@@ -69,6 +69,7 @@ class Variable extends \Magento\Framework\Model\AbstractModel
      *
      * @param integer $storeId
      * @return $this
+     * @codeCoverageIgnore
      */
     public function setStoreId($storeId)
     {
@@ -80,6 +81,7 @@ class Variable extends \Magento\Framework\Model\AbstractModel
      * Getter
      *
      * @return integer
+     * @codeCoverageIgnore
      */
     public function getStoreId()
     {
@@ -91,6 +93,7 @@ class Variable extends \Magento\Framework\Model\AbstractModel
      *
      * @param string $code
      * @return $this
+     * @codeCoverageIgnore
      */
     public function loadByCode($code)
     {
@@ -145,7 +148,7 @@ class Variable extends \Magento\Framework\Model\AbstractModel
      */
     public function getVariablesOptionArray($withGroup = false)
     {
-        /* @var $collection \Magento\Variable\Model\Resource\Variable\Collection */
+        /* @var $collection \Magento\Variable\Model\ResourceModel\Variable\Collection */
         $collection = $this->getCollection();
         $variables = [];
         foreach ($collection->toOptionArray() as $variable) {

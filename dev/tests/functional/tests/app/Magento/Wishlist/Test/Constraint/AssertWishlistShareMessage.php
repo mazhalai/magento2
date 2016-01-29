@@ -34,7 +34,7 @@ class AssertWishlistShareMessage extends AbstractConstraint
     {
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_MESSAGE,
-            $wishlistIndex->getMessagesBlock()->getSuccessMessages(),
+            $wishlistIndex->getMessagesBlock()->getSuccessMessage(),
             'Wrong success message is displayed.'
         );
     }
@@ -46,6 +46,6 @@ class AssertWishlistShareMessage extends AbstractConstraint
      */
     public function toString()
     {
-        return 'Wishlist success share message is present.';
+        return 'Wish List success share message is present.';
     }
 }

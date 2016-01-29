@@ -39,7 +39,7 @@ class ConfigurableProductManagementTest extends \Magento\TestFramework\TestCase\
         $data = [
             'product' => [
                 'sku' => 'test',
-                'price' => 10.0
+                'price' => 10
             ],
             'options' => [
                 [
@@ -47,7 +47,6 @@ class ConfigurableProductManagementTest extends \Magento\TestFramework\TestCase\
                     'values' => [
                         [
                             'value_index' => $attributeOptionValue,
-                            'pricing_value' => 100.0
                         ]
                     ]
                 ]
@@ -59,12 +58,10 @@ class ConfigurableProductManagementTest extends \Magento\TestFramework\TestCase\
         $expectedItems = [
             [
                 'sku' => 'test-',
-                'price' => 110.0,
+                'price' => 10,
                 'name' => '-',
-                'store_id' => 1,
                 'status' => 1,
                 'visibility' => \Magento\Catalog\Model\Product\Visibility::VISIBILITY_NOT_VISIBLE,
-                'options' => [],
                 'product_links' => [],
                 'custom_attributes' => [
                     [
@@ -72,8 +69,8 @@ class ConfigurableProductManagementTest extends \Magento\TestFramework\TestCase\
                         'value' => $attributeOptionValue
                     ]
                 ],
-                'group_prices' => [],
-                'tier_prices' => []
+                'tier_prices' => [],
+                'extension_attributes' => []
             ]
         ];
         ksort($expectedItems);

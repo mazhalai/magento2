@@ -38,10 +38,10 @@ class AssertProductAttributeIsFilterable extends AbstractConstraint
         $fixtureFactory->createByCode(
             'catalogProductSimple',
             [
-                'dataSet' => 'product_with_category_with_anchor',
+                'dataset' => 'product_with_category_with_anchor',
                 'data' => [
                     'category_ids' => [
-                        'presets' => null,
+                        'dataset' => null,
                         'category' => $product->getDataFieldConfig('category_ids')['source']->getCategories()[0]
                     ]
                 ],
@@ -52,8 +52,9 @@ class AssertProductAttributeIsFilterable extends AbstractConstraint
         $label = $attribute->hasData('manage_frontend_label')
             ? $attribute->getManageFrontendLabel()
             : $attribute->getFrontendLabel();
+        $filters = $catalogCategoryView->getLayeredNavigationBlock()->getFilters();
         \PHPUnit_Framework_Assert::assertTrue(
-            in_array($label, $catalogCategoryView->getLayeredNavigationBlock()->getFilters()),
+            in_array(strtoupper($label), $filters),
             'Attribute is absent in layered navigation on category page.'
         );
     }

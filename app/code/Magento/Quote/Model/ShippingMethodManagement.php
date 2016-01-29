@@ -3,26 +3,25 @@
  * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
-// @codingStandardsIgnoreFile
-
 namespace Magento\Quote\Model;
 
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\StateException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\CouldNotSaveException;
-use Magento\Quote\Api\ShippingMethodManagementInterface;
 
 /**
  * Shipping method read service.
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class ShippingMethodManagement implements ShippingMethodManagementInterface
+class ShippingMethodManagement implements
+    \Magento\Quote\Api\ShippingMethodManagementInterface,
+    \Magento\Quote\Model\ShippingMethodManagementInterface
 {
     /**
      * Quote repository.
      *
-     * @var QuoteRepository
+     * @var \Magento\Quote\Api\CartRepositoryInterface
      */
     protected $quoteRepository;
 
@@ -34,17 +33,35 @@ class ShippingMethodManagement implements ShippingMethodManagementInterface
     protected $converter;
 
     /**
+     * Customer Address repository
+     *
+     * @var \Magento\Customer\Api\AddressRepositoryInterface
+     */
+    protected $addressRepository;
+
+    /**
+     * @var Quote\TotalsCollector
+     */
+    protected $totalsCollector;
+
+    /**
      * Constructs a shipping method read service object.
      *
-     * @param QuoteRepository $quoteRepository Quote repository.
-     * @param \Magento\Quote\Model\Cart\ShippingMethodConverter $converter Shipping method converter.
+     * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
+     * @param Cart\ShippingMethodConverter $converter
+     * @param \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
+     * @param Quote\TotalsCollector $totalsCollector
      */
     public function __construct(
-        QuoteRepository $quoteRepository,
-        Cart\ShippingMethodConverter $converter
+        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
+        Cart\ShippingMethodConverter $converter,
+        \Magento\Customer\Api\AddressRepositoryInterface $addressRepository,
+        \Magento\Quote\Model\Quote\TotalsCollector $totalsCollector
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->converter = $converter;
+        $this->addressRepository = $addressRepository;
+        $this->totalsCollector = $totalsCollector;
     }
 
     /**
@@ -69,6 +86,9 @@ class ShippingMethodManagement implements ShippingMethodManagementInterface
         $shippingAddress->collectShippingRates();
         /** @var \Magento\Quote\Model\Quote\Address\Rate $shippingRate */
         $shippingRate = $shippingAddress->getShippingRateByCode($shippingMethod);
+        if (!$shippingRate) {
+            return null;
+        }
         return $this->converter->modelToDataObject($shippingRate, $quote->getQuoteCurrencyCode());
     }
 
@@ -108,10 +128,10 @@ class ShippingMethodManagement implements ShippingMethodManagementInterface
      * @param string $carrierCode The carrier code.
      * @param string $methodCode The shipping method code.
      * @return bool
-     * @throws \Magento\Framework\Exception\InputException The shipping method is not valid for an empty cart.
-     * @throws \Magento\Framework\Exception\CouldNotSaveException The shipping method could not be saved.
-     * @throws \Magento\Framework\Exception\NoSuchEntityException The specified cart contains only virtual products and the shipping method is not applicable.
-     * @throws \Magento\Framework\Exception\StateException The billing or shipping address is not set.
+     * @throws InputException The shipping method is not valid for an empty cart.
+     * @throws CouldNotSaveException The shipping method could not be saved.
+     * @throws NoSuchEntityException Cart contains only virtual products. Shipping method is not applicable.
+     * @throws StateException The billing or shipping address is not set.
      */
     public function set($cartId, $carrierCode, $methodCode)
     {
@@ -129,10 +149,6 @@ class ShippingMethodManagement implements ShippingMethodManagementInterface
         if (!$shippingAddress->getCountryId()) {
             throw new StateException(__('Shipping address is not set'));
         }
-        $billingAddress = $quote->getBillingAddress();
-        if (!$billingAddress->getCountryId()) {
-            throw new StateException(__('Billing address is not set'));
-        }
         $shippingAddress->setShippingMethod($carrierCode . '_' . $methodCode);
         if (!$shippingAddress->getShippingRateByCode($shippingAddress->getShippingMethod())) {
             throw new NoSuchEntityException(
@@ -145,5 +161,79 @@ class ShippingMethodManagement implements ShippingMethodManagementInterface
             throw new CouldNotSaveException(__('Cannot set shipping method. %1', $e->getMessage()));
         }
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function estimateByAddress($cartId, \Magento\Quote\Api\Data\EstimateAddressInterface $address)
+    {
+        /** @var \Magento\Quote\Model\Quote $quote */
+        $quote = $this->quoteRepository->getActive($cartId);
+
+        // no methods applicable for empty carts or carts with virtual products
+        if ($quote->isVirtual() || 0 == $quote->getItemsCount()) {
+            return [];
+        }
+
+        return $this->getEstimatedRates(
+            $quote,
+            $address->getCountryId(),
+            $address->getPostcode(),
+            $address->getRegionId(),
+            $address->getRegion()
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function estimateByAddressId($cartId, $addressId)
+    {
+        /** @var \Magento\Quote\Model\Quote $quote */
+        $quote = $this->quoteRepository->getActive($cartId);
+
+        // no methods applicable for empty carts or carts with virtual products
+        if ($quote->isVirtual() || 0 == $quote->getItemsCount()) {
+            return [];
+        }
+        $address = $this->addressRepository->getById($addressId);
+
+        return $this->getEstimatedRates(
+            $quote,
+            $address->getCountryId(),
+            $address->getPostcode(),
+            $address->getRegionId(),
+            $address->getRegion()
+        );
+    }
+
+    /**
+     * Get estimated rates
+     *
+     * @param Quote $quote
+     * @param int $country
+     * @param string $postcode
+     * @param int $regionId
+     * @param string $region
+     * @return \Magento\Quote\Api\Data\ShippingMethodInterface[] An array of shipping methods.
+     */
+    protected function getEstimatedRates(\Magento\Quote\Model\Quote $quote, $country, $postcode, $regionId, $region)
+    {
+        $output = [];
+        $shippingAddress = $quote->getShippingAddress();
+        $shippingAddress->setCountryId($country);
+        $shippingAddress->setPostcode($postcode);
+        $shippingAddress->setRegionId($regionId);
+        $shippingAddress->setRegion($region);
+        $shippingAddress->setCollectShippingRates(true);
+        $this->totalsCollector->collectAddressTotals($quote, $shippingAddress);
+        $shippingRates = $shippingAddress->getGroupedAllShippingRates();
+        foreach ($shippingRates as $carrierRates) {
+            foreach ($carrierRates as $rate) {
+                $output[] = $this->converter->modelToDataObject($rate, $quote->getQuoteCurrencyCode());
+            }
+        }
+        return $output;
     }
 }

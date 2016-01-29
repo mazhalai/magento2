@@ -5,6 +5,9 @@
  */
 namespace Magento\CustomerImportExport\Model\Import;
 
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregatorInterface;
+
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -13,7 +16,7 @@ class Customer extends AbstractCustomer
     /**
      * Attribute collection name
      */
-    const ATTRIBUTE_COLLECTION_NAME = 'Magento\Customer\Model\Resource\Attribute\Collection';
+    const ATTRIBUTE_COLLECTION_NAME = 'Magento\Customer\Model\ResourceModel\Attribute\Collection';
 
     /**#@+
      * Permanent column names
@@ -24,6 +27,8 @@ class Customer extends AbstractCustomer
     const COLUMN_EMAIL = 'email';
 
     const COLUMN_STORE = '_store';
+
+    const COLUMN_PASSWORD = 'password';
 
     /**#@-*/
 
@@ -103,12 +108,12 @@ class Customer extends AbstractCustomer
     /**
      * Address attributes collection
      *
-     * @var \Magento\Customer\Model\Resource\Attribute\Collection
+     * @var \Magento\Customer\Model\ResourceModel\Attribute\Collection
      */
     protected $_attributeCollection;
 
     /**
-     * @var \Magento\ImportExport\Model\Resource\Helper
+     * @var \Magento\ImportExport\Model\ResourceModel\Helper
      */
     protected $_resourceHelper;
 
@@ -118,31 +123,67 @@ class Customer extends AbstractCustomer
     protected $masterAttributeCode = 'email';
 
     /**
-     * @param \Magento\Framework\Stdlib\String $string
+     * Valid column names
+     *
+     * @array
+     */
+    protected $validColumnNames = [
+        self::COLUMN_DEFAULT_BILLING,
+        self::COLUMN_DEFAULT_SHIPPING,
+        self::COLUMN_PASSWORD,
+    ];
+
+    /**
+     * Customer fields in file
+     */
+    protected $customerFields = [
+        CustomerInterface::GROUP_ID,
+        CustomerInterface::STORE_ID,
+        CustomerInterface::UPDATED_AT,
+        CustomerInterface::CREATED_AT,
+        CustomerInterface::CREATED_IN,
+        CustomerInterface::PREFIX,
+        CustomerInterface::FIRSTNAME,
+        CustomerInterface::MIDDLENAME,
+        CustomerInterface::LASTNAME,
+        CustomerInterface::SUFFIX,
+        CustomerInterface::DOB,
+        'password_hash',
+        CustomerInterface::TAXVAT,
+        CustomerInterface::CONFIRMATION,
+        CustomerInterface::GENDER,
+        'rp_token',
+        'rp_token_created_at',
+    ];
+
+    /**
+     * @param \Magento\Framework\Stdlib\StringUtils $string
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\ImportExport\Model\ImportFactory $importFactory
-     * @param \Magento\ImportExport\Model\Resource\Helper $resourceHelper
-     * @param \Magento\Framework\App\Resource $resource
+     * @param \Magento\ImportExport\Model\ResourceModel\Helper $resourceHelper
+     * @param \Magento\Framework\App\ResourceConnection $resource
+     * @param ProcessingErrorAggregatorInterface $errorAggregator
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\ImportExport\Model\Export\Factory $collectionFactory
      * @param \Magento\Eav\Model\Config $eavConfig
-     * @param \Magento\CustomerImportExport\Model\Resource\Import\Customer\StorageFactory $storageFactory
-     * @param \Magento\Customer\Model\Resource\Attribute\CollectionFactory $attrCollectionFactory
+     * @param \Magento\CustomerImportExport\Model\ResourceModel\Import\Customer\StorageFactory $storageFactory
+     * @param \Magento\Customer\Model\ResourceModel\Attribute\CollectionFactory $attrCollectionFactory
      * @param \Magento\Customer\Model\CustomerFactory $customerFactory
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
-        \Magento\Framework\Stdlib\String $string,
+        \Magento\Framework\Stdlib\StringUtils $string,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\ImportExport\Model\ImportFactory $importFactory,
-        \Magento\ImportExport\Model\Resource\Helper $resourceHelper,
-        \Magento\Framework\App\Resource $resource,
+        \Magento\ImportExport\Model\ResourceModel\Helper $resourceHelper,
+        \Magento\Framework\App\ResourceConnection $resource,
+        ProcessingErrorAggregatorInterface $errorAggregator,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\ImportExport\Model\Export\Factory $collectionFactory,
         \Magento\Eav\Model\Config $eavConfig,
-        \Magento\CustomerImportExport\Model\Resource\Import\Customer\StorageFactory $storageFactory,
-        \Magento\Customer\Model\Resource\Attribute\CollectionFactory $attrCollectionFactory,
+        \Magento\CustomerImportExport\Model\ResourceModel\Import\Customer\StorageFactory $storageFactory,
+        \Magento\Customer\Model\ResourceModel\Attribute\CollectionFactory $attrCollectionFactory,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
         array $data = []
     ) {
@@ -163,6 +204,7 @@ class Customer extends AbstractCustomer
             $importFactory,
             $resourceHelper,
             $resource,
+            $errorAggregator,
             $storeManager,
             $collectionFactory,
             $eavConfig,
@@ -176,7 +218,10 @@ class Customer extends AbstractCustomer
         $this->_permanentAttributes[] = self::COLUMN_WEBSITE;
         $this->_indexValueAttributes[] = 'group_id';
 
-        $this->addMessageTemplate(self::ERROR_DUPLICATE_EMAIL_SITE, __('E-mail is duplicated in import file'));
+        $this->addMessageTemplate(
+            self::ERROR_DUPLICATE_EMAIL_SITE,
+            __('This email is found more than once in the import file.')
+        );
         $this->addMessageTemplate(
             self::ERROR_ROW_IS_ORPHAN,
             __('Orphan rows that will be skipped due default row errors')
@@ -185,13 +230,16 @@ class Customer extends AbstractCustomer
             self::ERROR_INVALID_STORE,
             __('Invalid value in Store column (store does not exists?)')
         );
-        $this->addMessageTemplate(self::ERROR_EMAIL_SITE_NOT_FOUND, __('E-mail and website combination is not found'));
-        $this->addMessageTemplate(self::ERROR_PASSWORD_LENGTH, __('Invalid password length'));
+        $this->addMessageTemplate(
+            self::ERROR_EMAIL_SITE_NOT_FOUND,
+            __('We can\'t find that email and website combination.')
+        );
+        $this->addMessageTemplate(self::ERROR_PASSWORD_LENGTH, __('Please enter a password with a valid length.'));
 
         $this->_initStores(true)->_initAttributes();
 
         $this->_customerModel = $customerFactory->create();
-        /** @var $customerResource \Magento\Customer\Model\Resource\Customer */
+        /** @var $customerResource \Magento\Customer\Model\ResourceModel\Customer */
         $customerResource = $this->_customerModel->getResource();
         $this->_entityTable = $customerResource->getEntityTable();
     }
@@ -213,7 +261,7 @@ class Customer extends AbstractCustomer
             $this->_connection->insertOnDuplicate(
                 $this->_entityTable,
                 $entitiesToUpdate,
-                ['group_id', 'store_id', 'updated_at', 'created_at']
+                $this->customerFields
             );
         }
 
@@ -282,11 +330,6 @@ class Customer extends AbstractCustomer
      */
     protected function _prepareDataForUpdate(array $rowData)
     {
-        /** @var $passwordAttribute \Magento\Customer\Model\Attribute */
-        $passwordAttribute = $this->_customerModel->getAttribute('password_hash');
-        $passwordAttributeId = $passwordAttribute->getId();
-        $passwordStorageTable = $passwordAttribute->getBackend()->getTable();
-
         $entitiesToCreate = [];
         $entitiesToUpdate = [];
         $attributesToSave = [];
@@ -298,40 +341,45 @@ class Customer extends AbstractCustomer
         } else {
             $createdAt = (new \DateTime())->setTimestamp(strtotime($rowData['created_at']));
         }
+
+        $emailInLowercase = strtolower($rowData[self::COLUMN_EMAIL]);
+        $newCustomer = false;
+        $entityId = $this->_getCustomerId($emailInLowercase, $rowData[self::COLUMN_WEBSITE]);
+        if (!$entityId) {
+            // create
+            $newCustomer = true;
+            $entityId = $this->_getNextEntityId();
+            $this->_newCustomers[$emailInLowercase][$rowData[self::COLUMN_WEBSITE]] = $entityId;
+        }
+
         $entityRow = [
             'group_id' => empty($rowData['group_id']) ? self::DEFAULT_GROUP_ID : $rowData['group_id'],
             'store_id' => empty($rowData[self::COLUMN_STORE]) ? 0 : $this->_storeCodeToId[$rowData[self::COLUMN_STORE]],
             'created_at' => $createdAt->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT),
             'updated_at' => $now->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT),
+            'entity_id' => $entityId,
         ];
 
-        $emailInLowercase = strtolower($rowData[self::COLUMN_EMAIL]);
-        if ($entityId = $this->_getCustomerId($emailInLowercase, $rowData[self::COLUMN_WEBSITE])) {
-            // edit
-            $entityRow['entity_id'] = $entityId;
-            $entitiesToUpdate[] = $entityRow;
-        } else {
-            // create
-            $entityId = $this->_getNextEntityId();
-            $entityRow['entity_id'] = $entityId;
-            $entityRow['website_id'] = $this->_websiteCodeToId[$rowData[self::COLUMN_WEBSITE]];
-            $entityRow['email'] = $emailInLowercase;
-            $entityRow['is_active'] = 1;
-            $entitiesToCreate[] = $entityRow;
-
-            $this->_newCustomers[$emailInLowercase][$rowData[self::COLUMN_WEBSITE]] = $entityId;
+        // password change/set
+        if (isset($rowData['password']) && strlen($rowData['password'])) {
+            $entityRow['password_hash'] = $this->_customerModel->hashPassword($rowData['password']);
         }
 
         // attribute values
         foreach (array_intersect_key($rowData, $this->_attributes) as $attributeCode => $value) {
-            if (!$this->_attributes[$attributeCode]['is_static'] && strlen($value)) {
+            if ($newCustomer && !strlen($value)) {
+                continue;
+            }
+            if (!$this->_attributes[$attributeCode]['is_static']) {
                 /** @var $attribute \Magento\Customer\Model\Attribute */
                 $attribute = $this->_customerModel->getAttribute($attributeCode);
                 $backendModel = $attribute->getBackendModel();
                 $attributeParameters = $this->_attributes[$attributeCode];
 
                 if ('select' == $attributeParameters['type']) {
-                    $value = $attributeParameters['options'][strtolower($value)];
+                    $value = isset($attributeParameters['options'][strtolower($value)])
+                        ? $attributeParameters['options'][strtolower($value)]
+                        : 0;
                 } elseif ('datetime' == $attributeParameters['type']) {
                     $value = (new \DateTime())->setTimestamp(strtotime($value));
                     $value = $value->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT);
@@ -344,15 +392,20 @@ class Customer extends AbstractCustomer
 
                 // restore 'backend_model' to avoid default setting
                 $attribute->setBackendModel($backendModel);
+            } else {
+                $entityRow[$attributeCode] = $value;
             }
         }
 
-        // password change/set
-        if (isset($rowData['password']) && strlen($rowData['password'])) {
-            $attributesToSave[$passwordStorageTable][$entityId][$passwordAttributeId] = $this->_customerModel
-                ->hashPassword(
-                    $rowData['password']
-                );
+        if ($newCustomer) {
+            // create
+            $entityRow['website_id'] = $this->_websiteCodeToId[$rowData[self::COLUMN_WEBSITE]];
+            $entityRow['email'] = $emailInLowercase;
+            $entityRow['is_active'] = 1;
+            $entitiesToCreate[] = $entityRow;
+        } else {
+            // edit
+            $entitiesToUpdate[] = $entityRow;
         }
 
         return [
@@ -367,6 +420,7 @@ class Customer extends AbstractCustomer
      *
      * @return bool
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function _importData()
     {
@@ -378,6 +432,10 @@ class Customer extends AbstractCustomer
 
             foreach ($bunch as $rowNumber => $rowData) {
                 if (!$this->validateRow($rowData, $rowNumber)) {
+                    continue;
+                }
+                if ($this->getErrorAggregator()->hasToBeTerminated()) {
+                    $this->getErrorAggregator()->addRowToSkip($rowNumber);
                     continue;
                 }
 
@@ -401,6 +459,7 @@ class Customer extends AbstractCustomer
                     }
                 }
             }
+            $this->updateItemsCounterStats($entitiesToCreate, $entitiesToUpdate, $entitiesToDelete);
             /**
              * Save prepared data
              */
@@ -500,5 +559,18 @@ class Customer extends AbstractCustomer
     public function getEntityTable()
     {
         return $this->_entityTable;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getValidColumnNames()
+    {
+        $this->validColumnNames = array_merge(
+            $this->validColumnNames,
+            $this->customerFields
+        );
+
+        return $this->validColumnNames;
     }
 }

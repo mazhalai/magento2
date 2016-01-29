@@ -5,9 +5,10 @@
  */
 namespace Magento\Ui\TemplateEngine\Xhtml\Compiler\Element;
 
-use Magento\Framework\Object;
-use Magento\Ui\TemplateEngine\Xhtml\Compiler;
+use Magento\Framework\DataObject;
 use Magento\Framework\View\Element\UiComponentInterface;
+use Magento\Framework\View\TemplateEngine\Xhtml\CompilerInterface;
+use Magento\Framework\View\TemplateEngine\Xhtml\Compiler\Element\ElementInterface;
 
 /**
  * Class Content
@@ -17,25 +18,26 @@ class Content implements ElementInterface
     /**
      * Compiles the Element node
      *
-     * @param Compiler $compiler
+     * @param CompilerInterface $compiler
      * @param \DOMElement $node
-     * @param UiComponentInterface $component
-     * @param Object $context
+     * @param DataObject $processedObject
+     * @param DataObject $context
      * @return void
      */
     public function compile(
-        Compiler $compiler,
+        CompilerInterface $compiler,
         \DOMElement $node,
-        UiComponentInterface $component,
-        Object $context
+        DataObject $processedObject,
+        DataObject $context
     ) {
         $name = $node->getAttribute('name');
-        $content = (string)$component->renderChildComponent($name);
+        /** @var UiComponentInterface $processedObject */
+        $content = (string)$processedObject->renderChildComponent($name);
         $name .= '_' . sprintf('%x', crc32(spl_object_hash($context)));
         if (!empty($content)) {
             $compiler->setPostprocessingData($name, $content);
             $newNode = $node->ownerDocument->createTextNode(
-                Compiler::PATTERN_TAG . $name . Compiler::PATTERN_TAG
+                CompilerInterface::PATTERN_TAG . $name . CompilerInterface::PATTERN_TAG
             );
             $node->parentNode->replaceChild($newNode, $node);
         } else {

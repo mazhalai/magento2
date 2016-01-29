@@ -8,7 +8,7 @@ namespace Magento\Catalog\Controller\Adminhtml;
 /**
  * Catalog category controller
  */
-class Category extends \Magento\Backend\App\Action
+abstract class Category extends \Magento\Backend\App\Action
 {
     /**
      * Initialize requested category and put it into registry.
@@ -43,10 +43,6 @@ class Category extends \Magento\Backend\App\Action
             }
         }
 
-        $activeTabId = (string)$this->getRequest()->getParam('active_tab_id');
-        if ($activeTabId) {
-            $this->_objectManager->get('Magento\Backend\Model\Auth\Session')->setActiveTabId($activeTabId);
-        }
         $this->_objectManager->get('Magento\Framework\Registry')->register('category', $category);
         $this->_objectManager->get('Magento\Framework\Registry')->register('current_category', $category);
         $this->_objectManager->get('Magento\Cms\Model\Wysiwyg\Config')

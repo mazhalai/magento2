@@ -19,7 +19,7 @@ class Addgroup extends \Magento\Checkout\Controller\Cart
                 ->getCollection()
                 ->addIdFilter($orderItemIds)
                 ->load();
-            /* @var $itemsCollection \Magento\Sales\Model\Resource\Order\Item\Collection */
+            /* @var $itemsCollection \Magento\Sales\Model\ResourceModel\Order\Item\Collection */
             foreach ($itemsCollection as $item) {
                 try {
                     $this->cart->addOrderItem($item, 1);
@@ -30,7 +30,10 @@ class Addgroup extends \Magento\Checkout\Controller\Cart
                         $this->messageManager->addError($e->getMessage());
                     }
                 } catch (\Exception $e) {
-                    $this->messageManager->addException($e, __('We cannot add this item to your shopping cart'));
+                    $this->messageManager->addException(
+                        $e,
+                        __('We can\'t add this item to your shopping cart right now.')
+                    );
                     $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
                     return $this->_goBack();
                 }

@@ -8,10 +8,10 @@ namespace Magento\Customer\Controller\Adminhtml\Cart\Product\Composite;
 /**
  * @magentoAppArea adminhtml
  */
-class CartTest extends \Magento\Backend\Utility\Controller
+class CartTest extends \Magento\TestFramework\TestCase\AbstractBackendController
 {
     /**
-     * @var \Magento\Quote\Model\Resource\Quote\Item\CollectionFactory
+     * @var \Magento\Quote\Model\ResourceModel\Quote\Item\CollectionFactory
      */
     protected $quoteItemCollectionFactory;
 
@@ -19,7 +19,7 @@ class CartTest extends \Magento\Backend\Utility\Controller
     {
         parent::setUp();
         $this->quoteItemCollectionFactory = $this->_objectManager->get(
-            'Magento\Quote\Model\Resource\Quote\Item\CollectionFactory'
+            'Magento\Quote\Model\ResourceModel\Quote\Item\CollectionFactory'
         );
     }
 
