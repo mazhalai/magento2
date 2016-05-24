@@ -51,7 +51,7 @@ class SessionChecker
      */
     public function beforeSendVary(Http $response)
     {
-        if (!$this->session->isLoggedIn()) {
+        if (!$this->session->isLoggedIn() && $this->cookieManager->getCookie('mage-cache-sessid')) {
             $metadata = $this->cookieMetadataFactory->createCookieMetadata();
             $metadata->setPath('/');
             $this->cookieManager->deleteCookie('mage-cache-sessid', $metadata);
