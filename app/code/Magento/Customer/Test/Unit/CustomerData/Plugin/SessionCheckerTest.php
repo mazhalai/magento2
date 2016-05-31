@@ -61,16 +61,19 @@ class SessionCheckerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param bool $result
+     * @param bool $isForLoggedInCustomer
+     * @param string|null $mageCacheSessId
      * @param string $callCount
      * @return void
      * @dataProvider testAfterIsLoggedInDataProvider
      */
-    public function testBeforeSendVary($result, $callCount)
+    public function testBeforeSendVary($isForLoggedInCustomer, $mageCacheSessId, $callCount)
     {
         $this->session->expects($this->once())
             ->method('isLoggedIn')
-            ->willReturn($result);
+            ->willReturn($isForLoggedInCustomer);
+        $this->cookieManager->method('getCookie')
+            ->willReturn($mageCacheSessId);
 
         $this->metadataFactory->expects($this->{$callCount}())
             ->method('createCookieMetadata')
@@ -87,8 +90,10 @@ class SessionCheckerTest extends \PHPUnit_Framework_TestCase
     public function testAfterIsLoggedInDataProvider()
     {
         return [
-            [false, 'once'],
-            [true, 'never']
+            [false, null, 'never'],
+            [false, 'sessid', 'once'],
+            [true, null, 'never'],
+            [true, 'sessid', 'never']
         ];
     }
 }
